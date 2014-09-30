@@ -227,12 +227,13 @@ namespace SpssLib.FileParser
             }
         }
 
-
+		[Obsolete("Use SpssDataset constructor directly")]
         public SpssDataset.SpssDataset ToSpssDataset()
         {
             return new SpssDataset.SpssDataset(this);
         }
 
+		[Obsolete("Use SpssDataReader constructor directly")]
         public IDataReader GetDataReader()
         {
             return new DataReader.SpssDataReader(this);
@@ -304,7 +305,7 @@ namespace SpssLib.FileParser
             }
 
             // Get value labels:
-            var valueLabelRecord = (from record in metaData.ValueLabelRecords where record.Variables.Contains(dictionaryIndex+1) select record).FirstOrDefault();
+            var valueLabelRecord = metaData.ValueLabelRecords.FirstOrDefault(record => record.Variables.Contains(dictionaryIndex + 1));
             
             if (valueLabelRecord != null)
             {
