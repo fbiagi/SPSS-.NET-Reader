@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
 
 namespace SpssLib.SpssDataset
 {
@@ -11,6 +7,13 @@ namespace SpssLib.SpssDataset
         public int DecimalPlaces { get; private set; }
         public int FieldWidth { get; private set; }
         public FormatType FormatType { get; private set; }
+		
+		public OutputFormat(int decimalPlaces, int fieldWidth ,FormatType formatType)
+		{
+			DecimalPlaces = decimalPlaces;
+			FieldWidth = fieldWidth;
+			FormatType = formatType;
+		}
 
         public OutputFormat(Int32 formatValue)
         {
@@ -20,5 +23,14 @@ namespace SpssLib.SpssDataset
             this.FormatType = (FormatType)formatBytes[2];
         }
 
+		public int GetInteger()
+		{
+			byte[] formatBytes = new byte[4];
+			formatBytes[0] = (byte)DecimalPlaces;
+			formatBytes[1] = (byte)FieldWidth;
+			formatBytes[2] = (byte)FormatType;
+
+			return BitConverter.ToInt32(formatBytes, 0);
+		}
     }
 }

@@ -1,13 +1,16 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using SpssLib.FileParser;
 using System.IO;
 
 namespace SpssLib.SpssDataset
 {
+	[Obsolete]
     public class SpssDataset
     {
         public VariablesCollection Variables { get; private set; }
         public RecordCollection Records { get; private set; }
+		// TODO delete
         public RecordCollectionMissingCategoryValuesAsNull RecordsMissingCategoryValuesAsNull { get; private set; }
 
         public SpssDataset()

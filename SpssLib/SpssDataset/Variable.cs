@@ -19,8 +19,9 @@ namespace SpssLib.SpssDataset
         public OutputFormat PrintFormat { get; set; }
         public OutputFormat WriteFormat { get; set; }
         public DataType Type { get; set; }
-        public Collection<double> MissingValues { get; private set;}
-        public Dictionary<double, string> ValueLabels { get; private set; }
+		// TODO this is an oversimplification of missing values. Ranges can't be set like this
+        public ICollection<double> MissingValues { get; set;} 
+        public IDictionary<double, string> ValueLabels { get; set; }
 
         public int Index { get; internal set; }
         

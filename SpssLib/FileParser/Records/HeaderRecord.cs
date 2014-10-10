@@ -1,18 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using SpssLib.DataReader;
 
 namespace SpssLib.FileParser.Records
 {
-    public class HeaderRecord
+    public class HeaderRecord : IBaseRecord
     {
+	    public int RecordType
+	    {
+			get { return 0x324C4624; } // in chars: $FL2 
+	    }
+
         // char[60] prod_name
         public string ProductName { get; private set; }
         public Int32 LayoutCode { get; private set; }
-        public Int32 NominalCaseSize { get; private set; }
+        public Int32 NominalCaseSize { get; set; }
         public bool Compressed { get; private set; }
         public Int32 WeightIndex { get; private set; }
         public Int32 CasesCount { get; private set; }
@@ -27,6 +34,36 @@ namespace SpssLib.FileParser.Records
         private HeaderRecord()
         {
         }
+
+		internal HeaderRecord(SpssOptions options)
+		{
+			var assemblyName = GetType().Assembly.GetName();
+			this.ProductName = ("@(#) SPSS DATA FILE " + assemblyName.Name + " " + assemblyName.Version);
+			this.LayoutCode = 2;
+			this.Compressed = options.Compressed;
+			this.Bias = options.Bias;
+			this.CasesCount = options.Cases;
+			this.CreationDate = DateTime.Now.ToString("dd MMM yy", CultureInfo.InvariantCulture.DateTimeFormat);
+			this.CreationTime = DateTime.Now.ToString("HH:mm:ss", CultureInfo.InvariantCulture.DateTimeFormat);
+			this.FileLabel = options.Label ?? string.Empty;
+			this.Padding = string.Empty;
+		}
+
+	    public void WriteRecord(BinaryWriter writer)
+	    {
+		    writer.Write(RecordType);
+			writer.Write(ProductName.PadRight(60, ' ').Substring(0, 60).ToCharArray());
+			writer.Write(LayoutCode);
+			writer.Write(NominalCaseSize);
+			writer.Write((Int32)(Compressed ? 1 : 0 ));
+			writer.Write(WeightIndex);
+			writer.Write(CasesCount);
+			writer.Write(Bias);
+			writer.Write(CreationDate.Substring(0, 9).ToCharArray());
+			writer.Write(CreationTime.Substring(0, 8).ToCharArray());
+			writer.Write(FileLabel.PadRight(64, ' ').Substring(0, 64).ToCharArray());
+			writer.Write(new byte[3]);
+	    }
 
         public static HeaderRecord ParseNextRecord(BinaryReader reader)
         {            
@@ -46,5 +83,13 @@ namespace SpssLib.FileParser.Records
 
             return record;
         }
+
+	    
     }
+
+	internal interface IBaseRecord
+	{
+		Int32 RecordType { get; }
+		void WriteRecord(BinaryWriter writer);
+	}
 }

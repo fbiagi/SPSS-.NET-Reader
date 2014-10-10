@@ -9,8 +9,9 @@ using System.Collections.ObjectModel;
 
 namespace SpssLib.FileParser.Records
 {
-    public class VariableRecord
+    public class VariableRecord : IBaseRecord
     {
+		public int RecordType { get { return 2; } }
         public Int32 Type { get; private set; }
         public bool HasVariableLabel { get; private set; }
         public Int32 MissingValueCount { get; private set; }
@@ -19,13 +20,62 @@ namespace SpssLib.FileParser.Records
         public string Name { get; private set; }
         public Int32 LabelLength { get; private set; }
         public string Label { get; private set; }
-        public Collection<double> MissingValues { get; private set; }
+        public ICollection<double> MissingValues { get; private set; }
 
         private VariableRecord()
         {
         }
 
-        public static VariableRecord ParseNextRecord(BinaryReader reader)
+		internal VariableRecord(Variable variable)
+		{
+			Type = (int)variable.Type;
+			HasVariableLabel = !string.IsNullOrEmpty(variable.Label);
+
+			MissingValues = variable.MissingValues;
+			// Enforce 3 renge values as max
+			if (MissingValues.Count > 3)
+			{
+				MissingValues = MissingValues.Take(3).ToList();
+			}
+			// TODO change this with actual info about the type of mising values (-2 Range, -3 Range + discrete value)
+			MissingValueCount = variable.MissingValues.Count > 3 ? 3 : variable.MissingValues.Count;
+			PrintFormat = variable.PrintFormat;
+			WriteFormat = variable.WriteFormat;
+
+			Name = variable.ShortName;
+			Label = variable.Label;
+
+		}
+
+	    public void WriteRecord(BinaryWriter writer)
+	    {
+		    writer.Write(RecordType);
+		    writer.Write(Type);
+		    writer.Write(HasVariableLabel ? 1 : 0);
+			writer.Write(MissingValueCount);
+			writer.Write(PrintFormat.GetInteger());
+			writer.Write(WriteFormat.GetInteger());
+			writer.Write(Name.PadRight(8, ' ').Substring(0, 8).ToCharArray());
+
+		    if (HasVariableLabel)
+		    {
+			    var labelBytes = Common.StringToByteArray(Label);
+			    LabelLength = labelBytes.Length;
+			    writer.Write(LabelLength);
+				writer.Write(labelBytes);
+
+				var padding = Common.RoundUp(LabelLength, 4) - LabelLength;
+			    var paddingBytes = new byte[padding].Select(b => (byte) 0x20).ToArray();
+				writer.Write(paddingBytes);
+			}
+
+		    foreach (var missingValue in MissingValues)
+		    {
+			    writer.Write(missingValue);
+		    }
+	    }
+	  
+	    public static VariableRecord ParseNextRecord(BinaryReader reader)
         {
             var record = new VariableRecord();
             record.Type = reader.ReadInt32();

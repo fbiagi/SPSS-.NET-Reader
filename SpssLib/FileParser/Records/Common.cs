@@ -1,4 +1,7 @@
-﻿namespace SpssLib.FileParser.Records
+﻿using System.IO;
+using System.Text;
+
+namespace SpssLib.FileParser.Records
 {
     public class Common
     {
@@ -32,5 +35,20 @@
 
             return encUtf8.GetString(arr);
         }
+
+		// TODO find another way to write non ascii strings
+		public static byte[] StringToByteArray(string arr)
+		{
+			var encUtf8 = Encoding.UTF8;
+			return encUtf8.GetBytes(arr);
+		}
     }
+
+	public static class Extensions
+	{
+		public static void WriteChars(this BinaryWriter writer, string s)
+		{
+			writer.Write(s.ToCharArray());
+		}
+	}
 }

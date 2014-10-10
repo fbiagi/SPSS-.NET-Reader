@@ -1,5 +1,8 @@
-﻿namespace SpssLib.SpssDataset
+﻿using System;
+
+namespace SpssLib.SpssDataset
 {
+	[Obsolete]
     public class RecordMissingCategoryValuesAsNull 
     {
         private readonly object[] _data;

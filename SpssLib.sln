@@ -5,19 +5,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpssLib", "SpssLib\SpssLib.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.SpssLib", "Test.SpssLib\Test.SpssLib.csproj", "{5BED743E-E23F-4F0D-9E44-94B90FE8DF75}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpssLib.Test", "SpssLib.Test\SpssLib.Test.csproj", "{575FE8E0-8883-48D5-8C6F-B37D665EA664}"
+EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 3
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = http://tsmmhtfs801:8080/tfs/cs_tfs
-		SccProjectUniqueName0 = SpssLib\\SpssLib.csproj
-		SccProjectName0 = SpssLib
-		SccLocalPath0 = SpssLib
-		SccLocalPath1 = .
-		SccProjectUniqueName2 = Test.SpssLib\\Test.SpssLib.csproj
-		SccProjectName2 = Test.SpssLib
-		SccLocalPath2 = Test.SpssLib
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -47,6 +37,16 @@ Global
 		{5BED743E-E23F-4F0D-9E44-94B90FE8DF75}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{5BED743E-E23F-4F0D-9E44-94B90FE8DF75}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{5BED743E-E23F-4F0D-9E44-94B90FE8DF75}.Release|x86.ActiveCfg = Release|Any CPU
+		{575FE8E0-8883-48D5-8C6F-B37D665EA664}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{575FE8E0-8883-48D5-8C6F-B37D665EA664}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{575FE8E0-8883-48D5-8C6F-B37D665EA664}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{575FE8E0-8883-48D5-8C6F-B37D665EA664}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{575FE8E0-8883-48D5-8C6F-B37D665EA664}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{575FE8E0-8883-48D5-8C6F-B37D665EA664}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{575FE8E0-8883-48D5-8C6F-B37D665EA664}.Release|Any CPU.Build.0 = Release|Any CPU
+		{575FE8E0-8883-48D5-8C6F-B37D665EA664}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{575FE8E0-8883-48D5-8C6F-B37D665EA664}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{575FE8E0-8883-48D5-8C6F-B37D665EA664}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

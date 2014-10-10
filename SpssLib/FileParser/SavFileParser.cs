@@ -34,7 +34,7 @@ namespace SpssLib.FileParser
             var variableRecords = new List<VariableRecord>();
             var valueLabelRecords = new List<ValueLabelRecord>();
             var infoRecords = new InfoRecords();
-
+			
             RecordType nextRecordType = (RecordType)reader.ReadInt32();
 
             //var counter = 0;
@@ -345,7 +345,7 @@ namespace SpssLib.FileParser
 
         public double SysmisValue { get; set; }
 
-        private void GetVariablesFromRecords()
+		private void GetVariablesFromRecords()
         {
             this.variables = new VariablesCollection();
 

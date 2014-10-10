@@ -28,6 +28,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -48,6 +50,11 @@
   <ItemGroup>
     <Compile Include="Compression\DecompressedDataStream.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="FileParser\Records\DictionaryTerminationRecord.cs" />
+    <Compile Include="FileParser\SavFileWriter.cs" />
+    <Compile Include="DataReader\SpssOptions.cs" />
+    <Compile Include="DataReader\SpssReader.cs" />
+    <Compile Include="DataReader\SpssWriter.cs" />
     <Compile Include="FileParser\MetaData.cs" />
     <Compile Include="FileParser\Records\Common.cs" />
     <Compile Include="FileParser\Records\VariableDataType.cs" />
