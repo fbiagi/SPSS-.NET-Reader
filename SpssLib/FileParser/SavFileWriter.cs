@@ -165,7 +165,7 @@ namespace SpssLib.FileParser
 				}
 				else
 				{
-					_recordWriter.WriteString((string) record[i]);
+					_recordWriter.WriteString((string) record[i], variable.Width);
 				}
 			}
 		}
@@ -296,17 +296,30 @@ namespace SpssLib.FileParser
 		}
 
 		/// <summary>
-		/// Writes bytes to the uncompressed buffer and advances the next available uncompressed index
+		/// Writes bytes to the uncompressed buffer and advances the next available uncompressed index.
+		/// This method will write the block size (8 bytes) allways, padding with space chars if necesary.
 		/// </summary>
-		/// <param name="bytes"></param>
-		private void WriteToBuffer(byte[] bytes)
+		/// <param name="bytes">The byte array to copy from</param>
+		/// <param name="start">The starting position from where to copy</param>
+		private void WriteToBuffer(byte[] bytes, int start = 0)
 		{
-			if (bytes.Length != Constants.BlockByteSize)
+			// Check if an entire block is filled
+			if (bytes.Length - start >= Constants.BlockByteSize)
 			{
-				throw new Exception(string.Format("Buffer balues should be of a block size of {0} bytes", Constants.BlockByteSize));
+				Array.Copy(bytes, start, _uncompressedBuffer, _uncompressedIndex, Constants.BlockByteSize);
 			}
-
-			Array.Copy(bytes, 0, _uncompressedBuffer, _uncompressedIndex, Constants.BlockByteSize);
+			else
+			{
+				// The case for uncomplete blocks can be made when a string finishes
+				// Write all remaining characters
+				var length = bytes.Length - start;
+				Array.Copy(bytes, start, _uncompressedBuffer, _uncompressedIndex, length);
+				// Padd the block with spaces
+				for (int i = _uncompressedIndex + length - Constants.BlockByteSize; i < _uncompressedIndex + Constants.BlockByteSize; i++)
+				{
+					_uncompressedBuffer[i] = 0x20;
+				}
+			}
 			_uncompressedIndex += Constants.BlockByteSize;
 		}
 		
@@ -315,25 +328,61 @@ namespace SpssLib.FileParser
 		/// </summary>
 		private void CheckBlock()
 		{
-			// If the end of a compressed block has been reached
-			if (_blockIndex >= Constants.BlockByteSize)
+			// Check if the end of a compressed block has been reached
+			if (_blockIndex < Constants.BlockByteSize) return;
+			
+			// If there's something on the uncompressed buffer, write it 
+			if (_uncompressedIndex > 0)
 			{
-				// If there's something on the uncompressed buffer, write it 
-				if (_uncompressedIndex > 0)
+				// Write buffer to stream
+				_writer.Write(_uncompressedBuffer, 0, _uncompressedIndex);
+				// Reset uncompresed buffer index
+				_uncompressedIndex = 0;
+			}
+			// Reset compresed block index
+			_blockIndex = 0;
+		}
+
+		public void WriteString(string s, int width)
+		{
+			// TODO proper encoding, must be on header. What happen if encoding for spaces and other has more than 1 byte?
+			var bytes = string.IsNullOrEmpty(s) ? new byte[0] :  Common.StringToByteArray(s);
+			int i = 0;
+			for (; i < bytes.Length && i < width; i+=8)
+			{
+				if (IsSpaceBlock(bytes, i))
 				{
-					// Write buffer to stream
-					_writer.Write(_uncompressedBuffer, 0, _uncompressedIndex);
-					// Reset uncompresed buffer index
-					_uncompressedIndex = 0;
+					WriteCompressedCode(SpaceCharsBlock);
 				}
-				// Reset compresed block index
-				_blockIndex = 0;
+				else
+				{
+					WriteCompressedCode(UncompressedValue);
+					WriteToBuffer(bytes, i);
+				} 
+				CheckBlock();
+			}
+			// Fill remaining with spaces
+			if (i < width)
+			{
+				for (int j = i; j < width; j+=8)
+				{
+					WriteCompressedCode(SpaceCharsBlock);
+					CheckBlock();
+				}
 			}
 		}
 
-		public void WriteString(string s)
+		private bool IsSpaceBlock(byte[] bytes, int i)
 		{
-			throw new NotImplementedException();
+			const byte spaceByte = 0x20;
+			for (int j = i; j < i + 8 && i < bytes.Length; j++)
+			{
+				if (bytes[i] != spaceByte)
+				{
+					return false;
+				}
+			}
+			return true;
 		}
 
 		/// <summary>

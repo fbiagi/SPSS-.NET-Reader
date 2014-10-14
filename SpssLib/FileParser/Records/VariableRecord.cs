@@ -28,7 +28,14 @@ namespace SpssLib.FileParser.Records
 
 		internal VariableRecord(Variable variable)
 		{
-			Type = (int)variable.Type;
+			// if type is numeric, write 0, if not write the string lenght for short string fields
+			Type = variable.Type == 0 ? 0 : variable.PrintFormat.FieldWidth;
+			// TODO for long strings (with long string records) this can be more that 255
+			// Set the max string lenght for the type
+			if (Type > 255)
+			{
+				Type = 255;
+			}
 			HasVariableLabel = !string.IsNullOrEmpty(variable.Label);
 
 			MissingValues = variable.MissingValues;

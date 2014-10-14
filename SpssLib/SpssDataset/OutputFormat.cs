@@ -7,8 +7,8 @@ namespace SpssLib.SpssDataset
         public int DecimalPlaces { get; private set; }
         public int FieldWidth { get; private set; }
         public FormatType FormatType { get; private set; }
-		
-		public OutputFormat(int decimalPlaces, int fieldWidth ,FormatType formatType)
+
+		public OutputFormat(FormatType formatType, int fieldWidth, int decimalPlaces = 0)
 		{
 			DecimalPlaces = decimalPlaces;
 			FieldWidth = fieldWidth;

@@ -18,11 +18,11 @@ namespace SpssLib.FileParser.Records
         }
 
         public static string ByteArrayToString(byte[] arr)
-        {
+        {	// TODO detect actual cude page instead of relying on utf-8 normalization
             //var enc1252 = System.Text.Encoding.GetEncoding(1252);
             //var enc437 = System.Text.Encoding.GetEncoding(437);
             var encUtf8 = System.Text.Encoding.UTF8;
-            //var encUnicode = System.Text.Encoding.Unicode;
+			//var encUnicode = System.Text.Encoding.Unicode;
             //var encBigEndianUnicode = System.Text.Encoding.BigEndianUnicode;
             //var encDefault = Encoding.Default;
 
@@ -36,11 +36,11 @@ namespace SpssLib.FileParser.Records
             return encUtf8.GetString(arr);
         }
 
-		// TODO find another way to write non ascii strings
+		
 		public static byte[] StringToByteArray(string arr)
-		{
-			var encUtf8 = Encoding.UTF8;
-			return encUtf8.GetBytes(arr);
+		{	
+			var enc = Encoding.GetEncoding(1252);
+			return enc.GetBytes(arr);
 		}
     }
 
