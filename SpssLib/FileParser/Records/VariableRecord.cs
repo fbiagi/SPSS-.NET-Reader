@@ -22,15 +22,13 @@ namespace SpssLib.FileParser.Records
         public string Label { get; private set; }
         public ICollection<double> MissingValues { get; private set; }
 
-        private VariableRecord()
-        {
-        }
+	    private VariableRecord()
+	    {}
 
-		internal VariableRecord(Variable variable)
+	    internal VariableRecord(Variable variable)
 		{
 			// if type is numeric, write 0, if not write the string lenght for short string fields
-			Type = variable.Type == 0 ? 0 : variable.PrintFormat.FieldWidth;
-			// TODO for long strings (with long string records) this can be more that 255
+			Type = variable.Type == 0 ? 0 : variable.TextWidth;
 			// Set the max string lenght for the type
 			if (Type > 255)
 			{
@@ -51,7 +49,55 @@ namespace SpssLib.FileParser.Records
 
 			Name = variable.ShortName;
 			Label = variable.Label;
+		}
 
+		/// <summary>
+		/// Creates all variable records needed for this variable
+		/// </summary>
+		/// <returns>
+		///		Only one var for numbers or text of lenght 8 or less, or the 
+		///		main variable definition, followed by string continuation "dummy"
+		///		variables. There should be one for each 8 chars after the first 8.
+		/// </returns>
+		internal static VariableRecord[] GetNeededVaraibles(Variable variable)
+		{
+			var headVariable = new VariableRecord(variable);
+
+			// If it's numeric or a string of lenght 8 or less, no dummy vars are needed
+			if (variable.Type == DataType.Numeric || variable.TextWidth <= 8)
+			{
+				return new []{headVariable};
+			}
+
+			// TODO longer strings not supported by now. need to create multiple vars with name and length (up to 255 by named var)
+			if (variable.TextWidth > 255)
+			{
+				variable.TextWidth = 255;
+			}
+
+			var varCount =  (int)Math.Ceiling(variable.TextWidth/8d);
+			var result = new VariableRecord[varCount];
+			result[0] = headVariable;
+			var dummyVar = GetStringContinuationRecord();
+			for (int i = 1; i < varCount; i++)
+			{
+				result[i] = dummyVar;
+			}
+			return result;
+		}
+
+		/// <summary>
+		/// Creates and returns a variable that contains the info to be written as a continuation of a string 
+		/// variable. 
+		/// This variable is needed imediatelly after text vatiables of more than 8 chars, and there should 
+		/// be one for each 8 bytes of text exiding the first 8
+		/// </summary>
+		private static VariableRecord GetStringContinuationRecord()
+		{
+			return new VariableRecord
+				{
+					Type = -1,
+				};
 		}
 
 	    public void WriteRecord(BinaryWriter writer)
@@ -60,10 +106,18 @@ namespace SpssLib.FileParser.Records
 		    writer.Write(Type);
 		    writer.Write(HasVariableLabel ? 1 : 0);
 			writer.Write(MissingValueCount);
-			writer.Write(PrintFormat.GetInteger());
-			writer.Write(WriteFormat.GetInteger());
-			writer.Write(Name.PadRight(8, ' ').Substring(0, 8).ToCharArray());
+			writer.Write(PrintFormat != null ? PrintFormat.GetInteger() : 0);
+			writer.Write(WriteFormat != null ? WriteFormat.GetInteger() : 0);
 
+			if (Name != null)
+			{
+				writer.Write(Name.PadRight(8, ' ').Substring(0, 8).ToCharArray());
+			}
+			else
+			{
+				writer.Write(new byte[8]);
+			}
+			
 		    if (HasVariableLabel)
 		    {
 			    var labelBytes = Common.StringToByteArray(Label);
@@ -76,10 +130,14 @@ namespace SpssLib.FileParser.Records
 				writer.Write(paddingBytes);
 			}
 
-		    foreach (var missingValue in MissingValues)
-		    {
-			    writer.Write(missingValue);
-		    }
+			if (MissingValues != null)
+			{
+				foreach (var missingValue in MissingValues)
+				{
+					writer.Write(missingValue);
+				}
+			}
+		    
 	    }
 	  
 	    public static VariableRecord ParseNextRecord(BinaryReader reader)

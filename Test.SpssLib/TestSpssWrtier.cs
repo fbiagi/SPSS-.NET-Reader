@@ -104,10 +104,11 @@ namespace Test.SpssLib
 				{
 					Label = "This is a string variable",
 					Name = "stringvar_01",
-					PrintFormat = new OutputFormat(FormatType.A, 7),
-					WriteFormat = new OutputFormat(FormatType.A, 7),
+					PrintFormat = new OutputFormat(FormatType.A, 60), 
+					WriteFormat = new OutputFormat(FormatType.A, 60),
 					Type = DataType.Text,
-					Width = 7
+					Width = 60,
+					TextWidth = 60,
 				};
 
 				var variable2 = new Variable
@@ -144,7 +145,8 @@ namespace Test.SpssLib
 					writer.WriteRecord(newRecord);
 					newRecord = writer.CreateRecord();
 					newRecord[0] = null;
-					newRecord[1] = null;
+					// 300 chars, should be cut to 60
+					newRecord[1] = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec.";
 					newRecord[2] = 200d;
 					writer.WriteRecord(newRecord);
 					writer.EndFile();
