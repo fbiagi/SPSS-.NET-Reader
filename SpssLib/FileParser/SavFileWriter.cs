@@ -17,6 +17,7 @@ namespace SpssLib.FileParser
 		private Variable[] _variables;
 		private IRecordWriter _recordWriter;
 		private long _bias;
+		private bool _compress;
 
 		public SavFileWriter(Stream output)
 		{
@@ -27,6 +28,7 @@ namespace SpssLib.FileParser
 		// TODO split this method, is way too long now
 		public void WriteFileHeader(SpssOptions options, ICollection<Variable> variables)
 		{
+			_compress = options.Compressed;
 			_bias = options.Bias;
 			_variables = variables.ToArray();
 			var headerRecords = new List<IBaseRecord>();
@@ -141,8 +143,14 @@ namespace SpssLib.FileParser
 		{
 			if (_recordWriter == null)
 			{
-				// TODO: support uncompressed writing. implement normal writer
-				_recordWriter = new CompressedRecordWriter(_writer, _bias, double.MinValue); // TODO: repleace with correct SysMiss value
+				if (_compress)
+				{
+					_recordWriter = new CompressedRecordWriter(_writer, _bias, double.MinValue); // TODO: repleace with correct SysMiss value
+				}
+				else
+				{
+					throw new NotImplementedException("Uncompressed data writing is not yet implemented. Please set compressed to true");
+				}
 			}
 
 			for (int i = 0; i < _variables.Length; i++)
