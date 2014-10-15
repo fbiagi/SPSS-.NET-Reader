@@ -143,6 +143,13 @@ namespace Test.SpssLib
 					newRecord[1] = "adsf ñlkj";
 					newRecord[2] = 15.5d;
 					writer.WriteRecord(newRecord);
+					
+					newRecord = writer.CreateRecord();
+					newRecord[0] = 150d;
+					newRecord[1] = null;
+					newRecord[2] = 150d;
+					writer.WriteRecord(newRecord);
+					
 					newRecord = writer.CreateRecord();
 					newRecord[0] = null;
 					// 300 chars, should be cut to 60

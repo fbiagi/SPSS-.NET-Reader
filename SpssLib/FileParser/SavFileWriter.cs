@@ -33,7 +33,6 @@ namespace SpssLib.FileParser
 			var headerRecords = new List<IBaseRecord>();
 
 			var header = new HeaderRecord(options);
-			header.NominalCaseSize = variables.Count;
 			headerRecords.Add(header);
 
 			var variableRecords = new List<VariableRecord>();
@@ -48,13 +47,15 @@ namespace SpssLib.FileParser
 			{
 				SetShortVariableName(variable, variableRecords);
 
-				var record = new VariableRecord(variable);
-				variableRecords.Add(record);
+				int dictionaryIndex = variableRecords.Count + 1;
+
+				var records = VariableRecord.GetNeededVaraibles(variable);
+				variableRecords.AddRange(records);
 
 				// Check if a longNameVariableRecord is needed
-				if (record.Name != variable.Name)
+				if (records[0].Name != variable.Name)
 				{
-					variableLongNames.Add(record.Name, variable.Name);
+					variableLongNames.Add(records[0].Name, variable.Name);
 				}
 
 				// TODO Avoid repeating the same valueLabels on the file
@@ -62,11 +63,12 @@ namespace SpssLib.FileParser
 				if (variable.ValueLabels != null && variable.ValueLabels.Any())
 				{
 					var valueLabel = new ValueLabel(variable.ValueLabels);
-					valueLabel.VariableIndex.Add(variableRecords.Count); // TODO add & use a special counter for var Dictionary Index
+					valueLabel.VariableIndex.Add(dictionaryIndex); 
 					valueLabels.Add(valueLabel);
 				}
 			}
 
+			header.NominalCaseSize = variableRecords.Count;
 			headerRecords.AddRange(variableRecords.Cast<IBaseRecord>());
 
 			foreach (var valueLabel in valueLabels)
@@ -315,7 +317,7 @@ namespace SpssLib.FileParser
 				var length = bytes.Length - start;
 				Array.Copy(bytes, start, _uncompressedBuffer, _uncompressedIndex, length);
 				// Padd the block with spaces
-				for (int i = _uncompressedIndex + length - Constants.BlockByteSize; i < _uncompressedIndex + Constants.BlockByteSize; i++)
+				for (int i = _uncompressedIndex + length; i < _uncompressedIndex + Constants.BlockByteSize; i++)
 				{
 					_uncompressedBuffer[i] = 0x20;
 				}
