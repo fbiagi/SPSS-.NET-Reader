@@ -50,6 +50,8 @@
   <ItemGroup>
     <Compile Include="Compression\DecompressedDataStream.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="FileParser\CompressedRecordWriter.cs" />
+    <Compile Include="FileParser\IRecordWriter.cs" />
     <Compile Include="FileParser\Records\DictionaryTerminationRecord.cs" />
     <Compile Include="FileParser\SavFileWriter.cs" />
     <Compile Include="DataReader\SpssOptions.cs" />
