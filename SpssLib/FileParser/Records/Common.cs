@@ -18,7 +18,7 @@ namespace SpssLib.FileParser.Records
         }
 
         public static string ByteArrayToString(byte[] arr)
-        {	// TODO detect actual cude page instead of relying on utf-8 normalization
+        {	// TODO detect actual code page instead of relying on utf-8 normalization
             //var enc1252 = System.Text.Encoding.GetEncoding(1252);
             //var enc437 = System.Text.Encoding.GetEncoding(437);
             var encUtf8 = System.Text.Encoding.UTF8;
@@ -38,8 +38,8 @@ namespace SpssLib.FileParser.Records
 
 		
 		public static byte[] StringToByteArray(string arr)
-		{	
-			var enc = Encoding.GetEncoding(1252);
+		{
+			var enc = Encoding.UTF8;
 			return enc.GetBytes(arr);
 		}
     }

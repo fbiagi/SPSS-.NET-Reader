@@ -22,28 +22,80 @@ namespace SpssLib.FileParser
 		public SavFileWriter(Stream output)
 		{
 			_output = output;
+			// TODO set system constant with file format base encoding
 			_writer = new BinaryWriter(_output, Encoding.ASCII);
 		}
 
-		// TODO split this method, is way too long now
 		public void WriteFileHeader(SpssOptions options, ICollection<Variable> variables)
 		{
 			_compress = options.Compressed;
 			_bias = options.Bias;
 			_variables = variables.ToArray();
+			var encoding = Encoding.UTF8; // TODO allow to change encoding, and reflec changes on headers & data writing
 			var headerRecords = new List<IBaseRecord>();
 
-			var header = new HeaderRecord(options);
-			headerRecords.Add(header);
+			// SPSS file header
+			headerRecords.Add(new HeaderRecord(options));
 
-			var variableRecords = new List<VariableRecord>();
-			var valueLabels = new List<ValueLabel>();
-			// TODO: Machine Integer info
+			// Process all variable info
+			var variableLongNames = new Dictionary<string, string>();
+			SetVaraibles(headerRecords, variableLongNames);
+
+			// Integer & encoding info
+			var intInfoRecord = new MachineIntegerInfoRecord(encoding);
+			headerRecords.Add(intInfoRecord);
+			
+			// Variable Long names (as info record)
+			if (variableLongNames.Any())
+			{
+				var longNameRecord = new LongVariableNamesRecord(variableLongNames);
+				headerRecords.Add(longNameRecord);
+			}
+
 			// TODO: Machine Floating point info
 			// TODO: Very Long String Record.
 			// TODO: Variable display parameter record.
-			var variableLongNames = new Dictionary<string, string>();
 
+			// Char encoding info record (for data)
+			var charEncodingRecord = new CharacterEncodingRecord(encoding);
+			headerRecords.Add(charEncodingRecord);
+			
+			// End of the info records
+			headerRecords.Add(new DictionaryTerminationRecord());
+
+
+			// Write all of header, variable and info records
+			foreach (var headerRecord in headerRecords)
+			{
+				headerRecord.WriteRecord(_writer);
+			}
+		}
+
+		private void SetVaraibles(List<IBaseRecord> headerRecords, IDictionary<string, string> variableLongNames)
+		{
+			var variableRecords = new List<VariableRecord>();
+			var valueLabels = new List<ValueLabel>();
+
+			// Read the variables and create the needed records
+			ProcessVariables(variableLongNames, variableRecords, valueLabels);
+			headerRecords.AddRange(variableRecords.Cast<IBaseRecord>());
+			
+			// Set the count of varaibles as "nominal case size" on the HeaderRecord
+			var header = headerRecords.OfType<HeaderRecord>().First();
+			header.NominalCaseSize = variableRecords.Count;
+
+			SetValueLabels(headerRecords, valueLabels);
+		}
+
+		private static void SetValueLabels(List<IBaseRecord> headerRecords, List<ValueLabel> valueLabels)
+		{
+			headerRecords.AddRange(valueLabels
+									.Select(vl => new ValueLabelRecord(vl))
+									.Cast<IBaseRecord>());
+		}
+
+		private void ProcessVariables(IDictionary<string, string> variableLongNames, List<VariableRecord> variableRecords, List<ValueLabel> valueLabels)
+		{
 			foreach (var variable in _variables)
 			{
 				SetShortVariableName(variable, variableRecords);
@@ -64,31 +116,9 @@ namespace SpssLib.FileParser
 				if (variable.ValueLabels != null && variable.ValueLabels.Any())
 				{
 					var valueLabel = new ValueLabel(variable.ValueLabels);
-					valueLabel.VariableIndex.Add(dictionaryIndex); 
+					valueLabel.VariableIndex.Add(dictionaryIndex);
 					valueLabels.Add(valueLabel);
 				}
-			}
-
-			header.NominalCaseSize = variableRecords.Count;
-			headerRecords.AddRange(variableRecords.Cast<IBaseRecord>());
-
-			foreach (var valueLabel in valueLabels)
-			{
-				var valueLabelRecord = new ValueLabelRecord(valueLabel);
-				headerRecords.Add(valueLabelRecord);
-			}
-			
-			if (variableLongNames.Any())
-			{
-				var longNameRecord = new LongVariableNamesRecord(variableLongNames);
-				headerRecords.Add(longNameRecord);
-			}
-
-			headerRecords.Add(new DictionaryTerminationRecord());
-
-			foreach (var headerRecord in headerRecords)
-			{
-				headerRecord.WriteRecord(_writer);
 			}
 		}
 
