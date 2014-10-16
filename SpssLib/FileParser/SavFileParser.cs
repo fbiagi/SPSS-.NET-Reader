@@ -226,7 +226,7 @@ namespace SpssLib.FileParser
                 yield return stringBuilder.ToString();
             }
         }
-
+		
 		[Obsolete("Use SpssDataset constructor directly")]
         public SpssDataset.SpssDataset ToSpssDataset()
         {
@@ -292,10 +292,12 @@ namespace SpssLib.FileParser
             var variableRecord = metaData.VariableRecords[dictionaryIndex];
             variable.ShortName = variableRecord.Name;
             variable.Label = variableRecord.HasVariableLabel ? variable.Label = variableRecord.Label : null;
-            foreach (var missing in variableRecord.MissingValues)
-            {
-                variable.MissingValues.Add(missing);
-            }
+	        variable.MissingValueType = variableRecord.MissingValueType;
+	        for (int i = 0; i < variableRecord.MissingValues.Count && i < variable.MissingValues.Length; i++)
+	        {
+		        variable.MissingValues[i] = variableRecord.MissingValues[i];
+	        }
+
             variable.PrintFormat = variableRecord.PrintFormat;
             variable.WriteFormat = variableRecord.WriteFormat;
             variable.Type = variableRecord.Type == 0 ? DataType.Numeric : DataType.Text;

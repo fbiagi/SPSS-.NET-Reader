@@ -24,5 +24,17 @@
                 return this[variable.Index];
             }
         }
+
+		/// <summary>
+		/// Gets the value of a variable for this record. This method takes into account the varaible
+		/// missing values.
+		/// </summary>
+		/// <param name="variable"></param>
+		/// <returns></returns>
+		public object GetValue(Variable variable)
+		{
+			var value = this[variable];
+			return variable.GetValue(value);
+		}
     }
 }

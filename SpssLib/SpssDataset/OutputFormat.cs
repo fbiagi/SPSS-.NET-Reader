@@ -15,12 +15,12 @@ namespace SpssLib.SpssDataset
 			FormatType = formatType;
 		}
 
-        public OutputFormat(Int32 formatValue)
+        internal OutputFormat(Int32 formatValue)
         {
             byte[] formatBytes = BitConverter.GetBytes(formatValue);
-            this.DecimalPlaces = (int)formatBytes[0];
-            this.FieldWidth = (int)formatBytes[1];
-            this.FormatType = (FormatType)formatBytes[2];
+            DecimalPlaces = formatBytes[0];
+            FieldWidth = formatBytes[1];
+            FormatType = (FormatType)formatBytes[2];
         }
 
 		public int GetInteger()

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpssLib.DataReader;
 using SpssLib.SpssDataset;
@@ -31,12 +27,13 @@ namespace Test.SpssLib
 								{2, "Label for 2"},
 							},
 						Name = "avariablename_01",
-						PrintFormat = new OutputFormat(0x00050802), // TODO improve the output format creation
-						WriteFormat = new OutputFormat(0x00050802),
+						PrintFormat = new OutputFormat(FormatType.F, 8, 2), 
+						WriteFormat = new OutputFormat(FormatType.F, 8, 2), 
 						Type = DataType.Numeric,
 						Width = 10,
-						MissingValues = new List<double>{999},
+						MissingValueType = 1
 					};
+				variable1.MissingValues[0] = 999;
 				var variable2 = new Variable
 					{
 						Label = "Another variable",
@@ -46,13 +43,13 @@ namespace Test.SpssLib
 									{2, "this is 2"},
 								},
 						Name = "avariablename_02",
-						PrintFormat = new OutputFormat(0x00050802),
-						WriteFormat = new OutputFormat(0x00050802),
+						PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+						WriteFormat = new OutputFormat(FormatType.F, 8, 2), 
 						Type = DataType.Numeric,
 						Width = 10,
-						MissingValues = new List<double>{999},
+						MissingValueType = 1
 					};
-
+				variable2.MissingValues[0] = 999;
 				var variables = new List<Variable>
 					{
 						variable1,
@@ -93,12 +90,13 @@ namespace Test.SpssLib
 								{2, "Label for 2"},
 							},
 					Name = "avariablename_01",
-					PrintFormat = new OutputFormat(0x00050802), // TODO improve the output format creation
-					WriteFormat = new OutputFormat(0x00050802),
+					PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+					WriteFormat = new OutputFormat(FormatType.F, 8, 2), 
 					Type = DataType.Numeric,
 					Width = 10,
-					MissingValues = new List<double> { 999 },
+					MissingValueType = 1
 				};
+				variable1.MissingValues[0] = 999;
 
 				var varString = new Variable
 				{
@@ -120,12 +118,13 @@ namespace Test.SpssLib
 									{2, "this is 2"},
 								},
 					Name = "avariablename_02",
-					PrintFormat = new OutputFormat(0x00050802),
-					WriteFormat = new OutputFormat(0x00050802),
+					PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+					WriteFormat = new OutputFormat(FormatType.F, 8, 2), 
 					Type = DataType.Numeric,
 					Width = 10,
-					MissingValues = new List<double> { 999 },
+					MissingValueType = 1
 				};
+				variable2.MissingValues[0] = 999;
 
 				var variables = new List<Variable>
 					{
