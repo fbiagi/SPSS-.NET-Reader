@@ -157,7 +157,7 @@ namespace SpssLib.FileParser
             return record;            
         }
 
-        public object ValueToObject(byte[] value, VariableRecord variable)
+		public object ValueToObject(byte[] value, VariableRecord variable)
         {
             if (variable.Type == 0)
             {
