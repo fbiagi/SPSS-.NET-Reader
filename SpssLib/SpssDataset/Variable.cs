@@ -74,6 +74,12 @@ namespace SpssLib.SpssDataset
 			return _epoc.AddSeconds(dVal);
 		}
 
+		public static double GetValueFromDate(DateTime date)
+		{
+			var span = date.Subtract(_epoc);
+			return span.TotalSeconds;
+		}
+
 	    private object GetWithMissingValueAsNull(object value)
 	    {
 			// ReSharper disable CompareOfFloatsByEqualityOperator
