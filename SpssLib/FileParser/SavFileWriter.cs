@@ -200,7 +200,7 @@ namespace SpssLib.FileParser
 				}
 				else
 				{
-					_recordWriter.WriteString((string) record[i], variable.Width);
+					_recordWriter.WriteString((string) record[i], variable.TextWidth);
 				}
 			}
 		}
