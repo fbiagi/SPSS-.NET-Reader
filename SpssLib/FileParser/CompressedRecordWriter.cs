@@ -63,6 +63,7 @@ namespace SpssLib.FileParser
 		public void WriteSysMiss()
 		{
 			WriteCompressedCode(SysmissCode);
+			CheckBlock();
 		}
 
 		/// <summary>
