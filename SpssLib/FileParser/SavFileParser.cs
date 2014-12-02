@@ -19,7 +19,7 @@ namespace SpssLib.FileParser
 
         private BinaryReader reader;
         private Stream dataRecordStream;
-        private long dataStartPosition;
+        private long dataStartPosition = 0;
 
         public SavFileParser(Stream fileStream)
         {
@@ -78,7 +78,15 @@ namespace SpssLib.FileParser
             // Filler Record
             reader.ReadInt32();
 
-            this.dataStartPosition = this.Stream.Position;
+	        try
+	        {
+				this.dataStartPosition = this.Stream.Position;
+	        }
+	        catch (NotSupportedException)
+	        {
+				// Some stream types don't support the Position property
+				this.dataStartPosition = 0;
+	        }
             
             this.MetaData = meta;
             SetDataRecordStream();
@@ -110,17 +118,34 @@ namespace SpssLib.FileParser
                 }
                 lock (this.Stream)
                 {
-                    if (this.Stream.Position != dataStartPosition)
+                    if (dataStartPosition != 0)
                     {
-                        if (this.Stream.CanSeek)
-                        {
-                            this.Stream.Seek(dataStartPosition, 0);
-                        }
-                        else
-                        {
-                            throw new NotSupportedException("Re-reading the data is not allowed on this stream because it doesn't allow seeking.");
-                        }
-                    }
+	                    long position;
+	                    try
+	                    {
+		                    position = this.Stream.Position;
+	                    }
+	                    catch (NotSupportedException ex)
+	                    {
+							throw new NotSupportedException("Re-reading the data is not allowed on this stream because it doesn't support position.", ex);
+	                    }
+						if (position != dataStartPosition)
+						{
+							if (this.Stream.CanSeek)
+							{
+								this.Stream.Seek(dataStartPosition, 0);
+							}
+							else
+							{
+								throw new NotSupportedException("Re-reading the data is not allowed on this stream because it doesn't allow seeking.");
+							}
+						}
+					}
+					else if (dataStartPosition != 0)
+					{
+						// If position could not be read initialy, set as -1 to avoid start reading the records again with out rewinding the stream
+						dataStartPosition = -1;
+					}
 
                     byte[][] record = ReadNextDataRecord();
                     while (record != null)
