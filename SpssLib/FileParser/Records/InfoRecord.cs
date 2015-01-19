@@ -18,6 +18,14 @@ namespace SpssLib.FileParser.Records
         {
         }
 
+        internal InfoRecord(int subtype, int itemSize, int itemCount, Collection<byte[]> items)
+        {
+            SubType = subtype;
+            ItemSize = itemSize;
+            ItemCount = itemCount;
+            Items = items;
+        }
+
         public static InfoRecord ParseNextRecord(BinaryReader reader)
         {
             var record = new InfoRecord();

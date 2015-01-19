@@ -73,7 +73,9 @@ namespace SpssLib.FileParser
             // Interpret known inforecords:
             infoRecords.ReadKnownRecords(meta.VariableCount);
             meta.InfoRecords = infoRecords;
-            this.SysmisValue = meta.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue;
+            this.SysmisValue = meta.InfoRecords.MachineFloatingPointInfoRecord != null 
+                                    ? meta.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue
+                                    : double.MinValue;
             
             // Filler Record
             reader.ReadInt32();
@@ -98,7 +100,9 @@ namespace SpssLib.FileParser
             if (this.MetaData.HeaderRecord.Compressed)
             {
                 var bias = this.MetaData.HeaderRecord.Bias;
-                var systemMissingValue = this.MetaData.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue;
+                var systemMissingValue = MetaData.InfoRecords.MachineFloatingPointInfoRecord != null
+                                            ? MetaData.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue
+                                            : double.MinValue;
                 this.dataRecordStream = new Compression.DecompressedDataStream(this.Stream, bias, systemMissingValue);
             }
             else
@@ -187,7 +191,7 @@ namespace SpssLib.FileParser
             if (variable.Type == 0)
             {
                 var doubleValue = BitConverter.ToDouble(value, 0);
-                if (doubleValue == this.SysmisValue)
+                if (doubleValue == SysmisValue)
                 {
                     return null;
                 }
@@ -227,7 +231,7 @@ namespace SpssLib.FileParser
                 {
                     // Return numeric value
                     var value =  BitConverter.ToDouble(element, 0);
-                    if (value == this.MetaData.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue)
+                    if (value == SysmisValue)
                     {
                         yield return null;
                     }
@@ -343,10 +347,21 @@ namespace SpssLib.FileParser
             }
 
             // Get display info:
-            var displayInfo = metaData.InfoRecords.VariableDisplayParameterRecord.VariableDisplayEntries[variableIndex];
-            variable.Alignment = displayInfo.Alignment;
-            variable.MeasurementType = displayInfo.MeasurementType;
-            variable.Width = displayInfo.Width;
+            if (metaData.InfoRecords.VariableDisplayParameterRecord  != null)
+            {
+                var displayInfo = metaData.InfoRecords.VariableDisplayParameterRecord.VariableDisplayEntries[variableIndex];
+                variable.Alignment = displayInfo.Alignment;
+                variable.MeasurementType = displayInfo.MeasurementType;
+                variable.Width = displayInfo.Width;
+            }
+            else
+            {
+                // defaults
+                variable.Alignment = Alignment.Right;
+                variable.MeasurementType = MeasurementType.Scale;
+                variable.Width = variable.PrintFormat.FieldWidth;
+            }
+            
 
             // Get (optional) long variable name:
             if (metaData.InfoRecords.LongVariableNamesRecord != null)
