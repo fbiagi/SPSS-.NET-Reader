@@ -29,21 +29,20 @@ namespace SpssLib.FileParser
         public void ParseMetaData()
         {
             var meta = new MetaData();
-            reader = new BinaryReader(this.Stream, Encoding.ASCII);
+            reader = new BinaryReader(Stream, Encoding.ASCII);
 
             var variableRecords = new List<VariableRecord>();
             var valueLabelRecords = new List<ValueLabelRecord>();
             var infoRecords = new InfoRecords();
-			
-            RecordType nextRecordType = (RecordType)reader.ReadInt32();
 
             //var counter = 0;
-            while (nextRecordType != RecordType.End)
+            RecordType nextRecordType;
+            do
             {
                 //Counter is only for hunting bugs to identify the stopper input
                 //counter++;
                 //Console.WriteLine("{0} {1}", counter, nextRecordType);
-                
+                nextRecordType = ReadRecordType();
                 switch (nextRecordType)
                 {
                     case RecordType.HeaderRecord:
@@ -61,11 +60,13 @@ namespace SpssLib.FileParser
                     case RecordType.InfoRecord:
                         infoRecords.AllRecords.Add(InfoRecord.ParseNextRecord(reader));
                         break;
+                    case RecordType.End:
+                        break;
                     default:
                         throw new UnexpectedFileFormatException();
                 }
-                nextRecordType = (RecordType)reader.ReadInt32();
-            }
+                //nextRecordType = ReadRecordType(reader);
+            } while (nextRecordType != RecordType.End);
 
             meta.VariableRecords = new Collection<VariableRecord>(variableRecords);
             meta.ValueLabelRecords = new Collection<ValueLabelRecord>(valueLabelRecords);
@@ -94,6 +95,18 @@ namespace SpssLib.FileParser
             SetDataRecordStream();
             this.MetaDataParsed = true;
         }
+
+        private RecordType ReadRecordType()
+        {
+            int recordTypeNum = reader.ReadInt32();
+            if (!Enum.IsDefined(typeof (RecordType), recordTypeNum))
+            {
+                throw new UnexpectedFileFormatException("Record type not recognized: "+recordTypeNum);
+            }
+
+            return (RecordType)Enum.ToObject(typeof(RecordType), recordTypeNum);
+        }
+
 
         private void SetDataRecordStream()
         {
