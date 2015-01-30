@@ -102,7 +102,7 @@ namespace SpssLib.FileParser
 			double val = d + _bias;
 
 			// Is compressible if the value + bias is between  1 and 251 and it's and integer value
-			if (val > Padding && val <= EndOfFile && (val % 1) == 0)
+			if (val > Padding && val < EndOfFile && (val % 1) == 0)
 			{
 				WriteCompressedCode((byte)val);
 				return true;
