@@ -32,7 +32,7 @@ namespace SpssLib.FileParser
 			_bias = options.Bias;
 			_variables = variables.ToArray();
 			var encoding = Encoding.UTF8; // TODO allow to change encoding, and reflec changes on headers & data writing
-			var headerRecords = new List<IBaseRecord>();
+			var headerRecords = new List<IRecord>();
 
 			// SPSS file header
 			headerRecords.Add(new HeaderRecord(options));
@@ -52,7 +52,6 @@ namespace SpssLib.FileParser
 				headerRecords.Add(longNameRecord);
 			}
 
-			// TODO: Machine Floating point info
 			// TODO: Very Long String Record.
 			// TODO: Variable display parameter record.
 
@@ -71,14 +70,14 @@ namespace SpssLib.FileParser
 			}
 		}
 
-		private void SetVaraibles(List<IBaseRecord> headerRecords, IDictionary<string, string> variableLongNames)
+		private void SetVaraibles(List<IRecord> headerRecords, IDictionary<string, string> variableLongNames)
 		{
 			var variableRecords = new List<VariableRecord>();
 			var valueLabels = new List<ValueLabel>();
 
 			// Read the variables and create the needed records
 			ProcessVariables(variableLongNames, variableRecords, valueLabels);
-			headerRecords.AddRange(variableRecords.Cast<IBaseRecord>());
+			headerRecords.AddRange(variableRecords.Cast<IRecord>());
 			
 			// Set the count of varaibles as "nominal case size" on the HeaderRecord
 			var header = headerRecords.OfType<HeaderRecord>().First();
@@ -87,11 +86,11 @@ namespace SpssLib.FileParser
 			SetValueLabels(headerRecords, valueLabels);
 		}
 
-		private static void SetValueLabels(List<IBaseRecord> headerRecords, List<ValueLabel> valueLabels)
+		private static void SetValueLabels(List<IRecord> headerRecords, List<ValueLabel> valueLabels)
 		{
 			headerRecords.AddRange(valueLabels
 									.Select(vl => new ValueLabelRecord(vl))
-									.Cast<IBaseRecord>());
+									.Cast<IRecord>());
 		}
 
 		private void ProcessVariables(IDictionary<string, string> variableLongNames, List<VariableRecord> variableRecords, List<ValueLabel> valueLabels)

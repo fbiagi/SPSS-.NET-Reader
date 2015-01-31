@@ -8,18 +8,17 @@ namespace SpssLib.DataReader
 {
     public class SpssDataReader: IDataReader
     {
-        FileParser.SavFileParser parser;
+        SavFileParser parser;
         byte[][] currentRecord;
-        private double? _sysMissValue;
-
-        public SpssDataReader(FileParser.SavFileParser parser)
+        
+        public SpssDataReader(SavFileParser parser)
         {
             this.parser = parser;
         }
 
         public SpssDataReader(Stream spssFileStream)
         {
-            this.parser = new FileParser.SavFileParser(spssFileStream);
+            this.parser = new SavFileParser(spssFileStream);
         }
 
         public MetaData FileMetaData
@@ -37,12 +36,7 @@ namespace SpssLib.DataReader
         {
             get
             {
-                if (!_sysMissValue.HasValue)
-                {
-                    var flInfo = FileMetaData.InfoRecords.MachineFloatingPointInfoRecord;
-                    _sysMissValue = flInfo != null ? flInfo.SystemMissingValue : double.MinValue;
-                }
-                return _sysMissValue.Value;
+                return FileMetaData.SystemMissingValue;
             }
         }
 

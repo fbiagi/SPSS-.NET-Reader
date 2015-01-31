@@ -7,9 +7,9 @@ using System.Linq;
 namespace SpssLib.FileParser.Records
 {
     // RecordType == 3
-    public class ValueLabelRecord : IBaseRecord
+    public class ValueLabelRecord : IRecord
     {
-		public int RecordType { get { return 3; } }
+		public RecordType RecordType { get { return RecordType.ValueLabelRecord; } }
         public Int32 LabelCount { get; private set; }
         public IDictionary<byte[], string> Labels { get; private set; }
         public Int32 VarCount { get; private set; }
@@ -24,11 +24,11 @@ namespace SpssLib.FileParser.Records
 		    Variables = valueLabel.VariableIndex;
 	    }
 
-	    private ValueLabelRecord(){}
+	    internal ValueLabelRecord(){}
 
 		public void WriteRecord(BinaryWriter writer)
 		{
-			writer.Write(RecordType);
+			writer.Write((int)RecordType);
 			writer.Write(LabelCount);
 			foreach (var label in Labels)
 			{
@@ -53,44 +53,49 @@ namespace SpssLib.FileParser.Records
 			}
 		}
 
+        [Obsolete]
 	    public static ValueLabelRecord ParseNextRecord(BinaryReader reader)
         {
             var record = new ValueLabelRecord();
+            record.FillRecord(reader);
+	        return record;
+        }
 
-            record.LabelCount = reader.ReadInt32();
-            record.Labels = new Dictionary<byte[], string>();
+        public void FillRecord(BinaryReader reader)
+        {
+            LabelCount = reader.ReadInt32();
+            Labels = new Dictionary<byte[], string>();
 
-            for (int i = 0; i < record.LabelCount; i++)
+            for (int i = 0; i < LabelCount; i++)
             {
                 byte[] value = reader.ReadBytes(8);
-                int labelLength = (int)reader.ReadByte();
+                int labelLength = reader.ReadByte();
 
-				// TODO replace with the read of labelLengh and the padding bytes as in the write method
-                int labelBytes = (((((labelLength) / 8) + 1) * 8) - 1); 
+                // TODO replace with the read of labelLengh and the padding bytes as in the write method
+                int labelBytes = (((((labelLength)/8) + 1)*8) - 1);
                 byte[] chars = reader.ReadBytes(labelBytes);
 
-                string label = Common.ByteArrayToString(chars); 
-               
-                record.Labels.Add(
+                string label = Common.ByteArrayToString(chars);
+
+                Labels.Add(
                     value,
                     label);
             }
 
             // Parse the adjecent ValueLabelVariablesRecord as well:
-            RecordType type = (RecordType)reader.ReadInt32();
+            // TODO improve conversion to enum, as in SavFileParser
+            RecordType type = (RecordType) reader.ReadInt32();
 
-			if (type != Records.RecordType.ValueLabelVariablesRecord)
+            if (type != RecordType.ValueLabelVariablesRecord)
                 throw new UnexpectedFileFormatException();
 
-            record.VarCount = reader.ReadInt32();
-            record.Variables = new Collection<int>();
+            VarCount = reader.ReadInt32();
+            Variables = new Collection<int>();
 
-            for (int i = 0; i < record.VarCount; i++)
+            for (int i = 0; i < VarCount; i++)
             {
-                record.Variables.Add(reader.ReadInt32());
+                Variables.Add(reader.ReadInt32());
             }
-
-            return record;
         }
     }
 }

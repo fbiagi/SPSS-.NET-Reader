@@ -6,14 +6,21 @@ namespace SpssLib.FileParser.Records
 	/// Record type to signal the start of the data records
 	/// it has two bytes the record type and a filler
 	/// </summary>
-	class DictionaryTerminationRecord : IBaseRecord
+	class DictionaryTerminationRecord : IRecord
 	{
-		public int RecordType { get { return 999; } }
+		public RecordType RecordType { get { return RecordType.End; } }
 
 		public void WriteRecord(BinaryWriter writer)
 		{
-			writer.Write(RecordType);
-			writer.Write(0); // filler
+			writer.Write((int)RecordType);
+            // write filler
+			writer.Write(0); 
 		}
+
+	    public void FillRecord(BinaryReader reader)
+	    {
+            // skip filler
+	        reader.ReadInt32();
+	    }
 	}
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using System.Collections.ObjectModel;
+using SpssLib.Compression;
 using SpssLib.FileParser.Records;
 using System.Data;
 using SpssLib.SpssDataset;
@@ -28,66 +28,39 @@ namespace SpssLib.FileParser
 
         public void ParseMetaData()
         {
-            var meta = new MetaData();
             reader = new BinaryReader(Stream, Encoding.ASCII);
 
-            var variableRecords = new List<VariableRecord>();
-            var valueLabelRecords = new List<ValueLabelRecord>();
-            var infoRecords = new InfoRecords();
-
-            //var counter = 0;
-            RecordType nextRecordType;
+            var parsers = new ParserProvider();
+            IList<IRecord> records = new List<IRecord>(1000);
+            
+            RecordType readRecordType;
             do
             {
-                //Counter is only for hunting bugs to identify the stopper input
-                //counter++;
-                //Console.WriteLine("{0} {1}", counter, nextRecordType);
-                nextRecordType = ReadRecordType();
-                switch (nextRecordType)
-                {
-                    case RecordType.HeaderRecord:
-                        meta.HeaderRecord = HeaderRecord.ParseNextRecord(reader);
-                        break;
-                    case RecordType.VariableRecord:
-                        variableRecords.Add(VariableRecord.ParseNextRecord(reader));
-                        break;
-                    case RecordType.ValueLabelRecord:
-                        valueLabelRecords.Add(ValueLabelRecord.ParseNextRecord(reader));
-                        break;
-                    case RecordType.DocumentRecord:
-                        meta.DocumentRecord = DocumentRecord.ParseNextRecord(reader);
-                        break;
-                    case RecordType.InfoRecord:
-                        infoRecords.AllRecords.Add(InfoRecord.ParseNextRecord(reader));
-                        break;
-                    case RecordType.End:
-                        break;
-                    default:
-                        throw new UnexpectedFileFormatException();
-                }
-                //nextRecordType = ReadRecordType(reader);
-            } while (nextRecordType != RecordType.End);
+                readRecordType = ReadRecordType();
+                var recordParser = parsers.GetParser(readRecordType);
+                // TODO pass the metadata to the parsers & records.fillRecord to self add into it
+                var record = recordParser.ParseRecord(reader);
+                records.Add(record);
 
-            meta.VariableRecords = new Collection<VariableRecord>(variableRecords);
-            meta.ValueLabelRecords = new Collection<ValueLabelRecord>(valueLabelRecords);
+            } while (readRecordType != RecordType.End);
 
-            // Interpret known inforecords:
-            infoRecords.ReadKnownRecords(meta.VariableCount);
-            meta.InfoRecords = infoRecords;
+
+            var meta = new MetaData(records);
+
+            // TODO Fix by removing InfoRecords
+            /*
+            
             this.SysmisValue = meta.InfoRecords.MachineFloatingPointInfoRecord != null 
                                     ? meta.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue
                                     : double.MinValue;
-            
-            // Filler Record
-            reader.ReadInt32();
-
-	        try
+            */
+            try
 	        {
 				this.dataStartPosition = this.Stream.Position;
 	        }
 	        catch (NotSupportedException)
 	        {
-				// Some stream types don't support the Position property
+				// Some stream types don't support the Position property (CryptoStream...)
 				this.dataStartPosition = 0;
 	        }
             
@@ -101,7 +74,7 @@ namespace SpssLib.FileParser
             int recordTypeNum = reader.ReadInt32();
             if (!Enum.IsDefined(typeof (RecordType), recordTypeNum))
             {
-                throw new UnexpectedFileFormatException("Record type not recognized: "+recordTypeNum);
+                throw new SpssFileFormatException("Record type not recognized: "+recordTypeNum);
             }
 
             return (RecordType)Enum.ToObject(typeof(RecordType), recordTypeNum);
@@ -110,37 +83,29 @@ namespace SpssLib.FileParser
 
         private void SetDataRecordStream()
         {
-            if (this.MetaData.HeaderRecord.Compressed)
-            {
-                var bias = this.MetaData.HeaderRecord.Bias;
-                var systemMissingValue = MetaData.InfoRecords.MachineFloatingPointInfoRecord != null
-                                            ? MetaData.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue
-                                            : double.MinValue;
-                this.dataRecordStream = new Compression.DecompressedDataStream(this.Stream, bias, systemMissingValue);
-            }
-            else
-            {
-                this.dataRecordStream = this.Stream;
-            }
-            this.reader = new BinaryReader(this.dataRecordStream, Encoding.ASCII);
+            dataRecordStream = MetaData.HeaderRecord.Compressed ? 
+                new DecompressedDataStream(Stream, MetaData.HeaderRecord.Bias, MetaData.SystemMissingValue) 
+                : Stream;
+            reader = new BinaryReader(dataRecordStream, Encoding.ASCII);
         }
 
         public IEnumerable<byte[][]> DataRecords
         {
             get
             {
-                if (!this.MetaDataParsed)
+                if (!MetaDataParsed)
                 {
-                    this.ParseMetaData();
+                    ParseMetaData();
                 }
-                lock (this.Stream)
+                lock (Stream)
                 {
+                    // dataStartPosition == 0 -> Stream.Position not suported
                     if (dataStartPosition != 0)
                     {
 	                    long position;
 	                    try
 	                    {
-		                    position = this.Stream.Position;
+		                    position = Stream.Position;
 	                    }
 	                    catch (NotSupportedException ex)
 	                    {
@@ -148,9 +113,9 @@ namespace SpssLib.FileParser
 	                    }
 						if (position != dataStartPosition)
 						{
-							if (this.Stream.CanSeek)
+							if (Stream.CanSeek)
 							{
-								this.Stream.Seek(dataStartPosition, 0);
+								Stream.Seek(dataStartPosition, 0);
 							}
 							else
 							{
@@ -158,7 +123,7 @@ namespace SpssLib.FileParser
 							}
 						}
 					}
-					else if (dataStartPosition != 0)
+					else
 					{
 						// If position could not be read initialy, set as -1 to avoid start reading the records again with out rewinding the stream
 						dataStartPosition = -1;
@@ -178,17 +143,17 @@ namespace SpssLib.FileParser
         {
             get
             {
-                foreach (var rawrecord in this.DataRecords)
+                foreach (var rawrecord in DataRecords)
                 {
-                    yield return this.RecordToObjects(rawrecord);
+                    yield return RecordToObjects(rawrecord);
                 }
             }
         }
 
         public byte[][] ReadNextDataRecord()
         {
-            byte[][] record = new byte[this.MetaData.VariableRecords.Count][];
-            for (int i = 0; i < this.MetaData.VariableRecords.Count; i++)
+            byte[][] record = new byte[MetaData.VariableRecords.Count][];
+            for (int i = 0; i < MetaData.VariableRecords.Count; i++)
 			{
 			    record[i]= reader.ReadBytes(Constants.BlockByteSize);
                 if (record[i].Length < Constants.BlockByteSize)
@@ -360,12 +325,12 @@ namespace SpssLib.FileParser
             }
 
             // Get display info:
-            if (metaData.InfoRecords.VariableDisplayParameterRecord  != null)
+            if (metaData.VariableDisplayParameters  != null)
             {
-                var displayInfo = metaData.InfoRecords.VariableDisplayParameterRecord.VariableDisplayEntries[variableIndex];
+                var displayInfo = metaData.VariableDisplayParameters[variableIndex];
                 variable.Alignment = displayInfo.Alignment;
                 variable.MeasurementType = displayInfo.MeasurementType;
-                variable.Width = displayInfo.Width;
+                variable.Width = displayInfo.Width; // TODO this field might not be present, check this and use the printFormat's
             }
             else
             {
@@ -377,9 +342,9 @@ namespace SpssLib.FileParser
             
 
             // Get (optional) long variable name:
-            if (metaData.InfoRecords.LongVariableNamesRecord != null)
+            if (metaData.LongVariableNames != null)
             {
-                var longNameDictionary = metaData.InfoRecords.LongVariableNamesRecord.LongNameDictionary;
+                var longNameDictionary = metaData.LongVariableNames.LongNameDictionary;
                 if (longNameDictionary.ContainsKey(variable.ShortName.Trim()))
                 {
                     variable.Name = longNameDictionary[variable.ShortName.Trim()].Trim();
@@ -394,7 +359,7 @@ namespace SpssLib.FileParser
                 variable.Name = variable.ShortName.Trim();
             }
 
-            // Todo: digest very long string info.    
+            // TODO digest very long string info.
             return variable;
         }
 

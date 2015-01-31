@@ -7,9 +7,9 @@ using System.Collections.ObjectModel;
 
 namespace SpssLib.FileParser.Records
 {
-    public class VariableRecord : IBaseRecord
+    public class VariableRecord : IRecord
     {
-		public int RecordType { get { return 2; } }
+		public RecordType RecordType { get { return RecordType.VariableRecord; } }
         public Int32 Type { get; private set; }
         public bool HasVariableLabel { get; private set; }
         public Int32 MissingValueType { get; private set; }
@@ -21,7 +21,7 @@ namespace SpssLib.FileParser.Records
         public string Label { get; private set; }
         public IList<double> MissingValues { get; private set; }
 
-	    private VariableRecord()
+	    internal VariableRecord()
 	    {}
 
 	    internal VariableRecord(Variable variable)
@@ -97,7 +97,7 @@ namespace SpssLib.FileParser.Records
 
 	    public void WriteRecord(BinaryWriter writer)
 	    {
-		    writer.Write(RecordType);
+		    writer.Write((int)RecordType);
 		    writer.Write(Type);
 		    writer.Write(HasVariableLabel ? 1 : 0);
 			writer.Write(MissingValueType);
@@ -134,37 +134,42 @@ namespace SpssLib.FileParser.Records
 			}
 		    
 	    }
-	  
+
+        [Obsolete]
 	    public static VariableRecord ParseNextRecord(BinaryReader reader)
         {
             var record = new VariableRecord();
-            record.Type = reader.ReadInt32();
-            record.HasVariableLabel = (reader.ReadInt32() == 1);
-            record.MissingValueType = reader.ReadInt32();
-            record.PrintFormat = new OutputFormat(reader.ReadInt32());
-            record.WriteFormat = new OutputFormat(reader.ReadInt32());
-            record.Name =Common.ByteArrayToString(reader.ReadBytes(8));
-            if(record.HasVariableLabel)
+            record.FillRecord(reader);
+	        return record;
+        }
+
+        public void FillRecord(BinaryReader reader)
+        {
+            Type = reader.ReadInt32();
+            HasVariableLabel = (reader.ReadInt32() == 1);
+            MissingValueType = reader.ReadInt32();
+            PrintFormat = new OutputFormat(reader.ReadInt32());
+            WriteFormat = new OutputFormat(reader.ReadInt32());
+            Name = Common.ByteArrayToString(reader.ReadBytes(8));
+            if (HasVariableLabel)
             {
-                record.LabelLength = reader.ReadInt32();
-                
+                LabelLength = reader.ReadInt32();
+
                 //Rounding up to nearest multiple of 32 bits.
                 //This is the original rounding version. But this leads to a wrong result with record.LabelLength=0
                 //This is the strange situation where HasVariableLabel is true, but in fact does not have a label.
                 //(((record.LabelLength - 1) / 4) + 1) * 4;
                 //New round up version from stackoverflow
-                int labelBytes = Common.RoundUp(record.LabelLength, 4);
-                record.Label = Common.ByteArrayToString(reader.ReadBytes(labelBytes));
+                int labelBytes = Common.RoundUp(LabelLength, 4);
+                Label = Common.ByteArrayToString(reader.ReadBytes(labelBytes));
             }
 
-            var missingValues = new List<double>(Math.Abs(record.MissingValueType));
-            for (int i = 0; i < Math.Abs(record.MissingValueType); i++)
-		    {
+            var missingValues = new List<double>(Math.Abs(MissingValueType));
+            for (int i = 0; i < Math.Abs(MissingValueType); i++)
+            {
                 missingValues.Add(reader.ReadDouble());
-		    }
-            record.MissingValues = new Collection<double>(missingValues);
-
-            return record;
+            }
+            MissingValues = new Collection<double>(missingValues);
         }
     }
 }

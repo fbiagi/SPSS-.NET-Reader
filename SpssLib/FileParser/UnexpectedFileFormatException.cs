@@ -1,22 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace SpssLib.FileParser
 {
+    [Obsolete("Use SpssFileFormatException")]
     [Serializable]
     public class UnexpectedFileFormatException: Exception
     {
-        public UnexpectedFileFormatException() : base()
-        {
-            
-        }
-
-        public UnexpectedFileFormatException(string message) : base(message)
-        {
-            
-        }
     }
 
 }

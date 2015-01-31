@@ -1,9 +1,9 @@
 ﻿
 namespace SpssLib.FileParser.Records
 {
-    enum RecordType
+    public enum RecordType
     {
-        HeaderRecord = 843859492,
+        HeaderRecord = 0x324C4624, // in ascii chars: $FL2 
         VariableRecord = 2,
         ValueLabelRecord = 3,
         ValueLabelVariablesRecord = 4,

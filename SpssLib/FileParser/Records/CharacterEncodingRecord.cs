@@ -1,32 +1,38 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 
 namespace SpssLib.FileParser.Records
 {
-	public class CharacterEncodingRecord : IBaseRecord
-	{
-		public int RecordType {
-			get { return 7; }
-		}
+    public class CharacterEncodingRecord : BaseInfoRecord
+    {
+        public override int SubType { get { return InfoRecordType.CharacterEncoding; } }
 
 		protected string Name { get; set; }
 
-		public CharacterEncodingRecord(Encoding encoding)
+        internal CharacterEncodingRecord()
+        {}
+
+		internal CharacterEncodingRecord(Encoding encoding)
 		{
-			// Supposedly has to be the IANA name
+		    ItemSize = 1;
+            // Supposedly has to be the IANA name
 			Name = encoding.WebName;
+		    ItemCount = Name.Length;
 		}
 
-		public void WriteRecord(BinaryWriter writer)
+        protected override void WriteInfo(BinaryWriter writer)
 		{
-			writer.Write(RecordType);
-			writer.Write(20);	// subtype
-			writer.Write(1);	// lenght
-
-			var bytes = Encoding.ASCII.GetBytes(Name.ToUpper());
-			writer.Write(bytes.Length);
+            var bytes = Encoding.ASCII.GetBytes(Name);
 			writer.Write(bytes);
 		}
+
+        protected override void FillInfo(BinaryReader reader)
+        {
+            CheckInfoHeader(1); // items must be of size 1 (byte)
+
+            // TODO test if ReadString will work
+            var nameBytes = reader.ReadBytes(ItemCount);
+            Name = Encoding.ASCII.GetString(nameBytes);
+        }
 	}
 }

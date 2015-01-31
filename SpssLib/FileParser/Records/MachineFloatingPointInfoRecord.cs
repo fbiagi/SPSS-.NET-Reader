@@ -1,75 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.IO;
 
 namespace SpssLib.FileParser.Records
 {
-    public class MachineFloatingPointInfoRecord : IBaseRecord
+    public class MachineFloatingPointInfoRecord : BaseInfoRecord
     {
-        private InfoRecord record;
-        internal MachineFloatingPointInfoRecord(InfoRecord record)
-        {
-            if (record.SubType != 4 || record.ItemSize != 8 || record.ItemCount != 3)
-                throw new UnexpectedFileFormatException();
-            this.record = record;
-        }
+        public override int SubType { get { return InfoRecordType.MachineFloatingPoint; } }
+
+        public double SystemMissingValue { get; private set; }
+        public double MissingHighestValue { get; private set; }
+        public double MissingLowestValue { get; private set; }
 
         /// <summary>
         /// Constructor for creating an appropiate floating point record for this machine
         /// </summary>
         internal MachineFloatingPointInfoRecord()
         {
-            record = new InfoRecord(4, 8, 3, new Collection<byte[]>
-                {
-                    BitConverter.GetBytes(double.MinValue),
-                    BitConverter.GetBytes(double.MaxValue),
-                    BitConverter.GetBytes((double)0xffeffffffffffffe) // Second largest negative double. Is there a better way to calculate this?
-                });
-
+            ItemSize = 8;
+            ItemCount = 3;
+            SystemMissingValue = double.MinValue;
+            MissingHighestValue = double.MaxValue;
+            MissingLowestValue = 0xffeffffffffffffe; // Second largest negative double. Is there a better way to calculate this?
         }
 
-
-        public double SystemMissingValue
+        protected override void WriteInfo(BinaryWriter writer)
         {
-            get
-            {
-                return BitConverter.ToDouble(record.Items[0], 0);
-            }
-        }
-        public double MissingHighestValue
-        {
-            get
-            {
-                return BitConverter.ToDouble(record.Items[1], 0);
-            }
-        }
-        public double MissingLowestValue
-        {
-            get
-            {
-                return BitConverter.ToDouble(record.Items[2], 0);
-            }
+            writer.Write(SystemMissingValue);
+            writer.Write(MissingHighestValue);
+            writer.Write(MissingLowestValue);
         }
 
-        public int RecordType
+        protected override void FillInfo(BinaryReader reader)
         {
-            get { return 7; }
-        }
+            CheckInfoHeader(8, 3);
 
-        public void WriteRecord(BinaryWriter writer)
-        {
-            writer.Write(RecordType);
-            writer.Write(record.SubType);
-            writer.Write(record.ItemSize);
-            writer.Write(record.ItemCount);
-
-            foreach (var item in record.Items)
-            {
-                writer.Write(item);
-            }
+            SystemMissingValue = reader.ReadDouble();
+            MissingHighestValue = reader.ReadDouble();
+            MissingLowestValue = reader.ReadDouble();
         }
     }
 }

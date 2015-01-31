@@ -50,10 +50,13 @@
   <ItemGroup>
     <Compile Include="Compression\DecompressedDataStream.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="FileParser\BaseInfoRecord.cs" />
+    <Compile Include="FileParser\IRecordParser.cs" />
     <Compile Include="FileParser\Records\CharacterEncodingRecord.cs" />
     <Compile Include="FileParser\CompressedRecordWriter.cs" />
     <Compile Include="FileParser\IRecordWriter.cs" />
     <Compile Include="FileParser\Records\DictionaryTerminationRecord.cs" />
+    <Compile Include="FileParser\Records\IRecord.cs" />
     <Compile Include="FileParser\SavFileWriter.cs" />
     <Compile Include="DataReader\SpssOptions.cs" />
     <Compile Include="DataReader\SpssReader.cs" />
@@ -61,6 +64,7 @@
     <Compile Include="FileParser\MetaData.cs" />
     <Compile Include="FileParser\Records\Common.cs" />
     <Compile Include="FileParser\Records\VariableDataType.cs" />
+    <Compile Include="FileParser\SpssFileFormatException.cs" />
     <Compile Include="FileParser\UnexpectedFileFormatException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DataReader\SpssDataReader.cs" />
@@ -68,7 +72,6 @@
     <Compile Include="FileParser\Records\DocumentRecord.cs" />
     <Compile Include="FileParser\Records\HeaderRecord.cs" />
     <Compile Include="FileParser\Records\InfoRecord.cs" />
-    <Compile Include="FileParser\Records\InfoRecords.cs" />
     <Compile Include="FileParser\Records\LongVariableNamesRecord.cs" />
     <Compile Include="FileParser\Records\MachineFloatingPointInfoRecord.cs" />
     <Compile Include="FileParser\Records\MachineIntegerInfoRecord.cs" />

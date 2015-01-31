@@ -1,28 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace SpssLib.FileParser.Records
 {
-    public class LongVariableNamesRecord : IBaseRecord
+    public class LongVariableNamesRecord : BaseInfoRecord
     {
-        private InfoRecord record;
+        public override int SubType { get { return InfoRecordType.LongVariableNames; }}
 
-		public int RecordType { get { return 7; } }
+        public LongVariableNamesRecord()
+        {}
 
 		public LongVariableNamesRecord(Dictionary<string, string> variableLongNames)
 		{
 			LongNameDictionary = variableLongNames;
 		}
 
-		public void WriteRecord(BinaryWriter writer)
+        protected override void WriteInfo(BinaryWriter writer)
 		{
-			writer.Write(RecordType);
-			writer.Write(13); // Long Variable Names Record subtype
-			writer.Write(1); //  Long Variable Names info record block size is allways 1
-			
 			StringBuilder sb = new StringBuilder();
 			foreach (var variable in LongNameDictionary)
 			{
@@ -41,18 +36,15 @@ namespace SpssLib.FileParser.Records
 	    {
 		    return value.Length > i ? value.Substring(0, i) : value;
 	    }
-
-	    internal LongVariableNamesRecord(InfoRecord record)
+        
+        protected override void FillInfo(BinaryReader reader)
         {
-            if (record.SubType != 13 || record.ItemSize != 1)
-                throw new UnexpectedFileFormatException();
-            this.record = record;
+            CheckInfoHeader(1);
+            
+            LongNameDictionary = new Dictionary<string, string>();
 
-            this.LongNameDictionary = new Dictionary<string, string>();
-
-            // Not very efficient, but for now the best way I can come up with
-            //   without sacrificing the Inforecords-design.
-            var originalBytes = (from item in this.record.Items select item[0]).ToArray();
+            var originalBytes = reader.ReadBytes(ItemCount); //(from item in this.record.Items select item[0]).ToArray();
+            // TODO see what happens with encoding, we might have to use the one in MachineIntegerInfo record
             var dictionaryString = Encoding.ASCII.GetString(originalBytes);
 
             // split on tabs:
@@ -61,7 +53,7 @@ namespace SpssLib.FileParser.Records
             foreach (var entry in entries)
             {
                 var values = entry.Split('=');
-                this.LongNameDictionary.Add(values[0], values[1]);
+                LongNameDictionary.Add(values[0], values[1]);
             }
         }
 

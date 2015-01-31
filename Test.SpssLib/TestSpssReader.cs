@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
+using SpssLib.DataReader;
 using SpssLib.FileParser.Records;
 using SpssLib.SpssDataset;
 
@@ -22,18 +24,17 @@ namespace Test.SpssLib
             //var filename = @"D:\Temp\TRIM EXAMPLES SPSS von Matthias\rational.sav";
             //var filename = @"C:\SourceCode\TRIM\TNS.TRIM - Development\TRIM RC\doc\Migration\SpssSetupDataForImport\Unicode_mit_Wave.sav";
 			//var filename = @"C:\Users\francisco.biagi\Documents\datasets\Tests\VLS.sav";
-            var filename = @"C:\Users\ttbiagif\Documents\Datasets\Clean_dataset.enriched_noflinfo.sav";
+            var filename = @"C:\Users\ttbiagif\Documents\Datasets\Demo_set.sav";
             FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read);
-            SpssDataset spssDataset = new SpssDataset(fileStream);
-            fileStream.Close();
-            //fileStream.Close();
+            SpssReader spssDataset = new SpssReader(fileStream);
+            
             var variables = spssDataset.Variables;
             foreach (var variable in variables)
             {
-                Console.WriteLine("{0} - {1}",variable.Name, variable.Label);
+                Debug.WriteLine("{0} - {1}",variable.Name, variable.Label);
                 foreach (KeyValuePair<double, string> label in variable.ValueLabels)
                 {
-                    Console.WriteLine(" {0} - {1}", label.Key, label.Value);
+                    Debug.WriteLine(" {0} - {1}", label.Key, label.Value);
                 }
             }
 
@@ -41,11 +42,13 @@ namespace Test.SpssLib
             {
                 foreach (var variable in variables)
                 {
-                    Console.Write(record.GetValue(variable));
-                    Console.Write('\t');
+                    Debug.Write(record.GetValue(variable));
+                    Debug.Write('\t');
                 }
-                Console.WriteLine();
+                Debug.WriteLine("");
             }
+
+            fileStream.Close();
         }
     }
 }
