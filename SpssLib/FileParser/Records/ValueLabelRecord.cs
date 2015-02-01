@@ -97,5 +97,10 @@ namespace SpssLib.FileParser.Records
                 Variables.Add(reader.ReadInt32());
             }
         }
+
+        public void RegisterMetadata(MetaData metaData)
+        {
+            metaData.ValueLabelRecords.Add(this);
+        }
     }
 }

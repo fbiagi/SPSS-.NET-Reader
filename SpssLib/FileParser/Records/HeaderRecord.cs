@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.IO;
-using System.Diagnostics;
 using SpssLib.DataReader;
 
 namespace SpssLib.FileParser.Records
@@ -86,6 +82,11 @@ namespace SpssLib.FileParser.Records
             CreationTime = new String(reader.ReadChars(8));
             FileLabel = new String(reader.ReadChars(64));
             Padding = new String(reader.ReadChars(3));
+        }
+
+        public void RegisterMetadata(MetaData metaData)
+        {
+            metaData.HeaderRecord = this;
         }
     }
 }

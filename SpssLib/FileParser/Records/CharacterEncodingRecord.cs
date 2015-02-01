@@ -20,6 +20,12 @@ namespace SpssLib.FileParser.Records
 		    ItemCount = Name.Length;
 		}
 
+        public override void RegisterMetadata(MetaData metaData)
+        {
+            // TODO replace this with setting of property. set character encoding (helper?) also
+            base.RegisterMetadata(metaData);
+        }
+
         protected override void WriteInfo(BinaryWriter writer)
 		{
             var bytes = Encoding.ASCII.GetBytes(Name);

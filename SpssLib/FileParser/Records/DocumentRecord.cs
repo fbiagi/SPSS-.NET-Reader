@@ -39,6 +39,11 @@ namespace SpssLib.FileParser.Records
             }
         }
 
+        public void RegisterMetadata(MetaData metaData)
+        {
+            metaData.DocumentRecord = this;
+        }
+
         public void WriteRecord(BinaryWriter writer)
         {
             writer.Write((int)RecordType);

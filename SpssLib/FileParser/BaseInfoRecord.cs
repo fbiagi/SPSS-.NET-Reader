@@ -30,6 +30,11 @@ namespace SpssLib.FileParser
             FillInfo(reader);
         }
 
+        public virtual void RegisterMetadata(MetaData metaData)
+        {
+            metaData.InfoRecords.Add(this);
+        }
+        
         protected void CheckInfoHeader(int itemSize = -1, int itemCount = -1)
         {
             if (itemSize >= 0 && itemSize != ItemSize)
@@ -56,6 +61,13 @@ namespace SpssLib.FileParser
         internal UnknownInfoRecord(int subType)
         {
             _subType = subType;
+        }
+
+        internal UnknownInfoRecord(int subType, int itemSize, int itemCount)
+        {
+            _subType = subType;
+            ItemSize = itemSize;
+            ItemCount = itemCount;
         }
 
         public override int SubType

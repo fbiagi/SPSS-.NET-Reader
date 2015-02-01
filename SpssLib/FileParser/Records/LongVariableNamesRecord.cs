@@ -16,6 +16,11 @@ namespace SpssLib.FileParser.Records
 			LongNameDictionary = variableLongNames;
 		}
 
+        public override void RegisterMetadata(MetaData metaData)
+        {
+            metaData.LongVariableNames = this;
+        }
+
         protected override void WriteInfo(BinaryWriter writer)
 		{
 			StringBuilder sb = new StringBuilder();

@@ -22,6 +22,11 @@ namespace SpssLib.FileParser.Records
             MissingLowestValue = 0xffeffffffffffffe; // Second largest negative double. Is there a better way to calculate this?
         }
 
+        public override void RegisterMetadata(MetaData metaData)
+        {
+            metaData.FloatingPointInfo = this;
+        }
+
         protected override void WriteInfo(BinaryWriter writer)
         {
             writer.Write(SystemMissingValue);

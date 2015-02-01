@@ -171,5 +171,10 @@ namespace SpssLib.FileParser.Records
             }
             MissingValues = new Collection<double>(missingValues);
         }
+
+        public void RegisterMetadata(MetaData metaData)
+        {
+            metaData.VariableRecords.Add(this);
+        }
     }
 }

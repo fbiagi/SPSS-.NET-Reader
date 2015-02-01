@@ -32,6 +32,8 @@ namespace SpssLib.FileParser
 
             var parsers = new ParserProvider();
             IList<IRecord> records = new List<IRecord>(1000);
+
+            MetaData = new MetaData();
             
             RecordType readRecordType;
             do
@@ -40,20 +42,12 @@ namespace SpssLib.FileParser
                 var recordParser = parsers.GetParser(readRecordType);
                 // TODO pass the metadata to the parsers & records.fillRecord to self add into it
                 var record = recordParser.ParseRecord(reader);
+                record.RegisterMetadata(MetaData);
                 records.Add(record);
 
             } while (readRecordType != RecordType.End);
-
-
-            var meta = new MetaData(records);
-
-            // TODO Fix by removing InfoRecords
-            /*
             
-            this.SysmisValue = meta.InfoRecords.MachineFloatingPointInfoRecord != null 
-                                    ? meta.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue
-                                    : double.MinValue;
-            */
+
             try
 	        {
 				this.dataStartPosition = this.Stream.Position;
@@ -64,9 +58,8 @@ namespace SpssLib.FileParser
 				this.dataStartPosition = 0;
 	        }
             
-            this.MetaData = meta;
             SetDataRecordStream();
-            this.MetaDataParsed = true;
+            MetaDataParsed = true;
         }
 
         private RecordType ReadRecordType()

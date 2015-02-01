@@ -66,6 +66,11 @@ namespace SpssLib.FileParser.Records
         }
 
 
+        public override void RegisterMetadata(MetaData metaData)
+        {
+            metaData.VariableDisplayParameters = this;
+        }
+
         protected override void WriteInfo(BinaryWriter writer)
         {
             throw new NotImplementedException();

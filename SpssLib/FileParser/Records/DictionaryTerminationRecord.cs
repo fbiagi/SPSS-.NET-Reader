@@ -22,5 +22,10 @@ namespace SpssLib.FileParser.Records
             // skip filler
 	        reader.ReadInt32();
 	    }
+
+	    public void RegisterMetadata(MetaData metaData)
+	    {
+	        metaData.ChechDictionaryRecords();
+	    }
 	}
 }

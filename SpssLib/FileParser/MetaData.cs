@@ -1,73 +1,88 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Collections.ObjectModel;
 using SpssLib.FileParser.Records;
 
 namespace SpssLib.FileParser
 {
     public class MetaData
     {
-        private IList<IRecord> _records;
-        internal MetaData(IList<IRecord> records)
+        private MachineFloatingPointInfoRecord _floatingPointInfo;
+        private HeaderRecord _headerRecord;
+        private VariableDisplayParameterRecord _variableDisplayParameters;
+
+        internal MetaData()
         {
-            _records = records;
+            SystemMissingValue = double.MinValue;
+            VariableRecords = new List<VariableRecord>();
+            ValueLabelRecords = new List<ValueLabelRecord>();
+            InfoRecords = new List<BaseInfoRecord>();
+        }
 
-            SetHeader(records);
-            SetVariables(records);
-
-            ValueLabelRecords = records.OfType<ValueLabelRecord>().ToList();
-            InfoRecords = records.OfType<BaseInfoRecord>().ToList();
-            MachineIntegerInfo = records.OfType<MachineIntegerInfoRecord>().SingleOrDefault();
-            FloatingPointInfo = records.OfType<MachineFloatingPointInfoRecord>().SingleOrDefault();
-            SystemMissingValue = FloatingPointInfo != null
-                                            ? FloatingPointInfo.SystemMissingValue
-                                            : double.MinValue;
-            LongVariableNames = records.OfType<LongVariableNamesRecord>().SingleOrDefault();
-            VariableDisplayParameters = records.OfType<VariableDisplayParameterRecord>().SingleOrDefault();
-            if (VariableDisplayParameters != null)
+        public HeaderRecord HeaderRecord
+        {
+            get { return _headerRecord; }
+            internal set
             {
+                if (_headerRecord != null)
+                {
+                    throw new SpssFileFormatException("The header record must be unique");
+                }
+                _headerRecord = value;
+            }
+        }
+
+        public IList<VariableRecord> VariableRecords { get; private set; }
+        public IList<ValueLabelRecord> ValueLabelRecords { get; private set; }
+        public DocumentRecord DocumentRecord { get; internal set; }
+
+        public MachineIntegerInfoRecord MachineIntegerInfo { get; internal set; }
+        public MachineFloatingPointInfoRecord FloatingPointInfo
+        {
+            get { return _floatingPointInfo; }
+            internal set
+            {
+                _floatingPointInfo = value;
+                SystemMissingValue = _floatingPointInfo.SystemMissingValue;
+            }
+        }
+
+        public LongVariableNamesRecord LongVariableNames { get; internal set; }
+        public VariableDisplayParameterRecord VariableDisplayParameters
+        {
+            get { return _variableDisplayParameters; }
+            internal set
+            {
+                _variableDisplayParameters = value;
                 VariableDisplayParameters.VariableCount = VariableCount;
             }
         }
 
-        public HeaderRecord HeaderRecord { get; private set; }
-        public IList<VariableRecord> VariableRecords { get; private set; }
-        public IList<ValueLabelRecord> ValueLabelRecords { get; private set; }
-        public DocumentRecord DocumentRecord
-        {
-            get { return _records.OfType<DocumentRecord>().SingleOrDefault(); }
-        }
-
-        public MachineIntegerInfoRecord MachineIntegerInfo { get; private set; }
-        public MachineFloatingPointInfoRecord FloatingPointInfo { get; private set; }
-        public LongVariableNamesRecord LongVariableNames { get; private set; }
-        public VariableDisplayParameterRecord VariableDisplayParameters { get; private set; }
+        public CharacterEncodingRecord CharEncoding { get; internal set; }
 
         public IList<BaseInfoRecord> InfoRecords { get; private set; }
 
         public double SystemMissingValue { get; private set; }
         // Count number of variables (the number of variable-records with a name,
         //     the rest is part of a long string variable):
-        public int VariableCount { get { return VariableRecords.Count(v => v.Type != -1); } }
-
-        private void SetHeader(IList<IRecord> records)
+        public int VariableCount
         {
-            HeaderRecord = records.OfType<HeaderRecord>().SingleOrDefault();
-            if (HeaderRecord == null)
+            get
             {
-                if (records.OfType<HeaderRecord>().Count() > 1)
+                if (!VariableRecords.Any())
                 {
-                    throw new SpssFileFormatException("More than one header record found");
+                    throw new SpssFileFormatException("No variable records found");
                 }
-                throw new SpssFileFormatException("No header record found");
+                return VariableRecords.Count(v => v.Type != -1);
             }
         }
 
-        private void SetVariables(IList<IRecord> records)
+        internal void ChechDictionaryRecords()
         {
-            VariableRecords = records.OfType<VariableRecord>().ToList();
+            if (HeaderRecord == null)
+            {
+                throw new SpssFileFormatException("No header record found");
+            }
+            
             if (!VariableRecords.Any())
             {
                 throw new SpssFileFormatException("No variable records found");

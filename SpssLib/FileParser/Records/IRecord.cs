@@ -7,6 +7,7 @@ namespace SpssLib.FileParser.Records
         RecordType RecordType { get; }
         void WriteRecord(BinaryWriter writer);  // TODO: split to internal interface
         void FillRecord(BinaryReader reader);
+        void RegisterMetadata(MetaData metaData);
     }
 
 

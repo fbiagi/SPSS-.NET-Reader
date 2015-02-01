@@ -38,6 +38,11 @@ namespace SpssLib.FileParser.Records
 			CharacterCode = encoding.CodePage;
 		}
 
+        public override void RegisterMetadata(MetaData metaData)
+        {
+            metaData.MachineIntegerInfo = this;
+        }
+
         protected override void WriteInfo(BinaryWriter writer)
 		{
 			writer.Write(VersionMajor);
