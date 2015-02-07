@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using SpssLib.FileParser.Records;
 
 namespace SpssLib.FileParser
@@ -22,7 +23,9 @@ namespace SpssLib.FileParser
 		/// </summary>
 		private readonly double _sysMiss;
 
-		/// <summary>
+	    private readonly Encoding _encoding;
+
+	    /// <summary>
 		/// Next index in the block that is to be written (from 0 to 7)
 		/// </summary>
 		private int _blockIndex = 0;
@@ -49,11 +52,12 @@ namespace SpssLib.FileParser
 		/// <param name="writer">The underlying binary writer with the stream</param>
 		/// <param name="bias">The compression bias</param>
 		/// <param name="sysMiss">The system missing value</param>
-		public CompressedRecordWriter(BinaryWriter writer, double bias, double sysMiss)
+		public CompressedRecordWriter(BinaryWriter writer, double bias, double sysMiss, Encoding encoding)
 		{
 			_writer = writer;
 			_bias = bias;
 			_sysMiss = sysMiss;
+		    _encoding = encoding;
 		}
 
 		/// <summary>
@@ -173,8 +177,8 @@ namespace SpssLib.FileParser
 
 		public void WriteString(string s, int width)
 		{
-			// TODO proper encoding, must be on header. What happen if encoding for spaces and other has more than 1 byte?
-			var bytes = string.IsNullOrEmpty(s) ? new byte[0] :  Common.StringToByteArray(s);
+		    var byteCount = Common.RoundUp(width, 8);
+			var bytes = string.IsNullOrEmpty(s) ? new byte[0] :  _encoding.GetPaddedRounded(s, 8, out byteCount, byteCount);
 			int i = 0;
 			for (; i < bytes.Length && i < width; i+=8)
 			{
@@ -205,7 +209,7 @@ namespace SpssLib.FileParser
 			const byte spaceByte = 0x20;
 			for (int j = i; j < i + 8 && i < bytes.Length; j++)
 			{
-				if (bytes[i] != spaceByte)
+				if (bytes[j] != spaceByte)
 				{
 					return false;
 				}

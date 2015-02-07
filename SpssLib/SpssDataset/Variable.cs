@@ -11,6 +11,8 @@ namespace SpssLib.SpssDataset
         public int Width { get; set; }
         public int TextWidth { get; set; }
         public Alignment Alignment { get; set; }
+        // TODO ShortName should be created and handled allways from VariableRecord, this class shouldn't know about it
+        [Obsolete("Should not be needed on this class. Only needed for internal SPSS format issues.")]
         public string ShortName { get; set; }
         public string Name { get; set; }
         public string Label { get; set; }

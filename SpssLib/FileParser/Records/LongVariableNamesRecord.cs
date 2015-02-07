@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -6,16 +7,26 @@ namespace SpssLib.FileParser.Records
 {
     public class LongVariableNamesRecord : BaseInfoRecord
     {
+        private IDictionary<string, string> _dictionary;
         public override int SubType { get { return InfoRecordType.LongVariableNames; }}
+
+        /// <summary>
+        /// Holds the encoded byte sequence for the long names dictionary string
+        /// </summary>
+        private byte[] Data { get; set; }
+
+        private static readonly byte EqualsChar = Encoding.ASCII.GetBytes("=")[0];
+        private static readonly byte TabChar = Encoding.ASCII.GetBytes("\t")[0];
 
         public LongVariableNamesRecord()
         {}
 
         // TODO: add encoding
-		public LongVariableNamesRecord(Dictionary<string, string> variableLongNames)
+		public LongVariableNamesRecord(Dictionary<string, string> variableLongNames, Encoding encoding)
 		{
+		    Encoding = encoding;
 		    ItemSize = 1;
-            LongNameDictionary = variableLongNames;
+            Dictionary = variableLongNames;
             BuildDataArray();
 		    ItemCount = Data.Length;
 		}
@@ -23,9 +34,44 @@ namespace SpssLib.FileParser.Records
         public override void RegisterMetadata(MetaData metaData)
         {
             metaData.LongVariableNames = this;
+            Metadata = metaData;
         }
         
-        public Dictionary<string, string> LongNameDictionary { get; private set;}
+        public IDictionary<string, string> Dictionary
+        {
+            get
+            {
+                if (_dictionary == null)
+                {
+                    if (Data == null || Data.Length == 0)
+                    {
+                        throw new SpssFileFormatException("No long variable names data loaded");
+                    }
+
+                    _dictionary = new Dictionary<string, string>();
+
+                    var startIndex = 0;
+                    do
+                    {
+                        var separatorIndex = Array.IndexOf(Data, EqualsChar, startIndex);
+                        if (separatorIndex == -1)
+                        {
+                            throw new SpssFileFormatException("Long variable format in wrong status");
+                        }
+                        var endIndex = Array.IndexOf(Data, TabChar, separatorIndex);
+                        string shortName = Encoding.GetString(Data, startIndex, separatorIndex - startIndex);
+                        string longName = Encoding.GetString(Data, separatorIndex + 1, (endIndex != -1 ? endIndex : Data.Length) - separatorIndex - 1);
+
+                        _dictionary.Add(shortName, longName);
+
+                        startIndex = endIndex + 1;
+                    } while (startIndex > 0 && startIndex+1 < Data.Length);
+                }
+
+                return _dictionary;
+            }
+            private set { _dictionary = value; }
+        }
 
         protected override void WriteInfo(BinaryWriter writer)
         {
@@ -34,44 +80,26 @@ namespace SpssLib.FileParser.Records
 
         private void BuildDataArray()
         {
-            StringBuilder sb = new StringBuilder();
-            foreach (var variable in LongNameDictionary)
+            var buffer = new byte[_dictionary.Count*(8 + 2 + 64)];
+            int byteIndex = 0;
+            foreach (var variable in _dictionary)
             {
-                sb.Append(variable.Key)
-                  .Append('=')
-                  .Append(GetStringMaxLength(variable.Value, 64))
-                  .Append('\t');
+                byteIndex += Encoding.GetBytes(variable.Key, 0, variable.Key.Length, buffer, byteIndex);
+                buffer[byteIndex++] = EqualsChar;
+                byteIndex += Encoding.GetUpToMaxLenght(variable.Value, 64, buffer, byteIndex);
+                buffer[byteIndex++] = TabChar;
             }
-            var stringDictionary = sb.ToString();
-            stringDictionary = stringDictionary.Substring(0, stringDictionary.Length - 1);
-            Data = Common.StringToByteArray(stringDictionary);
+
+            // Trim the excess of the array (and the trailing tab char)
+            Array.Resize(ref buffer, byteIndex - 1);
+            Data = buffer;
         }
 
-        private byte[] Data { get; set; }
-
-        private string GetStringMaxLength(string value, int i)
-	    {
-		    return value.Length > i ? value.Substring(0, i) : value;
-	    }
-        
         protected override void FillInfo(BinaryReader reader)
         {
             CheckInfoHeader(1);
+            Data = reader.ReadBytes(ItemCount);
             
-            LongNameDictionary = new Dictionary<string, string>();
-
-            var originalBytes = reader.ReadBytes(ItemCount);
-            // TODO see what happens with encoding, we might have to use the one in MachineIntegerInfo record
-            var dictionaryString = Encoding.ASCII.GetString(originalBytes);
-
-            // split on tabs:
-            var entries = dictionaryString.Split('\t');
-
-            foreach (var entry in entries)
-            {
-                var values = entry.Split('=');
-                LongNameDictionary.Add(values[0], values[1]);
-            }
         }
     }
 }

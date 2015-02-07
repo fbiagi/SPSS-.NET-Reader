@@ -10,6 +10,9 @@ namespace SpssLib.DataReader
 	public class SpssReader : IDisposable
 	{
 		private readonly SavFileParser _fileReader;
+
+        // TODO add needed metadata info (use SpssOptions?)
+
 		public ICollection<Variable> Variables { get; private set; }
 		public IEnumerable<Record> Records { get; private set; }
 

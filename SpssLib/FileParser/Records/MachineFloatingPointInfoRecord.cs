@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace SpssLib.FileParser.Records
 {
@@ -19,7 +20,7 @@ namespace SpssLib.FileParser.Records
             ItemCount = 3;
             SystemMissingValue = double.MinValue;
             MissingHighestValue = double.MaxValue;
-            MissingLowestValue = 0xffeffffffffffffe; // Second largest negative double. Is there a better way to calculate this?
+            MissingLowestValue = BitConverter.ToDouble(BitConverter.GetBytes(0xffeffffffffffffe),0); // Second largest negative double. Is there a better way to calculate this?
         }
 
         public override void RegisterMetadata(MetaData metaData)

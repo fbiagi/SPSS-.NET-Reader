@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SpssLib</RootNamespace>
     <AssemblyName>SpssLib</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -51,12 +51,19 @@
     <Compile Include="Compression\DecompressedDataStream.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="FileParser\BaseInfoRecord.cs" />
+    <Compile Include="FileParser\EbcdicHeaderRecord.cs" />
+    <Compile Include="FileParser\InfoRecordParser.cs" />
+    <Compile Include="FileParser\InfoRecordType.cs" />
     <Compile Include="FileParser\IRecordParser.cs" />
+    <Compile Include="FileParser\ParserProvider.cs" />
     <Compile Include="FileParser\Records\CharacterEncodingRecord.cs" />
     <Compile Include="FileParser\CompressedRecordWriter.cs" />
     <Compile Include="FileParser\IRecordWriter.cs" />
     <Compile Include="FileParser\Records\DictionaryTerminationRecord.cs" />
+    <Compile Include="FileParser\Records\EncodeEnabledRecord.cs" />
+    <Compile Include="FileParser\Records\EncodingExtensions.cs" />
     <Compile Include="FileParser\Records\IRecord.cs" />
+    <Compile Include="FileParser\Records\ReaderWriterExtensions.cs" />
     <Compile Include="FileParser\SavFileWriter.cs" />
     <Compile Include="DataReader\SpssOptions.cs" />
     <Compile Include="DataReader\SpssReader.cs" />

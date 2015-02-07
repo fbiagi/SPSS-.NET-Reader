@@ -25,7 +25,13 @@ namespace SpssLib.FileParser.Records
 
 	    public void RegisterMetadata(MetaData metaData)
 	    {
-	        metaData.ChechDictionaryRecords();
+            metaData.ChechDictionaryRecords();
+
+            // If no data encoding was set (i.e. no MachineIntegerInfoRecord), use the same as the header
+            if (metaData.DataEncoding == null)
+            {
+                metaData.DataEncoding = metaData.HeaderEncoding;
+            }
 	    }
 	}
 }

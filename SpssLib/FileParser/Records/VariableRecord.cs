@@ -2,30 +2,77 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Text;
 using SpssLib.SpssDataset;
 using System.Collections.ObjectModel;
 
 namespace SpssLib.FileParser.Records
 {
-    public class VariableRecord : IRecord
+    public class VariableRecord : EncodeEnabledRecord, IRecord
     {
+        private byte[] _nameRaw;
+        private byte[] _labelRaw;
+
+        /// <summary>
+        /// List of characters that can be appended to the end of a repeated short variable
+        /// </summary>
+        private static readonly char[] AppendableChars = Enumerable.Range('A', 'Z').Select(i => (char)i).ToArray();
+
 		public RecordType RecordType { get { return RecordType.VariableRecord; } }
         public Int32 Type { get; private set; }
         public bool HasVariableLabel { get; private set; }
         public Int32 MissingValueType { get; private set; }
-	    private int _missingValueCount;
+	    private readonly int _missingValueCount;
         public OutputFormat PrintFormat { get; private set; }
         public OutputFormat WriteFormat { get; private set; }
-        public string Name { get; private set; }
-        public Int32 LabelLength { get; private set; }
-        public string Label { get; private set; }
-        public IList<double> MissingValues { get; private set; }
+        
+        public string Name
+        {
+            get
+            {
+                return Encoding.GetTrimmed(_nameRaw);
+            }
+            private set
+            {
+                // The varuiable short name must be an 8 bytes encoded upercase string, padded with spaces if needed.
+                _nameRaw = value != null ? Encoding.GetPadded(value.ToUpperInvariant(), 8) : new byte[8];
+            }
+        }
 
+        public Int32 LabelLength { get; private set; }
+        
+        public string Label
+        {
+            get
+            {
+                return Encoding.GetTrimmed(_labelRaw);
+            }
+            private set
+            {
+                HasVariableLabel = !string.IsNullOrEmpty(value);
+                if (!HasVariableLabel) return;
+
+                // TODO it might support more than 120, may be 252 or 255
+                int length;
+                _labelRaw = Encoding.GetPaddedRounded(value, 4, out length, 120);
+                LabelLength = length;
+            }
+        }
+
+        public IList<double> MissingValues { get; private set; }
+        
 	    internal VariableRecord()
 	    {}
 
-	    internal VariableRecord(Variable variable)
-		{
+        /// <summary>
+        /// Constructor for loading the reord info before writing the file
+        /// </summary>
+        /// <param name="variable">The created varaible information</param>
+        /// <param name="headerEncoding">The encoding used for the header. <see cref="MachineIntegerInfoRecord.CharacterCode"/></param>
+	    internal VariableRecord(Variable variable, Encoding headerEncoding)
+	    {
+            Encoding = headerEncoding;
+
 			// if type is numeric, write 0, if not write the string lenght for short string fields
 			Type = variable.Type == 0 ? 0 : variable.TextWidth;
 			// Set the max string lenght for the type
@@ -33,7 +80,6 @@ namespace SpssLib.FileParser.Records
 			{
 				Type = 255;
 			}
-			HasVariableLabel = !string.IsNullOrEmpty(variable.Label);
 
 			MissingValues = variable.MissingValues;
 			
@@ -41,22 +87,33 @@ namespace SpssLib.FileParser.Records
 		    _missingValueCount = Math.Abs(MissingValueType);
 			PrintFormat = variable.PrintFormat;
 			WriteFormat = variable.WriteFormat;
-
-			Name = variable.ShortName;
+            Name = variable.Name;
 			Label = variable.Label;
 		}
 
-		/// <summary>
-		/// Creates all variable records needed for this variable
-		/// </summary>
-		/// <returns>
-		///		Only one var for numbers or text of lenght 8 or less, or the 
-		///		main variable definition, followed by string continuation "dummy"
-		///		variables. There should be one for each 8 chars after the first 8.
-		/// </returns>
-		internal static VariableRecord[] GetNeededVaraibles(Variable variable)
+        /// <summary>
+        /// Creates all variable records needed for this variable
+        /// </summary>
+        /// <param name="variable">The varaible matadata to create the new variable</param>
+        /// <param name="headerEncoding">The encoding to use on the header</param>
+        /// <param name="previousVariableNames">
+        ///     A list of the variable names that were already 
+        ///     created, to avoid the short name colition
+        /// </param>
+        /// <param name="longNameCounter">
+        ///     The counter of variables with name replaced, to create
+        ///     a proper long name that won't collide
+        /// </param>
+        /// <returns>
+        /// 		Only one var for numbers or text of lenght 8 or less, or the 
+        /// 		main variable definition, followed by string continuation "dummy"
+        /// 		variables. There should be one for each 8 chars after the first 8.
+        ///  </returns>
+        internal static VariableRecord[] GetNeededVaraibles(Variable variable, Encoding headerEncoding, SortedSet<byte[]> previousVariableNames, ref int longNameCounter)
 		{
-			var headVariable = new VariableRecord(variable);
+			var headVariable = new VariableRecord(variable, headerEncoding);
+
+            CheckShortName(headVariable, previousVariableNames, ref longNameCounter);
 
 			// If it's numeric or a string of lenght 8 or less, no dummy vars are needed
 			if (variable.Type == DataType.Numeric || variable.TextWidth <= 8)
@@ -70,6 +127,7 @@ namespace SpssLib.FileParser.Records
 				variable.TextWidth = 255;
 			}
 
+            // Create all the variable continuation records that for each extra 8 bytes of string data
 			var varCount =  (int)Math.Ceiling(variable.TextWidth/8d);
 			var result = new VariableRecord[varCount];
 			result[0] = headVariable;
@@ -81,7 +139,34 @@ namespace SpssLib.FileParser.Records
 			return result;
 		}
 
-		/// <summary>
+        /// <summary>
+        /// Checks if the name that was set (after slicing it to 8 chars and encoding it properly) is not repeated on the names
+        /// of the variables created before this one. 
+        /// </summary>
+        /// <param name="variable"></param>
+        /// <param name="previousVariableNames"></param>
+        /// <param name="longNameCounter"></param>
+        private static void CheckShortName(VariableRecord variable, SortedSet<byte[]> previousVariableNames, ref int longNameCounter)
+        {
+            // Check if it's already on the variable records names (compare with raw encoded name byte array)
+            if (previousVariableNames.Contains(variable._nameRaw))
+            {
+                // Algorithm to create a variable with a short name.
+                // As produced by "IBM SPSS STATISTICS 64-bit MS Windows 22.0.0.0"
+                var currentLongNameIndex = ++longNameCounter;
+
+                // Avoid collisions in case there is already a var called VXX_A
+                var appendCharIndex = 0;
+                do
+                {
+                    variable.Name = string.Format("V{0}_{1}", currentLongNameIndex, AppendableChars[appendCharIndex++]);
+                } while (previousVariableNames.Contains(variable._nameRaw));
+            }
+            // Add the raw encoded name byte array to avoid collitions in following variables
+            previousVariableNames.Add(variable._nameRaw);
+        }
+
+        /// <summary>
 		/// Creates and returns a variable that contains the info to be written as a continuation of a string 
 		/// variable. 
 		/// This variable is needed imediatelly after text vatiables of more than 8 chars, and there should 
@@ -91,6 +176,7 @@ namespace SpssLib.FileParser.Records
 		{
 			return new VariableRecord
 				{
+                    _nameRaw = new byte[8],
 					Type = -1,
 				};
 		}
@@ -103,26 +189,13 @@ namespace SpssLib.FileParser.Records
 			writer.Write(MissingValueType);
 			writer.Write(PrintFormat != null ? PrintFormat.GetInteger() : 0);
 			writer.Write(WriteFormat != null ? WriteFormat.GetInteger() : 0);
-
-			if (Name != null)
-			{
-				writer.Write(Name.PadRight(8, ' ').Substring(0, 8).ToCharArray());
-			}
-			else
-			{
-				writer.Write(new byte[8]);
-			}
+            
+			writer.Write(_nameRaw);
 			
 		    if (HasVariableLabel)
-		    {
-			    var labelBytes = Common.StringToByteArray(Label);
-			    LabelLength = labelBytes.Length;
+		    {   
 			    writer.Write(LabelLength);
-				writer.Write(labelBytes);
-
-				var padding = Common.RoundUp(LabelLength, 4) - LabelLength;
-			    var paddingBytes = new byte[padding].Select(b => (byte) 0x20).ToArray();
-				writer.Write(paddingBytes);
+				writer.Write(_labelRaw);
 			}
 
 			if (MissingValueType != 0)
@@ -135,14 +208,6 @@ namespace SpssLib.FileParser.Records
 		    
 	    }
 
-        [Obsolete]
-	    public static VariableRecord ParseNextRecord(BinaryReader reader)
-        {
-            var record = new VariableRecord();
-            record.FillRecord(reader);
-	        return record;
-        }
-
         public void FillRecord(BinaryReader reader)
         {
             Type = reader.ReadInt32();
@@ -150,7 +215,7 @@ namespace SpssLib.FileParser.Records
             MissingValueType = reader.ReadInt32();
             PrintFormat = new OutputFormat(reader.ReadInt32());
             WriteFormat = new OutputFormat(reader.ReadInt32());
-            Name = Common.ByteArrayToString(reader.ReadBytes(8));
+            _nameRaw = reader.ReadBytes(8);
             if (HasVariableLabel)
             {
                 LabelLength = reader.ReadInt32();
@@ -161,7 +226,7 @@ namespace SpssLib.FileParser.Records
                 //(((record.LabelLength - 1) / 4) + 1) * 4;
                 //New round up version from stackoverflow
                 int labelBytes = Common.RoundUp(LabelLength, 4);
-                Label = Common.ByteArrayToString(reader.ReadBytes(labelBytes));
+                _labelRaw = reader.ReadBytes(labelBytes);
             }
 
             var missingValues = new List<double>(Math.Abs(MissingValueType));
@@ -175,6 +240,7 @@ namespace SpssLib.FileParser.Records
         public void RegisterMetadata(MetaData metaData)
         {
             metaData.VariableRecords.Add(this);
+            Metadata = metaData;
         }
     }
 }

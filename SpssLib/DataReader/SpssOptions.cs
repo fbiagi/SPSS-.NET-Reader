@@ -1,4 +1,5 @@
-﻿using SpssLib.SpssDataset;
+﻿using System.Text;
+using SpssLib.SpssDataset;
 
 namespace SpssLib.DataReader
 {
@@ -8,7 +9,9 @@ namespace SpssLib.DataReader
 		public bool Compressed { get; set; }
 		public long Bias { get; set; }
 		public Variable WeightVariable { get; set; }
-		public int Cases { get; set; }
+        public int Cases { get; set; }
+        public Encoding HeaderEncoding { get; set; }
+        public Encoding DataEncoding { get; set; }
 		
 		public SpssOptions()
 		{
@@ -16,6 +19,8 @@ namespace SpssLib.DataReader
 			Compressed = true;
 			Bias = 100;
 			Cases = -1;
+		    HeaderEncoding = Encoding.UTF8;
+            DataEncoding = Encoding.UTF8;
 		}
 	}
 }

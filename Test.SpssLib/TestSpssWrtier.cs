@@ -106,7 +106,7 @@ namespace Test.SpssLib
 					WriteFormat = new OutputFormat(FormatType.A, 60),
 					Type = DataType.Text,
 					Width = 60,
-					TextWidth = 60,
+                    TextWidth = 60,
 				};
 
 				var variable2 = new Variable

@@ -4,7 +4,7 @@ using SpssLib.FileParser.Records;
 
 namespace SpssLib.FileParser
 {
-    public abstract class BaseInfoRecord : IRecord
+    public abstract class BaseInfoRecord : EncodeEnabledRecord, IRecord
     {
         public RecordType RecordType { get { return RecordType.InfoRecord; } }
         public abstract int SubType { get; }
@@ -14,7 +14,7 @@ namespace SpssLib.FileParser
 
         public void WriteRecord(BinaryWriter writer)
         {
-            writer.Write((int)RecordType);
+            writer.Write(RecordType);
             writer.Write(SubType);
             writer.Write(ItemSize);
             writer.Write(ItemCount);
@@ -33,6 +33,7 @@ namespace SpssLib.FileParser
         public virtual void RegisterMetadata(MetaData metaData)
         {
             metaData.InfoRecords.Add(this);
+            Metadata = metaData;
         }
         
         protected void CheckInfoHeader(int itemSize = -1, int itemCount = -1)

@@ -16,19 +16,20 @@ namespace SpssLib.FileParser
 
         public bool MetaDataParsed { get; private set; }
         public MetaData MetaData { get; private set; }
+        public double SysmisValue { get; set; }
 
-        private BinaryReader reader;
-        private Stream dataRecordStream;
-        private long dataStartPosition = 0;
+        private BinaryReader _reader;
+        private Stream _dataRecordStream;
+        private long _dataStartPosition;
 
         public SavFileParser(Stream fileStream)
         {
-            this.Stream = fileStream;
+            Stream = fileStream;
         }
 
         public void ParseMetaData()
         {
-            reader = new BinaryReader(Stream, Encoding.ASCII);
+            _reader = new BinaryReader(Stream, Encoding.ASCII);
 
             var parsers = new ParserProvider();
             IList<IRecord> records = new List<IRecord>(1000);
@@ -38,48 +39,34 @@ namespace SpssLib.FileParser
             RecordType readRecordType;
             do
             {
-                readRecordType = ReadRecordType();
+                readRecordType = _reader.ReadRecordType();
                 var recordParser = parsers.GetParser(readRecordType);
-                // TODO pass the metadata to the parsers & records.fillRecord to self add into it
-                var record = recordParser.ParseRecord(reader);
+                var record = recordParser.ParseRecord(_reader);
                 record.RegisterMetadata(MetaData);
                 records.Add(record);
-
             } while (readRecordType != RecordType.End);
             
 
             try
 	        {
-				this.dataStartPosition = this.Stream.Position;
+				_dataStartPosition = Stream.Position;
 	        }
 	        catch (NotSupportedException)
 	        {
 				// Some stream types don't support the Position property (CryptoStream...)
-				this.dataStartPosition = 0;
+				_dataStartPosition = 0;
 	        }
             
             SetDataRecordStream();
             MetaDataParsed = true;
         }
 
-        private RecordType ReadRecordType()
-        {
-            int recordTypeNum = reader.ReadInt32();
-            if (!Enum.IsDefined(typeof (RecordType), recordTypeNum))
-            {
-                throw new SpssFileFormatException("Record type not recognized: "+recordTypeNum);
-            }
-
-            return (RecordType)Enum.ToObject(typeof(RecordType), recordTypeNum);
-        }
-
-
         private void SetDataRecordStream()
         {
-            dataRecordStream = MetaData.HeaderRecord.Compressed ? 
+            _dataRecordStream = MetaData.HeaderRecord.Compressed ? 
                 new DecompressedDataStream(Stream, MetaData.HeaderRecord.Bias, MetaData.SystemMissingValue) 
                 : Stream;
-            reader = new BinaryReader(dataRecordStream, Encoding.ASCII);
+            _reader = new BinaryReader(_dataRecordStream, Encoding.ASCII);
         }
 
         public IEnumerable<byte[][]> DataRecords
@@ -93,7 +80,7 @@ namespace SpssLib.FileParser
                 lock (Stream)
                 {
                     // dataStartPosition == 0 -> Stream.Position not suported
-                    if (dataStartPosition != 0)
+                    if (_dataStartPosition != 0)
                     {
 	                    long position;
 	                    try
@@ -104,11 +91,11 @@ namespace SpssLib.FileParser
 	                    {
 							throw new NotSupportedException("Re-reading the data is not allowed on this stream because it doesn't support position.", ex);
 	                    }
-						if (position != dataStartPosition)
+						if (position != _dataStartPosition)
 						{
 							if (Stream.CanSeek)
 							{
-								Stream.Seek(dataStartPosition, 0);
+								Stream.Seek(_dataStartPosition, 0);
 							}
 							else
 							{
@@ -119,7 +106,7 @@ namespace SpssLib.FileParser
 					else
 					{
 						// If position could not be read initialy, set as -1 to avoid start reading the records again with out rewinding the stream
-						dataStartPosition = -1;
+						_dataStartPosition = -1;
 					}
 
                     byte[][] record = ReadNextDataRecord();
@@ -147,8 +134,8 @@ namespace SpssLib.FileParser
         {
             byte[][] record = new byte[MetaData.VariableRecords.Count][];
             for (int i = 0; i < MetaData.VariableRecords.Count; i++)
-			{
-			    record[i]= reader.ReadBytes(Constants.BlockByteSize);
+			{   // TODO check unexpected eof?
+			    record[i]= _reader.ReadBytes(Constants.BlockByteSize);
                 if (record[i].Length < Constants.BlockByteSize)
                 {
                     return null;
@@ -157,77 +144,93 @@ namespace SpssLib.FileParser
             return record;            
         }
 
-		public object ValueToObject(byte[] value, VariableRecord variable)
-        {
-            if (variable.Type == 0)
-            {
-                var doubleValue = BitConverter.ToDouble(value, 0);
-                if (doubleValue == SysmisValue)
-                {
-                    return null;
-                }
-                else
-                {
-                    return doubleValue;
-                }
-            }
-            else
-            {
-                return Encoding.ASCII.GetString(value);
-            }
-        }
-
         public IEnumerable<object> RecordToObjects(byte[][] record)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            bool buildingString = false;
-            int variableIndex = 0;
-            int stringLength = 0;
+            Decoder dec = MetaData.DataEncoding.GetDecoder();
+            var charBuffer = new char[MetaData.DataEncoding.GetMaxCharCount(256)];
 
-            foreach (var variableRecord in this.MetaData.VariableRecords)
+            var variableRecords = MetaData.VariableRecords;
+            var variableCount = variableRecords.Count;
+
+            for (int variableIndex = 0; variableIndex < variableCount; )
             {
-                byte[] element = record[variableIndex++];
-
-                if (buildingString && variableRecord.Type != -1)
-                {
-                    // return the complete string we were building
-                    yield return (stringBuilder.ToString()).Substring(0, stringLength);
-
-                    // Clear:
-                    stringBuilder.Length = 0;
-                    buildingString = false;
-                }
+                VariableRecord variableRecord;
+                byte[] element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
 
                 if (variableRecord.Type == 0)
                 {
-                    // Return numeric value
-                    var value =  BitConverter.ToDouble(element, 0);
-                    if (value == SysmisValue)
+                    // Convert value to double and check Sysmiss
+                    yield return ParseDoubleValue(element);
+                }
+                else if (variableRecord.Type > 0)
+                {
+
+                    var bufferIndex = 0;
+                    // String variable starts
+                    var length = variableRecord.Type;
+                    int bytesRead = element.Length;
+
+                    do
                     {
-                        yield return null;
-                    }
-                    else
-                    {
-                        yield return value;
-                    }
+                        // Decode the characters into the charBuffer array and increment the index
+                        bufferIndex += dec.GetChars(element, 0, element.Length, charBuffer, bufferIndex, false);
+                        element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
+                        bytesRead += element.Length;
+                    } while (bytesRead < length && variableRecord.Type == -1 && variableIndex < variableCount);
+                        
+                    // If the type of variable changed before the end of the string length or before the end of the file
+                    // there must be something wrong
+                    if(variableRecord.Type != -1)
+                        throw new SpssFileFormatException("Wrong termination for string. Dictionary index "+variableIndex);
+                        
+                    // Decode last chars and flush decoder buffer. In case the bytes read where more than  the lenght,
+                    // we must read just the remainig bytes on the 8 byte array, otherwise, just read all.
+                    bufferIndex += dec.GetChars(element, 0, bytesRead > length 
+                                                                ? length - bytesRead + element.Length
+                                                                : element.Length, 
+                                                charBuffer, bufferIndex, true);
+
+                    // return the complete string we were building (the buffer up to the writen index)
+                    yield return new string(charBuffer, 0, bufferIndex);
+
+                    // Clear decoder for future use
+                    dec.Reset();
+                }
+                else if(variableRecord.Type == -1)
+                {
+                    throw new SpssFileFormatException("Unexpected long string variable record");
                 }
                 else
                 {
-                    if (variableRecord.Type > 0)
-                        stringLength = variableRecord.Type;
-                        // Add string to string we were building
-                    stringBuilder.Append(Encoding.ASCII.GetString(element));
-                    buildingString = true;
+                    throw new SpssFileFormatException("Unrecognized variable type: "+variableRecord.Type);
                 }
             }
-            // return the complete string we were building
-            if (buildingString)
-            {
-                yield return stringBuilder.ToString();
-            }
         }
-		
-		[Obsolete("Use SpssDataset constructor directly")]
+
+        private static byte[] MoveNext(byte[][] record, IList<VariableRecord> variableRecords, out VariableRecord variableRecord, ref int variableIndex)
+        {
+            variableRecord = variableRecords[variableIndex];
+            return record[variableIndex++];
+        }
+
+        /// <summary>
+        /// Converts the byte pattern to it's double representation and compares it to 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        private object ParseDoubleValue(byte[] element)
+        {
+            var value = BitConverter.ToDouble(element, 0);
+            // ReSharper disable CompareOfFloatsByEqualityOperator SysMiss is an exact value
+            if (value == MetaData.SystemMissingValue)
+            // ReSharper restore CompareOfFloatsByEqualityOperator
+            {
+                return null;
+            }
+            return value;
+        }
+
+        [Obsolete("Use SpssDataset constructor directly")]
         public SpssDataset.SpssDataset ToSpssDataset()
         {
             return new SpssDataset.SpssDataset(this);
@@ -241,7 +244,7 @@ namespace SpssLib.FileParser
 
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -249,20 +252,20 @@ namespace SpssLib.FileParser
         {
             if (disposing)
             {
-                if (this.reader != null)
+                if (_reader != null)
                 {
-                    this.reader.Close();
-                    this.reader = null;
+                    _reader.Close();
+                    _reader = null;
                 }
-                if (this.Stream != null)
+                if (Stream != null)
                 {
-                    this.Stream.Close();
-                    this.Stream = null;
+                    Stream.Close();
+                    Stream = null;
                 }
-                if (this.dataRecordStream != null)
+                if (_dataRecordStream != null)
                 {
-                    this.dataRecordStream.Close();
-                    this.dataRecordStream = null;
+                    _dataRecordStream.Close();
+                    _dataRecordStream = null;
                 }
             }
         }
@@ -271,26 +274,25 @@ namespace SpssLib.FileParser
         {
             get
             {
-                if (this.MetaData == null)
-                    this.ParseMetaData();
-                if (this.variables == null)
+                if (MetaData == null)
+                    ParseMetaData();
+                if (_variables == null)
                 {
                     GetVariablesFromRecords();
                 }
-                return this.variables;
+                return _variables;
             }
         }
 
-        private VariablesCollection variables;
+        private VariablesCollection _variables;
 
-        private Variable GetVariable(int variableIndex, int dictionaryIndex, FileParser.MetaData metaData)
+        private Variable GetVariable(int variableIndex, int dictionaryIndex, MetaData metaData)
         {
             var variable = new Variable();
             variable.Index = variableIndex;
 
             // Get variable record data:
             var variableRecord = metaData.VariableRecords[dictionaryIndex];
-            variable.ShortName = variableRecord.Name;
             variable.Label = variableRecord.HasVariableLabel ? variable.Label = variableRecord.Label : null;
 	        variable.MissingValueType = variableRecord.MissingValueType;
 	        for (int i = 0; i < variableRecord.MissingValues.Count && i < variable.MissingValues.Length; i++)
@@ -332,43 +334,31 @@ namespace SpssLib.FileParser
                 variable.MeasurementType = MeasurementType.Scale;
                 variable.Width = variable.PrintFormat.FieldWidth;
             }
-            
 
-            // Get (optional) long variable name:
-            if (metaData.LongVariableNames != null)
+            variable.Name = variableRecord.Name;
+            string longName;
+            // Look for the right name
+            if (metaData.LongVariableNames != null 
+                    && metaData.LongVariableNames.Dictionary.TryGetValue(variable.Name, out longName))
             {
-                var longNameDictionary = metaData.LongVariableNames.LongNameDictionary;
-                if (longNameDictionary.ContainsKey(variable.ShortName.Trim()))
-                {
-                    variable.Name = longNameDictionary[variable.ShortName.Trim()].Trim();
-                }
-                else
-                {
-                    variable.Name = variable.ShortName.Trim();
-                }
-            }
-            else
-            {
-                variable.Name = variable.ShortName.Trim();
+                variable.Name = longName;
             }
 
             // TODO digest very long string info.
             return variable;
         }
 
-        public double SysmisValue { get; set; }
-
 		private void GetVariablesFromRecords()
         {
-            this.variables = new VariablesCollection();
+            _variables = new VariablesCollection();
 
             int dictionaryIndex = 0;
             int variableIndex = 0;
-            foreach (var variableRecord in this.MetaData.VariableRecords)
+            foreach (var variableRecord in MetaData.VariableRecords)
             {
                 if (variableRecord.Type >= 0)
                 {
-                    variables.Add(GetVariable(variableIndex, dictionaryIndex, this.MetaData));
+                    _variables.Add(GetVariable(variableIndex, dictionaryIndex, MetaData));
                     variableIndex++;
                 }
                 dictionaryIndex++;

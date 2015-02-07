@@ -6,7 +6,6 @@ namespace SpssLib.FileParser.Records
 {
     public class MachineIntegerInfoRecord : BaseInfoRecord
     {
-
         public override int SubType { get { return InfoRecordType.MachineInteger; } }
 
 	    public int VersionMajor { get; private set; }
@@ -35,12 +34,49 @@ namespace SpssLib.FileParser.Records
 			FloatingPointRepresentation = 1;	// IEEE 754
 			CompressionCode = 1;
 			Endianness = 2;						// Little endian
-			CharacterCode = encoding.CodePage;
+			CharacterCode = GetCharacterCode(encoding);
 		}
+
+        private int GetCharacterCode(Encoding encoding)
+        {
+            if (encoding.EncodingName.Equals("US-ASCII", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return 2;
+            }
+            return encoding.CodePage;
+        }
+
+        public new Encoding Encoding
+        {
+            get
+            {
+                switch (CharacterCode)
+                {
+                    case 1: // EBCDIC
+                        throw new NotSupportedException("EBCDIC???? Who uses that? Honestly!!");
+                    case 2: // 7-bit ASCII
+                        return Encoding.ASCII;
+                    case 3: // 8-bit ASCII
+                        return Encoding.UTF8;
+                    case 4: // DEC Kanji
+                        throw new NotSupportedException("SPSS machine info record character code not suported: 4 - DEC Kanji. What year is this?? Where am I?");
+                    default: // Other, look by codepage
+                        try
+                        {
+                            return Encoding.GetEncoding(CharacterCode);
+                        }
+                        catch (ArgumentException ex)
+                        {
+                            throw new NotSupportedException("SPSS machine info record character code not suported: " + CharacterCode, ex);
+                        }
+                }
+            }
+        }
 
         public override void RegisterMetadata(MetaData metaData)
         {
             metaData.MachineIntegerInfo = this;
+            metaData.HeaderEncoding = Encoding;
         }
 
         protected override void WriteInfo(BinaryWriter writer)

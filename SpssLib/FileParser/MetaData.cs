@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using SpssLib.FileParser.Records;
 
 namespace SpssLib.FileParser
@@ -9,6 +10,9 @@ namespace SpssLib.FileParser
         private MachineFloatingPointInfoRecord _floatingPointInfo;
         private HeaderRecord _headerRecord;
         private VariableDisplayParameterRecord _variableDisplayParameters;
+
+        internal Encoding HeaderEncoding { get; set; }
+        internal Encoding DataEncoding { get; set; }
 
         internal MetaData()
         {
@@ -57,7 +61,7 @@ namespace SpssLib.FileParser
             }
         }
 
-        public CharacterEncodingRecord CharEncoding { get; internal set; }
+        public CharacterEncodingRecord CharEncodingRecord { get; internal set; }
 
         public IList<BaseInfoRecord> InfoRecords { get; private set; }
 
