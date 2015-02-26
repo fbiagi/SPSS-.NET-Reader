@@ -96,12 +96,12 @@ namespace SpssLib.FileParser.Records
                 throw new ArgumentException("The max length should be a multiple of the round up bytes", "maxLength");
             }
 
-            int lastCharIndex;
-            var charArr = AsCharArr(enc, value, maxLength, out lastCharIndex);
-            lenght = lastCharIndex;
+            int lastCharIndex, byteCount;
+            var charArr = AsCharArr(enc, value, maxLength, out lastCharIndex, out byteCount);
+            lenght = byteCount;
 
             // Get the new rounde up length
-            var roundUpLength = Common.RoundUp(lastCharIndex + roundUpDelta, roundUpBytes) - roundUpDelta;
+            var roundUpLength = Common.RoundUp(byteCount + roundUpDelta, roundUpBytes) - roundUpDelta;
 
             var byteArr = GetPaddedByteArray(enc, roundUpLength, padding, charArr, lastCharIndex);
             return byteArr;
@@ -144,13 +144,37 @@ namespace SpssLib.FileParser.Records
         /// </returns> 
         private static char[] AsCharArr(Encoding enc, string value, int length, out int lastCharIndex)
         {
+            int discardByteCount;
+            return AsCharArr(enc, value, length, out lastCharIndex, out discardByteCount);
+        }
+
+        /// <summary>
+        /// Gets the string as an array of chars. The reulting array has already been sliced 
+        /// to the amount of chars that will fit into a byte[] of size <see cref="length"/> when 
+        /// encoded with <see cref="enc"/>
+        /// </summary>
+        /// <param name="enc">To test the lenght of the encoded characters</param>
+        /// <param name="value">The string to be encoded</param>
+        /// <param name="length">
+        ///     The max lenght of bytes, by using <see cref="enc"/> <see cref="Encoding.GetByteCount(char[])"/>
+        ///     whe can check how many of the resulting char[] would fit on an ecoded byte array of this lenght
+        /// </param>
+        /// <param name="lastCharIndex">
+        ///     The index of up to which character should be encoded to produce a byte[] of <see cref="length"/>
+        /// </param>
+        /// <returns>
+        ///     All the chars of value. You should, use the <see cref="lastCharIndex"/> to indicate up to wich 
+        ///     character of the returning array to encode.
+        /// </returns> 
+        private static char[] AsCharArr(Encoding enc, string value, int length, out int lastCharIndex, out int byteCount)
+        {
             var charArr = value.ToCharArray(0, Math.Min(value.Length, length));
 
             // Up to which char array index should be converted (to fith the length)
             lastCharIndex = charArr.Length;
 
             // Find the number of chars that will fit on 'length' bytes
-            while (enc.GetByteCount(charArr, 0, lastCharIndex) > length) lastCharIndex--;
+            while ((byteCount = enc.GetByteCount(charArr, 0, lastCharIndex)) > length) lastCharIndex--;
             return charArr;
         }
 
