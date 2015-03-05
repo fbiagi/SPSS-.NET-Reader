@@ -148,6 +148,7 @@ namespace SpssLib.FileParser
         {
             Decoder dec = MetaData.DataEncoding.GetDecoder();
             var charBuffer = new char[MetaData.DataEncoding.GetMaxCharCount(256)];
+            StringBuilder sBuilder = new StringBuilder();
 
             var variableRecords = MetaData.VariableRecords;
             var variableCount = variableRecords.Count;
@@ -164,37 +165,55 @@ namespace SpssLib.FileParser
                 }
                 else if (variableRecord.Type > 0)
                 {
-
-                    var bufferIndex = 0;
-                    // String variable starts
-                    var length = variableRecord.Type;
-                    int bytesRead = element.Length;
+                    int segments = 1;
+                    if (MetaData.VeryLongStrings.Dictionary.ContainsKey(variableRecord.Name))
+                    {
+                        segments = (int)Math.Ceiling(MetaData.VeryLongStrings.Dictionary[variableRecord.Name] / 252d);
+                    }
 
                     do
                     {
-                        // Decode the characters into the charBuffer array and increment the index
-                        bufferIndex += dec.GetChars(element, 0, element.Length, charBuffer, bufferIndex, false);
-                        element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
-                        bytesRead += element.Length;
-                    } while (bytesRead < length && variableRecord.Type == -1 && variableIndex < variableCount);
-                        
-                    // If the type of variable changed before the end of the string length or before the end of the file
-                    // there must be something wrong
-                    if(variableRecord.Type != -1)
-                        throw new SpssFileFormatException("Wrong termination for string. Dictionary index "+variableIndex);
-                        
-                    // Decode last chars and flush decoder buffer. In case the bytes read where more than  the lenght,
-                    // we must read just the remainig bytes on the 8 byte array, otherwise, just read all.
-                    bufferIndex += dec.GetChars(element, 0, bytesRead > length 
-                                                                ? length - bytesRead + element.Length
-                                                                : element.Length, 
-                                                charBuffer, bufferIndex, true);
+                        var bufferIndex = 0;
+                        var length = variableRecord.Type;
+                        int bytesRead = element.Length;
 
-                    // return the complete string we were building (the buffer up to the writen index)
-                    yield return new string(charBuffer, 0, bufferIndex);
-
+                        do
+                        {
+                            // Decode the characters into the charBuffer array and increment the index
+                            bufferIndex += dec.GetChars(element, 0, element.Length, charBuffer, bufferIndex, false);
+                            element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
+                            bytesRead += element.Length;
+                        } while (bytesRead < length && variableRecord.Type == -1 && variableIndex < variableCount);
+                        // If the type of variable changed before the end of the string length or before the end of the file
+                        // there must be something wrong
+                        if(variableRecord.Type != -1)
+                            throw new SpssFileFormatException("Wrong termination for string. Dictionary index "+variableIndex);
+                        
+                        // Decode last chars and flush decoder buffer. In case the bytes read where more than  the lenght,
+                        // we must read just the remainig bytes on the 8 byte array, otherwise, just read all.
+                        bufferIndex += dec.GetChars(element, 0, bytesRead > length 
+                                                                    ? length - bytesRead + element.Length
+                                                                    : element.Length, 
+                                                    charBuffer, bufferIndex, true);
+                        // return the complete string we were building (the buffer up to the writen index)
+                        sBuilder.Append(charBuffer, 0, bufferIndex);
+                        if (--segments > 0)
+                        {
+                            element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    } while (true);
+                    
                     // Clear decoder for future use
-                    dec.Reset();
+                    dec.Reset();    
+                    
+                    var s = sBuilder.ToString();
+                    sBuilder.Clear();
+
+                    yield return s;
                 }
                 else if(variableRecord.Type == -1)
                 {
@@ -286,7 +305,7 @@ namespace SpssLib.FileParser
 
         private VariablesCollection _variables;
 
-        private Variable GetVariable(int variableIndex, int dictionaryIndex, MetaData metaData)
+        private Variable GetVariable(int variableIndex, int dictionaryIndex, MetaData metaData, int length, int segmentIndex)
         {
             var variable = new Variable();
             variable.Index = variableIndex;
@@ -305,7 +324,7 @@ namespace SpssLib.FileParser
             variable.Type = variableRecord.Type == 0 ? DataType.Numeric : DataType.Text;
             if (variable.Type == DataType.Text)
             {
-                variable.TextWidth = variableRecord.Type;
+                variable.TextWidth = length;
             }
 
             // Get value labels:
@@ -322,7 +341,7 @@ namespace SpssLib.FileParser
             // Get display info:
             if (metaData.VariableDisplayParameters  != null)
             {
-                var displayInfo = metaData.VariableDisplayParameters[variableIndex];
+                var displayInfo = metaData.VariableDisplayParameters[segmentIndex];
                 variable.Alignment = displayInfo.Alignment;
                 variable.MeasurementType = displayInfo.MeasurementType;
                 variable.Width = displayInfo.Width; // TODO this field might not be present, check this and use the printFormat's
@@ -352,17 +371,38 @@ namespace SpssLib.FileParser
         {
             _variables = new VariablesCollection();
 
-            int dictionaryIndex = 0;
+		    var veryLongStrings = MetaData.VeryLongStrings.Dictionary;
+
+            int delta;
+		    int segmentIndex = 0;
             int variableIndex = 0;
-            foreach (var variableRecord in MetaData.VariableRecords)
-            {
-                if (variableRecord.Type >= 0)
+		    for (int dictionaryIndex = 0; dictionaryIndex < MetaData.VariableRecords.Count; dictionaryIndex+=delta)
+		    {
+		        var record = MetaData.VariableRecords[dictionaryIndex];
+		        if (record.Type < 0)
+		        {
+                    throw  new SpssFileFormatException("String continuation record out of place. Dictonary index "+dictionaryIndex);
+		        }
+		        int length;
+		        int segments;
+                if (veryLongStrings.ContainsKey(record.Name))
                 {
-                    _variables.Add(GetVariable(variableIndex, dictionaryIndex, MetaData));
-                    variableIndex++;
+                    length = veryLongStrings[record.Name];
+                    segments = (int)Math.Ceiling(length/252d);
+                    var normalSegmentLength = (int) Math.Ceiling(255d/8d);
+                    var finalSegmentLenght = (int) Math.Ceiling((length - (segments - 1)*252)/8d);
+                    delta = (segments-1)*normalSegmentLength + finalSegmentLenght;
                 }
-                dictionaryIndex++;
-            }
+                else
+                {
+                    length = record.Type;
+                    delta = length == 0 ? 1 : (int)Math.Ceiling(length/8d);
+                    segments = 1;
+                }
+
+		        _variables.Add(GetVariable(variableIndex++, dictionaryIndex, MetaData, length, segmentIndex));
+		        segmentIndex += segments;
+		    }
         }
     }
 }

@@ -32,6 +32,8 @@ namespace Test.SpssLib
             {
                 foreach (var variable in variables)
                 {
+                    Debug.Write(variable.Name);
+                    Debug.Write(':');
                     Debug.Write(record.GetValue(variable));
                     Debug.Write('\t');
                 }

@@ -26,7 +26,7 @@ namespace SpssLib.FileParser.Records
                 if (_dictionary == null)
                 {
                     if (Data == null || Data.Length == 0)
-                    {
+                    {   // TODO generalize mesage
                         throw new SpssFileFormatException("No long variable names data loaded");
                     }
 
@@ -37,7 +37,7 @@ namespace SpssLib.FileParser.Records
                     {
                         var separatorIndex = Array.IndexOf(Data, EqualsChar, startIndex);
                         if (separatorIndex == -1)
-                        {
+                        {   // TODO generalize mesage
                             throw new SpssFileFormatException("Long variable format in wrong status");
                         }
                         var endIndex = Array.IndexOf( Data, TabChar, separatorIndex);
