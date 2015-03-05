@@ -24,6 +24,7 @@ namespace SpssLib.FileParser
                             RegisterInfoRecord<MachineFloatingPointInfoRecord>(InfoRecordType.MachineFloatingPoint),
                             RegisterInfoRecord<VariableDisplayParameterRecord>(InfoRecordType.VariableDisplayParameter),
                             RegisterInfoRecord<LongVariableNamesRecord>(InfoRecordType.LongVariableNames),
+                            RegisterInfoRecord<VeryLongStringRecord>(InfoRecordType.VeryLongString),
                             RegisterInfoRecord<CharacterEncodingRecord>(InfoRecordType.CharacterEncoding),
                         }).ToDictionary(p => p.Key, p => p.Value)),
                     new GeneralRecordParser<DictionaryTerminationRecord>(RecordType.End),

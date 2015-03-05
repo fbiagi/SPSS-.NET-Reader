@@ -50,12 +50,12 @@
   <ItemGroup>
     <Compile Include="Compression\DecompressedDataStream.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="FileParser\BaseInfoRecord.cs" />
-    <Compile Include="FileParser\EbcdicHeaderRecord.cs" />
-    <Compile Include="FileParser\InfoRecordParser.cs" />
-    <Compile Include="FileParser\InfoRecordType.cs" />
-    <Compile Include="FileParser\IRecordParser.cs" />
-    <Compile Include="FileParser\ParserProvider.cs" />
+    <Compile Include="FileParser\Records\BaseInfoRecord.cs" />
+    <Compile Include="FileParser\Records\EbcdicHeaderRecord.cs" />
+    <Compile Include="FileParser\Records\InfoRecordParser.cs" />
+    <Compile Include="FileParser\Records\InfoRecordType.cs" />
+    <Compile Include="FileParser\Records\IRecordParser.cs" />
+    <Compile Include="FileParser\Records\ParserProvider.cs" />
     <Compile Include="FileParser\Records\CharacterEncodingRecord.cs" />
     <Compile Include="FileParser\CompressedRecordWriter.cs" />
     <Compile Include="FileParser\IRecordWriter.cs" />
@@ -63,6 +63,7 @@
     <Compile Include="FileParser\Records\EncodeEnabledRecord.cs" />
     <Compile Include="FileParser\Records\EncodingExtensions.cs" />
     <Compile Include="FileParser\Records\IRecord.cs" />
+    <Compile Include="FileParser\Records\VariableDataInfoRecord.cs" />
     <Compile Include="FileParser\Records\ReaderWriterExtensions.cs" />
     <Compile Include="FileParser\SavFileWriter.cs" />
     <Compile Include="DataReader\SpssOptions.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="FileParser\Records\VariableDataType.cs" />
     <Compile Include="FileParser\SpssFileFormatException.cs" />
     <Compile Include="FileParser\UnexpectedFileFormatException.cs" />
+    <Compile Include="FileParser\Records\VeryLongStringRecord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DataReader\SpssDataReader.cs" />
     <Compile Include="SpssDataset\Alignment.cs" />
@@ -94,7 +96,7 @@
     <Compile Include="SpssDataset\Record.cs" />
     <Compile Include="SpssDataset\RecordCollection.cs" />
     <Compile Include="SpssDataset\FormatType.cs" />
-    <Compile Include="FileParser\Records\VeryLongStringRecord.cs" />
+    <Compile Include="FileParser\Records\VeryLongStringRecordOld.cs" />
     <Compile Include="FileParser\SavFileParser.cs" />
     <Compile Include="SpssDataset\RecordCollectionMissingCategoryValuesAsNull.cs" />
     <Compile Include="SpssDataset\RecordMissingCategoryValuesAsNull.cs" />

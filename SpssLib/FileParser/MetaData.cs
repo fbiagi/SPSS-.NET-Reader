@@ -51,13 +51,14 @@ namespace SpssLib.FileParser
         }
 
         public LongVariableNamesRecord LongVariableNames { get; internal set; }
+        public VeryLongStringRecord VeryLongStrings { get; internal set; }
         public VariableDisplayParameterRecord VariableDisplayParameters
         {
             get { return _variableDisplayParameters; }
             internal set
             {
                 _variableDisplayParameters = value;
-                VariableDisplayParameters.VariableCount = VariableCount;
+                _variableDisplayParameters.VariableCount = VariableCount;
             }
         }
 
@@ -67,8 +68,8 @@ namespace SpssLib.FileParser
 
         public double SystemMissingValue { get; private set; }
         // Count number of variables (the number of variable-records with a name,
-        //     the rest is part of a long string variable):
-        public int VariableCount
+        // the rest is part of a long string variable), this includes the variables for VeryLongStrings 
+        private int VariableCount
         {
             get
             {
@@ -91,6 +92,8 @@ namespace SpssLib.FileParser
             {
                 throw new SpssFileFormatException("No variable records found");
             }
+
+            var dic = VeryLongStrings.Dictionary;
         }
     }
 }

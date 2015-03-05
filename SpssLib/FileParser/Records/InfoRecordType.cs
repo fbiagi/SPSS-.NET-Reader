@@ -9,7 +9,7 @@
         public const int MultipleResponseSets = 7;          // TODO implement may be?
         public const int VariableDisplayParameter = 11;     // TODO implement writing
         public const int LongVariableNames = 13;
-        public const int VeryLongStringRecord = 14;         // TODO implement, VLS vars might look like multiple vars, find what should happend with variable indexes
+        public const int VeryLongString = 14;         // TODO implement, VLS vars might look like multiple vars, find what should happend with variable indexes
         public const int ExtendedNumberOfCases = 16;        // TODO implement may be?
         public const int DataFileAttributes = 17;           // TODO implement may be?
         public const int VariableAttributes = 18;           // TODO implement may be?

@@ -9,9 +9,6 @@ namespace SpssLib.FileParser.Records
         private int[] _data;
         public override int SubType { get { return InfoRecordType.VariableDisplayParameter; } }
         
-        internal VariableDisplayParameterRecord()
-        {}
-
         internal int VariableCount { get; set; }
 
         public VariableDisplayInfo this[int variableIndex]
