@@ -128,7 +128,7 @@ namespace SpssLib.FileParser.Records
 			}
 
             // Create all the variable continuation records that for each extra 8 bytes of string data
-			var varCount =  (int)Math.Ceiling(variable.TextWidth/8d);
+            var varCount = GetStringContinuationRecordsCount(variable.TextWidth);
 			var result = new VariableRecord[varCount];
 			result[0] = headVariable;
 			var dummyVar = GetStringContinuationRecord();
@@ -138,6 +138,63 @@ namespace SpssLib.FileParser.Records
 			}
 			return result;
 		}
+
+        /// <summary>
+        /// Gets the amount of dummy variables (string continuation records) needed for a string of 
+        /// length <see cref="lenght"/>
+        /// </summary>
+        /// <param name="lenght">The length (in bytes, not chars) for the string</param>
+        /// <exception cref="ArgumentException">
+        /// if the textWith is more than 255 bytes. If the variable needs to hold longer text use
+        /// <see cref="VeryLongStringRecord"/>
+        /// </exception>
+        /// <returns>Number of string continuation records needed (variables of type -1 and width 8)</returns>
+        internal static int GetStringContinuationRecordsCount(double lenght)
+        {
+            if(lenght > 255)
+                throw new ArgumentException("Continuation records are for string variables up to 255 bytes. For more, use VeryLongStringsRecords",
+                    "lenght");
+            return (int)Math.Ceiling(lenght/8d);
+        }
+
+        /// <summary>
+        /// Gives the number of segments for a very long string (<see cref="VeryLongStringRecord"/>).
+        /// </summary>
+        /// <param name="lenght">The length (in bytes, not chars) for the string</param>
+        /// <remarks>
+        /// There should be one segment for each 252 bytes of lenght, each segment will have one varaible 
+        /// with a name, the string length and multiple string continuation records.
+        /// </remarks>
+        /// <returns>The number of segments for <see cref="lenght"/> of bytes</returns>
+        internal static int GetLongStringSegmentsCount(double lenght)
+        {
+            return (int)Math.Ceiling(lenght / 252d);
+        }
+
+        /// <summary>
+        /// Gives the total number of variable records that a very long string (<see cref="VeryLongStringRecord"/>)
+        /// needs.
+        /// </summary>
+        /// <param name="lenght">The length (in bytes, not chars) for the string</param>
+        /// <remarks>
+        /// There's one segment for each 252 of <see cref="lenght"/> of bytes.
+        /// Each segment but the last has a width of 255.
+        /// The las segment has the suposed remider, as if the previous ones had only 252
+        /// (but that's not actualy the case). Why?? For the glory of Satan, of course.
+        /// </remarks> 
+        /// <returns>Number of VariableRecords needed for <see cref="lenght"/> of bytes</returns>
+        internal static int GetLongStringContinuationRecordsCount(double lenght)
+        {
+            // Get the total segments count
+            var segments = GetLongStringSegmentsCount(lenght);
+            // All except the last segment have a with of 255.
+            var normalSegmentLength = GetStringContinuationRecordsCount(255d);
+            // The last segment has the suposed remider (see remarks)
+            var finalSegmentLenght = GetStringContinuationRecordsCount(lenght - (segments - 1) * 252);
+            
+            return (segments - 1) * normalSegmentLength + finalSegmentLenght;
+        }
+
 
         /// <summary>
         /// Checks if the name that was set (after slicing it to 8 chars and encoding it properly) is not repeated on the names

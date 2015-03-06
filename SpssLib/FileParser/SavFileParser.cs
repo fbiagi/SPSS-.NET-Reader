@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.IO;
@@ -144,81 +145,120 @@ namespace SpssLib.FileParser
             return record;            
         }
 
+        /// <summary>
+        /// Convert a row of raw data to proper objects. (strings or doubles)
+        /// </summary>
+        /// <param name="record">The complete row data, as an array of byte[8] (the block of a single VaraibleRecord)</param>
+        /// <returns>The enumeration of objects for this row</returns>
         public IEnumerable<object> RecordToObjects(byte[][] record)
         {
+            // Decoder for strings
             Decoder dec = MetaData.DataEncoding.GetDecoder();
+            // Buffer to write the decoded chars to
             var charBuffer = new char[MetaData.DataEncoding.GetMaxCharCount(256)];
+            // String builder to get the full string result (mainly for VLS)
             StringBuilder sBuilder = new StringBuilder();
+            // The dictionary with the lengths for each VLS varaible
+            var veryLongStrings = MetaData.VeryLongStringsDictionary;
 
+            // All raw variable records and it's count (i's also the count of 8 bytes blocks in the row)
             var variableRecords = MetaData.VariableRecords;
             var variableCount = variableRecords.Count;
 
+            // Read the values, guided by it's VaraibleRecord
             for (int variableIndex = 0; variableIndex < variableCount; )
             {
+                // Varaible record that correspond to the current 8 bytes block
                 VariableRecord variableRecord;
+                // Currrent 8 bytes block
                 byte[] element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
 
+                // Numeric variable (also date, etc)
                 if (variableRecord.Type == 0)
                 {
                     // Convert value to double and check Sysmiss
                     yield return ParseDoubleValue(element);
                 }
+                // String variable
                 else if (variableRecord.Type > 0)
                 {
+                    // Count of segments of up to 255 bytes. 1 for not VLS
                     int segments = 1;
-                    if (MetaData.VeryLongStrings.Dictionary.ContainsKey(variableRecord.Name))
+                    // If VLS, calculate total count of segments according to the value for this var in the VLS dictionary
+                    if (veryLongStrings.ContainsKey(variableRecord.Name))
                     {
-                        segments = (int)Math.Ceiling(MetaData.VeryLongStrings.Dictionary[variableRecord.Name] / 252d);
+                        segments = VariableRecord.GetLongStringSegmentsCount(veryLongStrings[variableRecord.Name]);
                     }
 
+                    // Ok, so let's start reading all the string...
                     do
                     {
+                        // The index of the char buffer. How many chars have been read
                         var bufferIndex = 0;
+                        // The length of this segment, in bytes
                         var length = variableRecord.Type;
+                        // Count of bytes read of the string
                         int bytesRead = element.Length;
 
+                        // Start reading the segment
                         do
                         {
                             // Decode the characters into the charBuffer array and increment the index
                             bufferIndex += dec.GetChars(element, 0, element.Length, charBuffer, bufferIndex, false);
+                            // Read next block
                             element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
                             bytesRead += element.Length;
+                        // While we haven't read all bytes, is still a SCR and not the end of the row
                         } while (bytesRead < length && variableRecord.Type == -1 && variableIndex < variableCount);
+                        
                         // If the type of variable changed before the end of the string length or before the end of the file
                         // there must be something wrong
                         if(variableRecord.Type != -1)
-                            throw new SpssFileFormatException("Wrong termination for string. Dictionary index "+variableIndex);
+                            throw new SpssFileFormatException("Long string terminated early. "+
+                                "There must be missing some of the needed string continuation record. Dictionary index "+
+                                variableIndex);
                         
                         // Decode last chars and flush decoder buffer. In case the bytes read where more than  the lenght,
                         // we must read just the remainig bytes on the 8 byte array, otherwise, just read all.
+                        // When having multiple segments (VLSR) we also need to read each segment up to lenght. That means 
+                        // that all segments but last will have a length of 255, but the actual padded byte lenght will be
+                        // 256, and that means that each segment  (except for the last) will have an extra sapce char that 
+                        // has to be ignored. If not, spaces will apear at position 256 of the very long string (in bytes)
                         bufferIndex += dec.GetChars(element, 0, bytesRead > length 
                                                                     ? length - bytesRead + element.Length
                                                                     : element.Length, 
                                                     charBuffer, bufferIndex, true);
-                        // return the complete string we were building (the buffer up to the writen index)
+                        
+                        // take the segment's string we were building (the buffer up to the writen index)
                         sBuilder.Append(charBuffer, 0, bufferIndex);
+                        // If there afe more records, move next and continue
                         if (--segments > 0)
                         {
                             element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
                         }
                         else
                         {
+                            // if all segments are processed, exit the loop
                             break;
                         }
                     } while (true);
                     
                     // Clear decoder for future use
                     dec.Reset();    
-                    
+                    // Get full string and clear the string builder
                     var s = sBuilder.ToString();
                     sBuilder.Clear();
 
+                    // Finally, return the string
                     yield return s;
                 }
+                // String Continuation record (either we read something wrong or the file is not very well formed)
                 else if(variableRecord.Type == -1)
                 {
-                    throw new SpssFileFormatException("Unexpected long string variable record");
+                    throw new SpssFileFormatException("Unexpected string continuation record. To staart reading the record must be either string or numeric (dates, etc). "+
+                        "Dictionary index "+variableIndex);
                 }
+                // I don't know any more VariableRecord's types
                 else
                 {
                     throw new SpssFileFormatException("Unrecognized variable type: "+variableRecord.Type);
@@ -289,7 +329,7 @@ namespace SpssLib.FileParser
             }
         }
 
-        public VariablesCollection Variables
+        public Collection<Variable> Variables
         {
             get
             {
@@ -303,8 +343,17 @@ namespace SpssLib.FileParser
             }
         }
 
-        private VariablesCollection _variables;
-
+        private Collection<Variable> _variables;
+        
+        /// <summary>
+        /// Creates a <see cref="Variable"/> object with it's actual informantion
+        /// </summary>
+        /// <param name="variableIndex">The actual index of the varaible</param>
+        /// <param name="dictionaryIndex">The index of the varible's <see cref="VariableRecord"/></param>
+        /// <param name="metaData">The parsed metada with all needed info from the file</param>
+        /// <param name="length">The string lenght in bytes (only needed for string vars)</param>
+        /// <param name="segmentIndex">The variable index, counting also the extra segments of Very Long Strings</param>
+        /// <returns>The variable with all it's information inside</returns>
         private Variable GetVariable(int variableIndex, int dictionaryIndex, MetaData metaData, int length, int segmentIndex)
         {
             var variable = new Variable();
@@ -327,9 +376,9 @@ namespace SpssLib.FileParser
                 variable.TextWidth = length;
             }
 
+            // TODO: There can be one value label for multiple varaibles, we might want to only cerate one and reference it from all variables
             // Get value labels:
             var valueLabelRecord = metaData.ValueLabelRecords.FirstOrDefault(record => record.Variables.Contains(dictionaryIndex + 1));
-            
             if (valueLabelRecord != null)
             {
                 foreach (var label in valueLabelRecord.Labels)
@@ -363,44 +412,63 @@ namespace SpssLib.FileParser
                 variable.Name = longName;
             }
 
-            // TODO digest very long string info.
             return variable;
         }
 
+
+        /// <summary>
+        /// Fills the varaibles collection with just the actual variables (no string continuation records or very long
+        /// strings extra segments)
+        /// </summary>
 		private void GetVariablesFromRecords()
         {
-            _variables = new VariablesCollection();
-
-		    var veryLongStrings = MetaData.VeryLongStrings.Dictionary;
-
+            _variables = new Collection<Variable>();
+            // Get the longs strings dictionary
+		    var veryLongStrings = MetaData.VeryLongStringsDictionary;
+            
+            // Ammount of varaibles to jump (to skip variable continuation records and additional very long string segments)
             int delta;
+            // Index of variable with out string continuation records but INCLUDING very long string record variables (segments)
+            // This will be used for things like finding the VariableDisplayInfoRecord
 		    int segmentIndex = 0;
+            // Index of variable with out string continuation records AND very long string record variables (segments)
             int variableIndex = 0;
+            // Dictionary index is the VariableRecord index that contains the header info for this varaible
 		    for (int dictionaryIndex = 0; dictionaryIndex < MetaData.VariableRecords.Count; dictionaryIndex+=delta)
 		    {
-		        var record = MetaData.VariableRecords[dictionaryIndex];
+                var record = MetaData.VariableRecords[dictionaryIndex];
+                // If it's a string continuation record (SCR). This ones should have been skiped.
 		        if (record.Type < 0)
 		        {
                     throw  new SpssFileFormatException("String continuation record out of place. Dictonary index "+dictionaryIndex);
 		        }
+
+                // Actual byte lenght for variable
 		        int length;
+                // Ammount of segments (for VeryLongString variables, 1 for all other vars).
 		        int segments;
                 if (veryLongStrings.ContainsKey(record.Name))
                 {
+                    // Variable is a VeryLongString varaible
+                    // Take actual length from VLSR dictionary
                     length = veryLongStrings[record.Name];
-                    segments = (int)Math.Ceiling(length/252d);
-                    var normalSegmentLength = (int) Math.Ceiling(255d/8d);
-                    var finalSegmentLenght = (int) Math.Ceiling((length - (segments - 1)*252)/8d);
-                    delta = (segments-1)*normalSegmentLength + finalSegmentLenght;
+                    // Calculate the ammount of segments and the amount of VariableRecords to skip (SCR)
+                    segments = VariableRecord.GetLongStringSegmentsCount(length);
+                    delta = VariableRecord.GetLongStringContinuationRecordsCount(length);
                 }
                 else
                 {
-                    length = record.Type;
-                    delta = length == 0 ? 1 : (int)Math.Ceiling(length/8d);
+                    // Variable is NOT a VeryLongString varaible
+                    // numeric type is 0 so lenght is 1, > 0 for the lenght of strings
+                    length = record.Type == 0 ? 1 : record.Type;
+                    // This ones have only one segment
                     segments = 1;
+                    // Skip the string continuation records if any, or just move next.
+                    delta =  VariableRecord.GetStringContinuationRecordsCount(length);
                 }
-
-		        _variables.Add(GetVariable(variableIndex++, dictionaryIndex, MetaData, length, segmentIndex));
+                
+                _variables.Add(GetVariable(variableIndex++, dictionaryIndex, MetaData, length, segmentIndex));
+                // Increment the segment count by how many segments this var had.
 		        segmentIndex += segments;
 		    }
         }

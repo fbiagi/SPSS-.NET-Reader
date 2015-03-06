@@ -9,6 +9,10 @@ namespace SpssLib.SpssDataset
 
         public MeasurementType MeasurementType { get; set; }
         public int Width { get; set; }
+        /// <summary>
+        /// Length for strings variables. Expressed in bytes, not chars. Actual char count will depend on the 
+        /// encoding used for the data (equal or less than this)
+        /// </summary>
         public int TextWidth { get; set; }
         public Alignment Alignment { get; set; }
         // TODO ShortName should be created and handled allways from VariableRecord, this class shouldn't know about it
@@ -76,6 +80,7 @@ namespace SpssLib.SpssDataset
 			return _epoc.AddSeconds(dVal);
 		}
 
+        // TODO find out where is used, unit tests.
 		public static double GetValueFromDate(DateTime date)
 		{
 			var span = date.Subtract(_epoc);
@@ -92,7 +97,6 @@ namespace SpssLib.SpssDataset
 			    for (int i = 0; i < MissingValueType && i < MissingValues.Length; i++)
 			    {
 				    if (dVal == MissingValues[i])
-
 				    {
 					    return null;
 				    }
@@ -109,7 +113,7 @@ namespace SpssLib.SpssDataset
 				    return null;
 			    }
 		    }
-		    // ReSharper restore CompareOfFloatsByEqualityOperator		    
+		    // ReSharper restore CompareOfFloatsByEqualityOperator
 		    return value;
 	    }
     }
