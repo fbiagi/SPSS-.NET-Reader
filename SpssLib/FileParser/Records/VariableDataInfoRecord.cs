@@ -8,13 +8,24 @@ namespace SpssLib.FileParser.Records
     public abstract class VariableDataInfoRecord<T> : BaseInfoRecord
     {
         private IDictionary<string, T> _dictionary;
+        // ReSharper disable StaticFieldInGenericType // Doesn't need to be shared
         private static readonly byte EqualsChar = Encoding.ASCII.GetBytes("=")[0];
         private static readonly byte TabChar = Encoding.ASCII.GetBytes("\t")[0];
+        // ReSharper restore StaticFieldInGenericType
 
         /// <summary>
         /// Holds the encoded byte sequence for the long names dictionary string
         /// </summary>
         protected byte[] Data { get; set; }
+        
+        public VariableDataInfoRecord(IDictionary<string, T> dictionary, Encoding encoding)
+		{
+		    Encoding = encoding;
+		    ItemSize = 1;
+            Dictionary = dictionary;
+            BuildDataArray();
+		    ItemCount = Data.Length;
+		}
 
         protected abstract T DecodeValue(string stringValue);
         protected abstract string EncodeValue(T value);

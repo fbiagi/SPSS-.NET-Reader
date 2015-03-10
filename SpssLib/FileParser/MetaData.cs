@@ -51,7 +51,13 @@ namespace SpssLib.FileParser
         }
 
         public LongVariableNamesRecord LongVariableNames { get; internal set; }
-        public VeryLongStringRecord VeryLongStrings { get; internal set; }
+        internal VeryLongStringRecord VeryLongStrings { private get; set; }
+        
+        public IDictionary<string, int> VeryLongStringsDictionary
+        {
+            get { return VeryLongStrings != null ? VeryLongStrings.Dictionary : new Dictionary<string, int>(0); }
+        }
+        
         public VariableDisplayParameterRecord VariableDisplayParameters
         {
             get { return _variableDisplayParameters; }
@@ -81,7 +87,7 @@ namespace SpssLib.FileParser
             }
         }
 
-        internal void ChechDictionaryRecords()
+        internal void CheckDictionaryRecords()
         {
             if (HeaderRecord == null)
             {
@@ -92,8 +98,6 @@ namespace SpssLib.FileParser
             {
                 throw new SpssFileFormatException("No variable records found");
             }
-
-            var dic = VeryLongStrings.Dictionary;
         }
     }
 }

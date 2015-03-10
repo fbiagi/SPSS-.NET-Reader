@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Compression\DecompressedDataStream.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="FileParser\Common.cs" />
     <Compile Include="FileParser\Records\BaseInfoRecord.cs" />
     <Compile Include="FileParser\Records\EbcdicHeaderRecord.cs" />
     <Compile Include="FileParser\Records\InfoRecordParser.cs" />
@@ -70,9 +71,9 @@
     <Compile Include="DataReader\SpssReader.cs" />
     <Compile Include="DataReader\SpssWriter.cs" />
     <Compile Include="FileParser\MetaData.cs" />
-    <Compile Include="FileParser\Records\Common.cs" />
     <Compile Include="FileParser\Records\VariableDataType.cs" />
     <Compile Include="FileParser\SpssFileFormatException.cs" />
+    <Compile Include="FileParser\StringWriter.cs" />
     <Compile Include="FileParser\UnexpectedFileFormatException.cs" />
     <Compile Include="FileParser\Records\VeryLongStringRecord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -102,7 +103,6 @@
     <Compile Include="SpssDataset\RecordMissingCategoryValuesAsNull.cs" />
     <Compile Include="SpssDataset\SpssDataset.cs" />
     <Compile Include="SpssDataset\Variable.cs" />
-    <Compile Include="SpssDataset\VariablesCollection.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="doc\BinaryDescription.txt" />

@@ -12,7 +12,7 @@ namespace SpssLib.DataReader
 		private readonly SavFileWriter _output;
 
 		private readonly SpssOptions _options = new SpssOptions();
-		private ICollection<Variable> _variables;
+		private readonly ICollection<Variable> _variables;
 
 		public SpssWriter(Stream output, ICollection<Variable> variables, SpssOptions options = null)
 			: this(new SavFileWriter(output), variables, options) { }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using SpssLib.DataReader;
 using SpssLib.FileParser.Records;
 using SpssLib.SpssDataset;
@@ -13,35 +12,37 @@ namespace SpssLib.FileParser
 	{
 		private readonly Stream _output;
 		private readonly BinaryWriter _writer;
-		private int _longNameCounter = 0;
+		private int _longNameCounter;
 		private Variable[] _variables;
 		private IRecordWriter _recordWriter;
 		private long _bias;
 		private bool _compress;
 	    private SpssOptions _options;
-        
+
+        private StringWriter _stringWriter;
+
 		public SavFileWriter(Stream output)
 		{
 			_output = output;
-			// TODO set system constant with file format base encoding
-			_writer = new BinaryWriter(_output, Encoding.ASCII);
+			_writer = new BinaryWriter(_output, Constants.BaseEncoding);
 		}
 
-		public void WriteFileHeader(SpssOptions options, ICollection<Variable> variables)
+	    public void WriteFileHeader(SpssOptions options, IEnumerable<Variable> variables)
 		{
 		    _options = options;
 			_compress = options.Compressed;
 			_bias = options.Bias;
 			_variables = variables.ToArray();
-			
-			var headerRecords = new List<IRecord>();
+            
+            var headerRecords = new List<IRecord>();
             
 			// SPSS file header
 			headerRecords.Add(new HeaderRecord(options));
 
 			// Process all variable info
 			var variableLongNames = new Dictionary<string, string>();
-			SetVaraibles(headerRecords, variableLongNames);
+            var veryLongStrings = new Dictionary<string, int>();
+			SetVaraibles(headerRecords, variableLongNames, veryLongStrings);
 
 			// Integer & encoding info
 			var intInfoRecord = new MachineIntegerInfoRecord(_options.HeaderEncoding);
@@ -58,6 +59,12 @@ namespace SpssLib.FileParser
 				headerRecords.Add(longNameRecord);
 			}
 
+            if (veryLongStrings.Any())
+            {
+                var veryLongStringsRecord = new VeryLongStringRecord(veryLongStrings, _options.HeaderEncoding);
+                headerRecords.Add(veryLongStringsRecord);
+            }
+
 			// Char encoding info record (for data)
 			var charEncodingRecord = new CharacterEncodingRecord(_options.DataEncoding);
 			headerRecords.Add(charEncodingRecord);
@@ -65,22 +72,32 @@ namespace SpssLib.FileParser
 			// End of the info records
 			headerRecords.Add(new DictionaryTerminationRecord());
 
-
 			// Write all of header, variable and info records
 			foreach (var headerRecord in headerRecords)
 			{
 				headerRecord.WriteRecord(_writer);
 			}
+            
+            if (_compress)
+            {
+                _recordWriter = new CompressedRecordWriter(_writer, _bias, double.MinValue);
+            }
+            else
+            {
+                throw new NotImplementedException("Uncompressed spss data writing is not yet implemented. Please set compressed to true");
+            }
+            
+            _stringWriter = new StringWriter(_options.DataEncoding, _recordWriter);
 		}
 
-		private void SetVaraibles(List<IRecord> headerRecords, IDictionary<string, string> variableLongNames)
+        private void SetVaraibles(List<IRecord> headerRecords, IDictionary<string, string> variableLongNames, IDictionary<string, int> veryLongStrings)
 		{
 			var variableRecords = new List<VariableRecord>(_variables.Length);
             var valueLabels = new List<ValueLabel>(_variables.Length);
 
 			// Read the variables and create the needed records
-			ProcessVariables(variableLongNames, variableRecords, valueLabels);
-			headerRecords.AddRange(variableRecords.Cast<IRecord>());
+            ProcessVariables(variableLongNames, veryLongStrings, variableRecords, valueLabels);
+			headerRecords.AddRange(variableRecords);
 			
 			// Set the count of varaibles as "nominal case size" on the HeaderRecord
 			var header = headerRecords.OfType<HeaderRecord>().First();
@@ -92,11 +109,10 @@ namespace SpssLib.FileParser
 		private void SetValueLabels(List<IRecord> headerRecords, List<ValueLabel> valueLabels)
 		{
 			headerRecords.AddRange(valueLabels
-									.Select(vl => new ValueLabelRecord(vl, _options.HeaderEncoding))
-									.Cast<IRecord>());
+									.Select(vl => new ValueLabelRecord(vl, _options.HeaderEncoding)));
 		}
 
-		private void ProcessVariables(IDictionary<string, string> variableLongNames, List<VariableRecord> variableRecords, List<ValueLabel> valueLabels)
+        private void ProcessVariables(IDictionary<string, string> variableLongNames, IDictionary<string, int> veryLongStrings, List<VariableRecord> variableRecords, List<ValueLabel> valueLabels)
 		{
             var namesList = new SortedSet<byte[]>(new ByteArrayComparer());
 
@@ -104,7 +120,7 @@ namespace SpssLib.FileParser
 			{
 				int dictionaryIndex = variableRecords.Count + 1;
 
-				var records = VariableRecord.GetNeededVaraibles(variable, _options.HeaderEncoding, namesList, ref _longNameCounter);
+                var records = VariableRecord.GetNeededVaraibles(variable, _options.HeaderEncoding, namesList, ref _longNameCounter, veryLongStrings);
 				variableRecords.AddRange(records);
 
 				// Check if a longNameVariableRecord is needed
@@ -145,14 +161,7 @@ namespace SpssLib.FileParser
 		{
 			if (_recordWriter == null)
 			{
-				if (_compress)
-				{
-					_recordWriter = new CompressedRecordWriter(_writer, _bias, double.MinValue, _options.DataEncoding);
-				}
-				else
-				{
-					throw new NotImplementedException("Uncompressed data writing is not yet implemented. Please set compressed to true");
-				}
+				throw new SpssFileFormatException("Record writer not set");
 			}
 
 			for (int i = 0; i < _variables.Length; i++)
@@ -168,11 +177,14 @@ namespace SpssLib.FileParser
 					{
 						_recordWriter.WriteNumber((double)record[i]);
 					}
-					
 				}
 				else
 				{
-					_recordWriter.WriteString((string) record[i], variable.TextWidth);
+                    if (_stringWriter == null)
+                    {
+                        throw new SpssFileFormatException("String writer not set");
+                    }
+					_stringWriter.WriteString((string)record[i], variable.TextWidth);
 				}
 			}
 		}
@@ -183,8 +195,7 @@ namespace SpssLib.FileParser
 		}
 	}
 
-
-	class ValueLabel
+    class ValueLabel
 	{
         public IDictionary<byte[], string> Labels { get; private set; }
 

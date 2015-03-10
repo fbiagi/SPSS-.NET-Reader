@@ -23,6 +23,13 @@ namespace SpssLib.FileParser.Records
         public bool HasVariableLabel { get; private set; }
         public Int32 MissingValueType { get; private set; }
 	    private readonly int _missingValueCount;
+
+        private static readonly VariableRecord StringContinuationRecord = new VariableRecord
+            {
+                _nameRaw = new byte[8],
+                Type = -1,
+            };
+
         public OutputFormat PrintFormat { get; private set; }
         public OutputFormat WriteFormat { get; private set; }
         
@@ -60,8 +67,8 @@ namespace SpssLib.FileParser.Records
         }
 
         public IList<double> MissingValues { get; private set; }
-        
-	    internal VariableRecord()
+
+        private VariableRecord()
 	    {}
 
         /// <summary>
@@ -69,12 +76,12 @@ namespace SpssLib.FileParser.Records
         /// </summary>
         /// <param name="variable">The created varaible information</param>
         /// <param name="headerEncoding">The encoding used for the header. <see cref="MachineIntegerInfoRecord.CharacterCode"/></param>
-	    internal VariableRecord(Variable variable, Encoding headerEncoding)
+        private VariableRecord(Variable variable, Encoding headerEncoding)
 	    {
             Encoding = headerEncoding;
 
 			// if type is numeric, write 0, if not write the string lenght for short string fields
-			Type = variable.Type == 0 ? 0 : variable.TextWidth;
+            Type = variable.Type == DataType.Numeric ? 0 : variable.TextWidth;
 			// Set the max string lenght for the type
 			if (Type > 255)
 			{
@@ -104,12 +111,14 @@ namespace SpssLib.FileParser.Records
         ///     The counter of variables with name replaced, to create
         ///     a proper long name that won't collide
         /// </param>
+        /// <param name="longStringVariables"></param>
         /// <returns>
         /// 		Only one var for numbers or text of lenght 8 or less, or the 
         /// 		main variable definition, followed by string continuation "dummy"
         /// 		variables. There should be one for each 8 chars after the first 8.
         ///  </returns>
-        internal static VariableRecord[] GetNeededVaraibles(Variable variable, Encoding headerEncoding, SortedSet<byte[]> previousVariableNames, ref int longNameCounter)
+        internal static VariableRecord[] GetNeededVaraibles(Variable variable, Encoding headerEncoding, 
+            SortedSet<byte[]> previousVariableNames, ref int longNameCounter, IDictionary<string, int> longStringVariables)
 		{
 			var headVariable = new VariableRecord(variable, headerEncoding);
 
@@ -121,23 +130,71 @@ namespace SpssLib.FileParser.Records
 				return new []{headVariable};
 			}
 
-			// TODO longer strings not supported by now. need to create multiple vars with name and length (up to 255 by named var)
-			if (variable.TextWidth > 255)
-			{
-				variable.TextWidth = 255;
-			}
+            if (variable.TextWidth > 255)
+            {
+                longStringVariables.Add(headVariable.Name, variable.TextWidth);
+            }
+
+            var segments = GetLongStringSegmentsCount(variable.TextWidth);
+            if(!(segments > 0))
+                throw new SpssFileFormatException("String variables can no have less than one segment");
 
             // Create all the variable continuation records that for each extra 8 bytes of string data
-            var varCount = GetStringContinuationRecordsCount(variable.TextWidth);
-			var result = new VariableRecord[varCount];
-			result[0] = headVariable;
-			var dummyVar = GetStringContinuationRecord();
-			for (int i = 1; i < varCount; i++)
-			{
-				result[i] = dummyVar;
-			}
-			return result;
+            // The actual count of needed VariableRecords
+            var varCount = GetLongStringContinuationRecordsCount(variable.TextWidth);
+            var result = new VariableRecord[varCount];
+
+            var dummyVar = GetStringContinuationRecord();
+
+            var fullSegmentBlocks = GetStringContinuationRecordsCount(255);
+            
+            var segmentLength = segments > 1 ? 255 : GetFinalSegmentLenght(variable.TextWidth, segments);
+            var segmentBlocks = GetStringContinuationRecordsCount(segmentLength);
+
+            headVariable.Type = segmentLength;
+            result[0] = headVariable;
+            
+            var currentSegment = 0;
+            var i = 1;
+            while (true)
+            {
+                var segmentBaseIndex = fullSegmentBlocks*currentSegment;
+                for (; i < segmentBaseIndex + segmentBlocks; i++)
+                {
+                    result[i] = dummyVar;
+                }
+
+                currentSegment++;
+                var segmentsLeft = segments - currentSegment;
+                if (segmentsLeft > 0)
+                {
+                    segmentLength = segmentsLeft > 1 ? 255 : GetFinalSegmentLenght(variable.TextWidth, segments);
+                    segmentBlocks = GetStringContinuationRecordsCount(segmentLength);
+
+                    result[i++] = GetVlsExtraVariable(variable.Name, headerEncoding, segmentLength, previousVariableNames, ref longNameCounter);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            
+            return result;
 		}
+
+        private static VariableRecord GetVlsExtraVariable(string name, Encoding encoding, int segmentLength, SortedSet<byte[]> previousVariableNames, ref int longNameCounter)
+        {
+            var record = new VariableRecord
+                {
+                    Encoding = encoding,
+                    Name = name,
+                    Type = segmentLength,    // TODO set other values that tell the length
+                };
+            
+            CheckShortName(record, previousVariableNames, ref longNameCounter);
+            
+            return record;
+        }
 
         /// <summary>
         /// Gets the amount of dummy variables (string continuation records) needed for a string of 
@@ -145,11 +202,11 @@ namespace SpssLib.FileParser.Records
         /// </summary>
         /// <param name="lenght">The length (in bytes, not chars) for the string</param>
         /// <exception cref="ArgumentException">
-        /// if the textWith is more than 255 bytes. If the variable needs to hold longer text use
+        /// If the lenght is more than 255 bytes. If the variable needs to hold longer text use
         /// <see cref="VeryLongStringRecord"/>
         /// </exception>
         /// <returns>Number of string continuation records needed (variables of type -1 and width 8)</returns>
-        internal static int GetStringContinuationRecordsCount(double lenght)
+        internal static int GetStringContinuationRecordsCount(int lenght)
         {
             if(lenght > 255)
                 throw new ArgumentException("Continuation records are for string variables up to 255 bytes. For more, use VeryLongStringsRecords",
@@ -158,22 +215,26 @@ namespace SpssLib.FileParser.Records
         }
 
         /// <summary>
-        /// Gives the number of segments for a very long string (<see cref="VeryLongStringRecord"/>).
+        /// Gives the number of segments for a very long string (<see cref="VeryLongStringRecord"/>),
+        /// or just 1 if there's no need for the VLS 
         /// </summary>
         /// <param name="lenght">The length (in bytes, not chars) for the string</param>
         /// <remarks>
-        /// There should be one segment for each 252 bytes of lenght, each segment will have one varaible 
-        /// with a name, the string length and multiple string continuation records.
+        /// Up to 255 bytes, theres only one segment, for more there should be one segment 
+        /// for each 252 bytes of lenght, each segment will have one varaible with a name, 
+        /// the string length and multiple string continuation records.
         /// </remarks>
         /// <returns>The number of segments for <see cref="lenght"/> of bytes</returns>
-        internal static int GetLongStringSegmentsCount(double lenght)
+        internal static int GetLongStringSegmentsCount(int lenght)
         {
+            if (lenght <= 255)
+                return 1;
             return (int)Math.Ceiling(lenght / 252d);
         }
 
         /// <summary>
         /// Gives the total number of variable records that a very long string (<see cref="VeryLongStringRecord"/>)
-        /// needs.
+        /// needs, including the extra variables for each extra segment.
         /// </summary>
         /// <param name="lenght">The length (in bytes, not chars) for the string</param>
         /// <remarks>
@@ -183,18 +244,40 @@ namespace SpssLib.FileParser.Records
         /// (but that's not actualy the case). Why?? For the glory of Satan, of course.
         /// </remarks> 
         /// <returns>Number of VariableRecords needed for <see cref="lenght"/> of bytes</returns>
-        internal static int GetLongStringContinuationRecordsCount(double lenght)
+        internal static int GetLongStringContinuationRecordsCount(int lenght)
         {
             // Get the total segments count
             var segments = GetLongStringSegmentsCount(lenght);
             // All except the last segment have a with of 255.
-            var normalSegmentLength = GetStringContinuationRecordsCount(255d);
+            var normalSegmentLength = GetStringContinuationRecordsCount(255);
             // The last segment has the suposed remider (see remarks)
-            var finalSegmentLenght = GetStringContinuationRecordsCount(lenght - (segments - 1) * 252);
+            var finalSegmentLenght = GetStringContinuationRecordsCount(GetFinalSegmentLenght(lenght, segments));
             
             return (segments - 1) * normalSegmentLength + finalSegmentLenght;
         }
 
+        /// <summary>
+        /// Gives the total ammount of bytes the variable of <see cref="lenght"/> occupies, taking into account the weird 
+        /// rules that LSV have and an unused byte each 255 bytes (to complete the 8 byte block of the long string variable)
+        /// </summary>
+        /// <param name="lenght">The length in bytes of the string</param>
+        /// <returns>The total ammount of bytes the variable of <see cref="lenght"/> occupies</returns>
+        internal static int GetLongStringBytesCount(int lenght)
+        {
+            return GetLongStringContinuationRecordsCount(lenght)*8;
+        }
+
+        /// <summary>
+        /// Gets the supposed lenght of the last segment.
+        /// This works the same for VeryLongStrings or just LongStrings
+        /// </summary>
+        /// <param name="lenght">The total length of the string in bytes</param>
+        /// <param name="segments">The number of VeryLongStrings segments needed (1 for just normal LongStrings)</param>
+        /// <returns>The length of the reminding segment</returns>
+        private static int GetFinalSegmentLenght(int lenght, int segments)
+        {
+            return lenght - (segments - 1) * 252;
+        }
 
         /// <summary>
         /// Checks if the name that was set (after slicing it to 8 chars and encoding it properly) is not repeated on the names
@@ -231,11 +314,7 @@ namespace SpssLib.FileParser.Records
 		/// </summary>
 		private static VariableRecord GetStringContinuationRecord()
 		{
-			return new VariableRecord
-				{
-                    _nameRaw = new byte[8],
-					Type = -1,
-				};
+            return StringContinuationRecord;
 		}
 
 	    public void WriteRecord(BinaryWriter writer)

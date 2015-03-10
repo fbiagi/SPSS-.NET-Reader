@@ -7,14 +7,9 @@ namespace SpssLib.FileParser.Records
     {
         public override int SubType { get { return InfoRecordType.LongVariableNames; }}
 
-        public LongVariableNamesRecord(IDictionary<string, string> variableLongNames, Encoding encoding)
-		{
-		    Encoding = encoding;
-		    ItemSize = 1;
-            Dictionary = variableLongNames;
-            BuildDataArray();
-		    ItemCount = Data.Length;
-		}
+        public LongVariableNamesRecord(IDictionary<string, string> variableLongNames, Encoding encoding) 
+            : base(variableLongNames, encoding)
+        {}
 
         public override void RegisterMetadata(MetaData metaData)
         {

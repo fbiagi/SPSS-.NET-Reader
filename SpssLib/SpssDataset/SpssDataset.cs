@@ -6,7 +6,7 @@ using System.IO;
 
 namespace SpssLib.SpssDataset
 {
-	[Obsolete]
+	[Obsolete("Use SpssReader")]
     public class SpssDataset
     {
         public Collection<Variable> Variables { get; private set; }
@@ -16,7 +16,7 @@ namespace SpssLib.SpssDataset
 
         public SpssDataset()
         {
-            Variables = new VariablesCollection();
+            Variables = new Collection<Variable>();
             Records = new RecordCollection();
             RecordsMissingCategoryValuesAsNull = new RecordCollectionMissingCategoryValuesAsNull();
         }

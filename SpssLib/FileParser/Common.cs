@@ -1,4 +1,4 @@
-﻿namespace SpssLib.FileParser.Records
+﻿namespace SpssLib.FileParser
 {
     public class Common
     {
