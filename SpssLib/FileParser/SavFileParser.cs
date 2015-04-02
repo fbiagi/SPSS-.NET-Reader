@@ -200,35 +200,45 @@ namespace SpssLib.FileParser
                         // Count of bytes read of the string
                         int bytesRead = element.Length;
 
+                        // The index for the 8 byte block inside the VLS segment
+                        int inSegmentIndex = 1;
+
                         // Start reading the segment
-                        do
+                        // Decode the characters into the charBuffer array and increment the index
+                        bufferIndex += dec.GetChars(element, 0, element.Length, charBuffer, bufferIndex, false);
+                        
+                        // While we haven't read all bytes, is still a SCR and not the end of the row
+                        while (bytesRead < length && variableRecords[variableIndex].Type == -1 && variableIndex < variableCount)
                         {
-                            // Decode the characters into the charBuffer array and increment the index
-                            bufferIndex += dec.GetChars(element, 0, element.Length, charBuffer, bufferIndex, false);
                             // Read next block
                             element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
+                            
+                            // When we get to the 32nd segment, we have to ignote the 8th byte, as it is the 
+                            // number 256 and segments are only 255. If this byte is not skiped, spaces will
+                            // appear where they shouldn't be.
+                            int lengthRead = element.Length;
+                            if (++inSegmentIndex == 32)
+                            {
+                                // Substract one from the read length to ignore the last bye
+                                lengthRead--;
+                                // Reset the counter for a new segment
+                                inSegmentIndex = 0;
+                            }
+
+                            // Decode the characters into the charBuffer array and increment the index
+                            bufferIndex += dec.GetChars(element, 0, lengthRead, charBuffer, bufferIndex, false);
                             bytesRead += element.Length;
-                        // While we haven't read all bytes, is still a SCR and not the end of the row
-                        } while (bytesRead < length && variableRecord.Type == -1 && variableIndex < variableCount);
+                        }
                         
                         // If the type of variable changed before the end of the string length or before the end of the file
                         // there must be something wrong
-                        if(variableRecord.Type != -1)
+                        if (length > 8 && variableRecord.Type != -1)
                             throw new SpssFileFormatException("Long string terminated early. "+
                                 "There must be missing some of the needed string continuation record. Dictionary index "+
                                 variableIndex);
                         
-                        // Decode last chars and flush decoder buffer. In case the bytes read where more than  the lenght,
-                        // we must read just the remainig bytes on the 8 byte array, otherwise, just read all.
-                        // When having multiple segments (VLSR) we also need to read each segment up to lenght. That means 
-                        // that all segments but last will have a length of 255, but the actual padded byte lenght will be
-                        // 256, and that means that each segment  (except for the last) will have an extra sapce char that 
-                        // has to be ignored. If not, spaces will apear at position 256 of the very long string (in bytes)
-                        bufferIndex += dec.GetChars(element, 0, bytesRead > length 
-                                                                    ? length - bytesRead + element.Length
-                                                                    : element.Length, 
-                                                    charBuffer, bufferIndex, true);
-                        
+                        // Flush the buffer of the decoder
+                        bufferIndex += dec.GetChars(element, 0, 0, charBuffer, bufferIndex, true);
                         // take the segment's string we were building (the buffer up to the writen index)
                         sBuilder.Append(charBuffer, 0, bufferIndex);
                         // If there afe more records, move next and continue
@@ -255,7 +265,7 @@ namespace SpssLib.FileParser
                 // String Continuation record (either we read something wrong or the file is not very well formed)
                 else if(variableRecord.Type == -1)
                 {
-                    throw new SpssFileFormatException("Unexpected string continuation record. To staart reading the record must be either string or numeric (dates, etc). "+
+                    throw new SpssFileFormatException("Unexpected string continuation record. To start reading the record must be either string or numeric (dates, etc). "+
                         "Dictionary index "+variableIndex);
                 }
                 // I don't know any more VariableRecord's types

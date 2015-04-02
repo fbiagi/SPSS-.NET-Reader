@@ -15,6 +15,9 @@ namespace Test.SpssLib
         {
             //var filename = @"C:\Users\ttbiagif\Documents\Datasets\Demo_set.sav";
             var filename = @"C:\Users\ttbiagif\Documents\Datasets\tests\LongStringVar.sav";
+            //var filename = @"C:\Users\ttbiagif\Documents\Datasets\tests\special_chars4.sav";
+
+
             FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read);
             SpssReader spssDataset = new SpssReader(fileStream);
             
