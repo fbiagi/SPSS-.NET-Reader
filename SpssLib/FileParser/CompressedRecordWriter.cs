@@ -143,7 +143,7 @@ namespace SpssLib.FileParser
             }
 
             // Add bytes to uncompressed buffer
-            Array.Copy(bytes, 0, _uncompressedBuffer, _uncompressedIndex, Constants.BlockByteSize);
+            Buffer.BlockCopy(bytes, 0, _uncompressedBuffer, _uncompressedIndex, Constants.BlockByteSize);
             _uncompressedIndex += Constants.BlockByteSize;
         }
 
@@ -171,7 +171,7 @@ namespace SpssLib.FileParser
             var currentUncompressedBlock = FullBlocksCount(_uncompressedIndex);
             
             // Add the bytes to the uncompressed buffer
-            Array.Copy(bytes, start, _uncompressedBuffer, _uncompressedIndex, length);
+            Buffer.BlockCopy(bytes, start, _uncompressedBuffer, _uncompressedIndex, length);
             _uncompressedIndex += length;
 
             // Check if a new uncompressed block indicator is needed. This should be 
@@ -303,7 +303,7 @@ namespace SpssLib.FileParser
                 _uncompressedIndex = _uncompressedIndex - currentFullBlockIndex;
 
                 //Move remaining bytes to the start of the uncompressed buffer
-                Array.Copy(_uncompressedBuffer, currentFullBlockIndex, _uncompressedBuffer, 0, _uncompressedIndex);
+                Buffer.BlockCopy(_uncompressedBuffer, currentFullBlockIndex, _uncompressedBuffer, 0, _uncompressedIndex);
 			}
 		}
 

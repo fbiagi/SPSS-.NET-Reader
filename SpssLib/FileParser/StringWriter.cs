@@ -89,7 +89,7 @@ namespace SpssLib.FileParser
             {
                 var lengthToCopy = Math.Min(bytesLeftToWrite, StringSegmentByteSize - writtenUpToIndex);
 
-                Array.Copy(_stringBytesBuffer, copiedToBufferIndex, _stringSegmentBuffer, writtenUpToIndex,
+                Buffer.BlockCopy(_stringBytesBuffer, copiedToBufferIndex, _stringSegmentBuffer, writtenUpToIndex,
                            lengthToCopy);
 
                 copiedToBufferIndex += lengthToCopy;

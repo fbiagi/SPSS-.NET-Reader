@@ -96,7 +96,7 @@ namespace SpssLib.FileParser
                     throw new IndexOutOfRangeException();
                 }
                 byte[] result = new byte[ItemSize];
-                Array.Copy(Data, i * ItemSize, result, 0, ItemSize);
+                Buffer.BlockCopy(Data, i * ItemSize, result, 0, ItemSize);
                 return result;
             }
         }
