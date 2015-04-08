@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.IO;
-using System.Collections.ObjectModel;
+using SpssLib.Compression;
 using SpssLib.FileParser.Records;
 using System.Data;
 using SpssLib.SpssDataset;
@@ -16,111 +17,98 @@ namespace SpssLib.FileParser
 
         public bool MetaDataParsed { get; private set; }
         public MetaData MetaData { get; private set; }
+        public double SysmisValue { get; set; }
 
-        private BinaryReader reader;
-        private Stream dataRecordStream;
-        private long dataStartPosition;
+        private BinaryReader _reader;
+        private Stream _dataRecordStream;
+        private long _dataStartPosition;
 
         public SavFileParser(Stream fileStream)
         {
-            this.Stream = fileStream;
+            Stream = fileStream;
         }
 
         public void ParseMetaData()
         {
-            var meta = new MetaData();
-            reader = new BinaryReader(this.Stream, Encoding.ASCII);
+            _reader = new BinaryReader(Stream, Encoding.ASCII);
 
-            var variableRecords = new List<VariableRecord>();
-            var valueLabelRecords = new List<ValueLabelRecord>();
-            var infoRecords = new InfoRecords();
+            var parsers = new ParserProvider();
+            IList<IRecord> records = new List<IRecord>(1000);
 
-            RecordType nextRecordType = (RecordType)reader.ReadInt32();
-
-            //var counter = 0;
-            while (nextRecordType != RecordType.End)
+            MetaData = new MetaData();
+            
+            RecordType readRecordType;
+            do
             {
-                //Counter is only for hunting bugs to identify the stopper input
-                //counter++;
-                //Console.WriteLine("{0} {1}", counter, nextRecordType);
-                
-                switch (nextRecordType)
-                {
-                    case RecordType.HeaderRecord:
-                        meta.HeaderRecord = HeaderRecord.ParseNextRecord(reader);
-                        break;
-                    case RecordType.VariableRecord:
-                        variableRecords.Add(VariableRecord.ParseNextRecord(reader));
-                        break;
-                    case RecordType.ValueLabelRecord:
-                        valueLabelRecords.Add(ValueLabelRecord.ParseNextRecord(reader));
-                        break;
-                    case RecordType.DocumentRecord:
-                        meta.DocumentRecord = DocumentRecord.ParseNextRecord(reader);
-                        break;
-                    case RecordType.InfoRecord:
-                        infoRecords.AllRecords.Add(InfoRecord.ParseNextRecord(reader));
-                        break;
-                    default:
-                        throw new UnexpectedFileFormatException();
-                }
-                nextRecordType = (RecordType)reader.ReadInt32();
-            }
-
-            meta.VariableRecords = new Collection<VariableRecord>(variableRecords);
-            meta.ValueLabelRecords = new Collection<ValueLabelRecord>(valueLabelRecords);
-
-            // Interpret known inforecords:
-            infoRecords.ReadKnownRecords(meta.VariableCount);
-            meta.InfoRecords = infoRecords;
-            this.SysmisValue = meta.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue;
+                readRecordType = _reader.ReadRecordType();
+                var recordParser = parsers.GetParser(readRecordType);
+                var record = recordParser.ParseRecord(_reader);
+                record.RegisterMetadata(MetaData);
+                records.Add(record);
+            } while (readRecordType != RecordType.End);
             
-            // Filler Record
-            reader.ReadInt32();
 
-            this.dataStartPosition = this.Stream.Position;
+            try
+	        {
+				_dataStartPosition = Stream.Position;
+	        }
+	        catch (NotSupportedException)
+	        {
+				// Some stream types don't support the Position property (CryptoStream...)
+				_dataStartPosition = 0;
+	        }
             
-            this.MetaData = meta;
             SetDataRecordStream();
-            this.MetaDataParsed = true;
+            MetaDataParsed = true;
         }
 
         private void SetDataRecordStream()
         {
-            if (this.MetaData.HeaderRecord.Compressed)
-            {
-                var bias = this.MetaData.HeaderRecord.Bias;
-                var systemMissingValue = this.MetaData.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue;
-                this.dataRecordStream = new Compression.DecompressedDataStream(this.Stream, bias, systemMissingValue);
-            }
-            else
-            {
-                this.dataRecordStream = this.Stream;
-            }
-            this.reader = new BinaryReader(this.dataRecordStream, Encoding.ASCII);
+            _dataRecordStream = MetaData.HeaderRecord.Compressed ? 
+                new DecompressedDataStream(Stream, MetaData.HeaderRecord.Bias, MetaData.SystemMissingValue) 
+                : Stream;
+            _reader = new BinaryReader(_dataRecordStream, Encoding.ASCII);
         }
 
         public IEnumerable<byte[][]> DataRecords
         {
             get
             {
-                if (!this.MetaDataParsed)
+                if (!MetaDataParsed)
                 {
-                    this.ParseMetaData();
+                    ParseMetaData();
                 }
-                lock (this.Stream)
+                lock (Stream)
                 {
-                    if (this.Stream.Position != dataStartPosition)
+                    // dataStartPosition == 0 -> Stream.Position not suported
+                    if (_dataStartPosition != 0)
                     {
-                        if (this.Stream.CanSeek)
-                        {
-                            this.Stream.Seek(dataStartPosition, 0);
-                        }
-                        else
-                        {
-                            throw new NotSupportedException("Re-reading the data is not allowed on this stream because it doesn't allow seeking.");
-                        }
-                    }
+	                    long position;
+	                    try
+	                    {
+		                    position = Stream.Position;
+	                    }
+	                    catch (NotSupportedException ex)
+	                    {
+							throw new NotSupportedException("Re-reading the data is not allowed on this stream because it doesn't support position.", ex);
+	                    }
+						if (position != _dataStartPosition)
+						{
+							if (Stream.CanSeek)
+							{
+								Stream.Seek(_dataStartPosition, 0);
+							}
+							else
+							{
+								throw new NotSupportedException("Re-reading the data is not allowed on this stream because it doesn't allow seeking.");
+							}
+						}
+					}
+					else
+					{
+						// If position could not be read initialy, set as -1 to avoid start reading the records again with out rewinding the stream
+						_dataStartPosition = -1;
+					}
 
                     byte[][] record = ReadNextDataRecord();
                     while (record != null)
@@ -136,19 +124,19 @@ namespace SpssLib.FileParser
         {
             get
             {
-                foreach (var rawrecord in this.DataRecords)
+                foreach (var rawrecord in DataRecords)
                 {
-                    yield return this.RecordToObjects(rawrecord);
+                    yield return RecordToObjects(rawrecord);
                 }
             }
         }
 
         public byte[][] ReadNextDataRecord()
         {
-            byte[][] record = new byte[this.MetaData.VariableRecords.Count][];
-            for (int i = 0; i < this.MetaData.VariableRecords.Count; i++)
-			{
-			    record[i]= reader.ReadBytes(Constants.BlockByteSize);
+            byte[][] record = new byte[MetaData.VariableRecords.Count][];
+            for (int i = 0; i < MetaData.VariableRecords.Count; i++)
+			{   // TODO check unexpected eof?
+			    record[i]= _reader.ReadBytes(Constants.BlockByteSize);
                 if (record[i].Length < Constants.BlockByteSize)
                 {
                     return null;
@@ -157,82 +145,167 @@ namespace SpssLib.FileParser
             return record;            
         }
 
-        public object ValueToObject(byte[] value, VariableRecord variable)
-        {
-            if (variable.Type == 0)
-            {
-                var doubleValue = BitConverter.ToDouble(value, 0);
-                if (doubleValue == this.SysmisValue)
-                {
-                    return null;
-                }
-                else
-                {
-                    return doubleValue;
-                }
-            }
-            else
-            {
-                return Encoding.ASCII.GetString(value);
-            }
-        }
-
+        /// <summary>
+        /// Convert a row of raw data to proper objects. (strings or doubles)
+        /// </summary>
+        /// <param name="record">The complete row data, as an array of byte[8] (the block of a single VaraibleRecord)</param>
+        /// <returns>The enumeration of objects for this row</returns>
         public IEnumerable<object> RecordToObjects(byte[][] record)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            bool buildingString = false;
-            int variableIndex = 0;
-            int stringLength = 0;
+            // Decoder for strings
+            Decoder dec = MetaData.DataEncoding.GetDecoder();
+            // Buffer to write the decoded chars to
+            var charBuffer = new char[MetaData.DataEncoding.GetMaxCharCount(256)];
+            // String builder to get the full string result (mainly for VLS)
+            StringBuilder sBuilder = new StringBuilder();
+            // The dictionary with the lengths for each VLS varaible
+            var veryLongStrings = MetaData.VeryLongStringsDictionary;
 
-            foreach (var variableRecord in this.MetaData.VariableRecords)
+            // All raw variable records and it's count (i's also the count of 8 bytes blocks in the row)
+            var variableRecords = MetaData.VariableRecords;
+            var variableCount = variableRecords.Count;
+
+            // Read the values, guided by it's VaraibleRecord
+            for (int variableIndex = 0; variableIndex < variableCount; )
             {
-                byte[] element = record[variableIndex++];
+                // Varaible record that correspond to the current 8 bytes block
+                VariableRecord variableRecord;
+                // Currrent 8 bytes block
+                byte[] element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
 
-                if (buildingString && variableRecord.Type != -1)
-                {
-                    // return the complete string we were building
-                    yield return (stringBuilder.ToString()).Substring(0, stringLength);
-
-                    // Clear:
-                    stringBuilder.Length = 0;
-                    buildingString = false;
-                }
-
+                // Numeric variable (also date, etc)
                 if (variableRecord.Type == 0)
                 {
-                    // Return numeric value
-                    var value =  BitConverter.ToDouble(element, 0);
-                    if (value == this.MetaData.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue)
-                    {
-                        yield return null;
-                    }
-                    else
-                    {
-                        yield return value;
-                    }
+                    // Convert value to double and check Sysmiss
+                    yield return ParseDoubleValue(element);
                 }
+                // String variable
+                else if (variableRecord.Type > 0)
+                {
+                    // Count of segments of up to 255 bytes. 1 for not VLS
+                    int segments = 1;
+                    // If VLS, calculate total count of segments according to the value for this var in the VLS dictionary
+                    if (veryLongStrings.ContainsKey(variableRecord.Name))
+                    {
+                        segments = VariableRecord.GetLongStringSegmentsCount(veryLongStrings[variableRecord.Name]);
+                    }
+
+                    // Ok, so let's start reading all the string...
+                    do
+                    {
+                        // The index of the char buffer. How many chars have been read
+                        var bufferIndex = 0;
+                        // The length of this segment, in bytes
+                        var length = variableRecord.Type;
+                        // Count of bytes read of the string
+                        int bytesRead = element.Length;
+
+                        // The index for the 8 byte block inside the VLS segment
+                        int inSegmentIndex = 1;
+
+                        // Start reading the segment
+                        // Decode the characters into the charBuffer array and increment the index
+                        bufferIndex += dec.GetChars(element, 0, element.Length, charBuffer, bufferIndex, false);
+                        
+                        // While we haven't read all bytes, is still a SCR and not the end of the row
+                        while (bytesRead < length && variableRecords[variableIndex].Type == -1 && variableIndex < variableCount)
+                        {
+                            // Read next block
+                            element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
+                            
+                            // When we get to the 32nd segment, we have to ignote the 8th byte, as it is the 
+                            // number 256 and segments are only 255. If this byte is not skiped, spaces will
+                            // appear where they shouldn't be.
+                            int lengthRead = element.Length;
+                            if (++inSegmentIndex == 32)
+                            {
+                                // Substract one from the read length to ignore the last bye
+                                lengthRead--;
+                                // Reset the counter for a new segment
+                                inSegmentIndex = 0;
+                            }
+
+                            // Decode the characters into the charBuffer array and increment the index
+                            bufferIndex += dec.GetChars(element, 0, lengthRead, charBuffer, bufferIndex, false);
+                            bytesRead += element.Length;
+                        }
+                        
+                        // If the type of variable changed before the end of the string length or before the end of the file
+                        // there must be something wrong
+                        if (length > 8 && variableRecord.Type != -1)
+                            throw new SpssFileFormatException("Long string terminated early. "+
+                                "There must be missing some of the needed string continuation record. Dictionary index "+
+                                variableIndex);
+                        
+                        // Flush the buffer of the decoder
+                        bufferIndex += dec.GetChars(element, 0, 0, charBuffer, bufferIndex, true);
+                        // take the segment's string we were building (the buffer up to the writen index)
+                        sBuilder.Append(charBuffer, 0, bufferIndex);
+                        // If there afe more records, move next and continue
+                        if (--segments > 0)
+                        {
+                            element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
+                        }
+                        else
+                        {
+                            // if all segments are processed, exit the loop
+                            break;
+                        }
+                    } while (true);
+                    
+                    // Clear decoder for future use
+                    dec.Reset();    
+                    // Get full string and clear the string builder
+                    var s = sBuilder.ToString();
+                    sBuilder.Clear();
+
+                    // Finally, return the string
+                    yield return s;
+                }
+                // String Continuation record (either we read something wrong or the file is not very well formed)
+                else if(variableRecord.Type == -1)
+                {
+                    throw new SpssFileFormatException("Unexpected string continuation record. To start reading the record must be either string or numeric (dates, etc). "+
+                        "Dictionary index "+variableIndex);
+                }
+                // I don't know any more VariableRecord's types
                 else
                 {
-                    if (variableRecord.Type > 0)
-                        stringLength = variableRecord.Type;
-                        // Add string to string we were building
-                    stringBuilder.Append(Encoding.ASCII.GetString(element));
-                    buildingString = true;
+                    throw new SpssFileFormatException("Unrecognized variable type: "+variableRecord.Type);
                 }
-            }
-            // return the complete string we were building
-            if (buildingString)
-            {
-                yield return stringBuilder.ToString();
             }
         }
 
+        private static byte[] MoveNext(byte[][] record, IList<VariableRecord> variableRecords, out VariableRecord variableRecord, ref int variableIndex)
+        {
+            variableRecord = variableRecords[variableIndex];
+            return record[variableIndex++];
+        }
 
+        /// <summary>
+        /// Converts the byte pattern to it's double representation and compares it to 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        private object ParseDoubleValue(byte[] element)
+        {
+            var value = BitConverter.ToDouble(element, 0);
+            // ReSharper disable CompareOfFloatsByEqualityOperator SysMiss is an exact value
+            if (value == MetaData.SystemMissingValue)
+            // ReSharper restore CompareOfFloatsByEqualityOperator
+            {
+                return null;
+            }
+            return value;
+        }
+
+        [Obsolete("Use SpssDataset constructor directly")]
         public SpssDataset.SpssDataset ToSpssDataset()
         {
             return new SpssDataset.SpssDataset(this);
         }
 
+		[Obsolete("Use SpssDataReader constructor directly")]
         public IDataReader GetDataReader()
         {
             return new DataReader.SpssDataReader(this);
@@ -240,7 +313,7 @@ namespace SpssLib.FileParser
 
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -248,64 +321,74 @@ namespace SpssLib.FileParser
         {
             if (disposing)
             {
-                if (this.reader != null)
+                if (_reader != null)
                 {
-                    this.reader.Close();
-                    this.reader = null;
+                    _reader.Close();
+                    _reader = null;
                 }
-                if (this.Stream != null)
+                if (Stream != null)
                 {
-                    this.Stream.Close();
-                    this.Stream = null;
+                    Stream.Close();
+                    Stream = null;
                 }
-                if (this.dataRecordStream != null)
+                if (_dataRecordStream != null)
                 {
-                    this.dataRecordStream.Close();
-                    this.dataRecordStream = null;
+                    _dataRecordStream.Close();
+                    _dataRecordStream = null;
                 }
             }
         }
 
-        public VariablesCollection Variables
+        public Collection<Variable> Variables
         {
             get
             {
-                if (this.MetaData == null)
-                    this.ParseMetaData();
-                if (this.variables == null)
+                if (MetaData == null)
+                    ParseMetaData();
+                if (_variables == null)
                 {
                     GetVariablesFromRecords();
                 }
-                return this.variables;
+                return _variables;
             }
         }
 
-        private VariablesCollection variables;
-
-        private Variable GetVariable(int variableIndex, int dictionaryIndex, FileParser.MetaData metaData)
+        private Collection<Variable> _variables;
+        
+        /// <summary>
+        /// Creates a <see cref="Variable"/> object with it's actual informantion
+        /// </summary>
+        /// <param name="variableIndex">The actual index of the varaible</param>
+        /// <param name="dictionaryIndex">The index of the varible's <see cref="VariableRecord"/></param>
+        /// <param name="metaData">The parsed metada with all needed info from the file</param>
+        /// <param name="length">The string lenght in bytes (only needed for string vars)</param>
+        /// <param name="segmentIndex">The variable index, counting also the extra segments of Very Long Strings</param>
+        /// <returns>The variable with all it's information inside</returns>
+        private Variable GetVariable(int variableIndex, int dictionaryIndex, MetaData metaData, int length, int segmentIndex)
         {
             var variable = new Variable();
             variable.Index = variableIndex;
 
             // Get variable record data:
             var variableRecord = metaData.VariableRecords[dictionaryIndex];
-            variable.ShortName = variableRecord.Name;
             variable.Label = variableRecord.HasVariableLabel ? variable.Label = variableRecord.Label : null;
-            foreach (var missing in variableRecord.MissingValues)
-            {
-                variable.MissingValues.Add(missing);
-            }
+	        variable.MissingValueType = variableRecord.MissingValueType;
+	        for (int i = 0; i < variableRecord.MissingValues.Count && i < variable.MissingValues.Length; i++)
+	        {
+		        variable.MissingValues[i] = variableRecord.MissingValues[i];
+	        }
+
             variable.PrintFormat = variableRecord.PrintFormat;
             variable.WriteFormat = variableRecord.WriteFormat;
             variable.Type = variableRecord.Type == 0 ? DataType.Numeric : DataType.Text;
             if (variable.Type == DataType.Text)
             {
-                variable.TextWidth = variableRecord.Type;
+                variable.TextWidth = length;
             }
 
+            // TODO: There can be one value label for multiple varaibles, we might want to only cerate one and reference it from all variables
             // Get value labels:
-            var valueLabelRecord = (from record in metaData.ValueLabelRecords where record.Variables.Contains(dictionaryIndex+1) select record).FirstOrDefault();
-            
+            var valueLabelRecord = metaData.ValueLabelRecords.FirstOrDefault(record => record.Variables.Contains(dictionaryIndex + 1));
             if (valueLabelRecord != null)
             {
                 foreach (var label in valueLabelRecord.Labels)
@@ -315,50 +398,89 @@ namespace SpssLib.FileParser
             }
 
             // Get display info:
-            var displayInfo = metaData.InfoRecords.VariableDisplayParameterRecord.VariableDisplayEntries[variableIndex];
-            variable.Alignment = displayInfo.Alignment;
-            variable.MeasurementType = displayInfo.MeasurementType;
-            variable.Width = displayInfo.Width;
-
-            // Get (optional) long variable name:
-            if (metaData.InfoRecords.LongVariableNamesRecord != null)
+            if (metaData.VariableDisplayParameters  != null)
             {
-                var longNameDictionary = metaData.InfoRecords.LongVariableNamesRecord.LongNameDictionary;
-                if (longNameDictionary.ContainsKey(variable.ShortName.Trim()))
-                {
-                    variable.Name = longNameDictionary[variable.ShortName.Trim()].Trim();
-                }
-                else
-                {
-                    variable.Name = variable.ShortName.Trim();
-                }
+                var displayInfo = metaData.VariableDisplayParameters[segmentIndex];
+                variable.Alignment = displayInfo.Alignment;
+                variable.MeasurementType = displayInfo.MeasurementType;
+                variable.Width = displayInfo.Width; // TODO this field might not be present, check this and use the printFormat's
             }
             else
             {
-                variable.Name = variable.ShortName.Trim();
+                // defaults
+                variable.Alignment = Alignment.Right;
+                variable.MeasurementType = MeasurementType.Scale;
+                variable.Width = variable.PrintFormat.FieldWidth;
             }
 
-            // Todo: digest very long string info.    
+            variable.Name = variableRecord.Name;
+            string longName;
+            // Look for the right name
+            if (metaData.LongVariableNames != null 
+                    && metaData.LongVariableNames.Dictionary.TryGetValue(variable.Name, out longName))
+            {
+                variable.Name = longName;
+            }
+
             return variable;
         }
 
-        public double SysmisValue { get; set; }
 
-        private void GetVariablesFromRecords()
+        /// <summary>
+        /// Fills the varaibles collection with just the actual variables (no string continuation records or very long
+        /// strings extra segments)
+        /// </summary>
+		private void GetVariablesFromRecords()
         {
-            this.variables = new VariablesCollection();
-
-            int dictionaryIndex = 0;
+            _variables = new Collection<Variable>();
+            // Get the longs strings dictionary
+		    var veryLongStrings = MetaData.VeryLongStringsDictionary;
+            
+            // Ammount of varaibles to jump (to skip variable continuation records and additional very long string segments)
+            int delta;
+            // Index of variable with out string continuation records but INCLUDING very long string record variables (segments)
+            // This will be used for things like finding the VariableDisplayInfoRecord
+		    int segmentIndex = 0;
+            // Index of variable with out string continuation records AND very long string record variables (segments)
             int variableIndex = 0;
-            foreach (var variableRecord in this.MetaData.VariableRecords)
-            {
-                if (variableRecord.Type >= 0)
+            // Dictionary index is the VariableRecord index that contains the header info for this varaible
+		    for (int dictionaryIndex = 0; dictionaryIndex < MetaData.VariableRecords.Count; dictionaryIndex+=delta)
+		    {
+                var record = MetaData.VariableRecords[dictionaryIndex];
+                // If it's a string continuation record (SCR). This ones should have been skiped.
+		        if (record.Type < 0)
+		        {
+                    throw  new SpssFileFormatException("String continuation record out of place. Dictonary index "+dictionaryIndex);
+		        }
+
+                // Actual byte lenght for variable
+		        int length;
+                // Ammount of segments (for VeryLongString variables, 1 for all other vars).
+		        int segments;
+                if (veryLongStrings.ContainsKey(record.Name))
                 {
-                    variables.Add(GetVariable(variableIndex, dictionaryIndex, this.MetaData));
-                    variableIndex++;
+                    // Variable is a VeryLongString varaible
+                    // Take actual length from VLSR dictionary
+                    length = veryLongStrings[record.Name];
+                    // Calculate the ammount of segments and the amount of VariableRecords to skip (SCR)
+                    segments = VariableRecord.GetLongStringSegmentsCount(length);
+                    delta = VariableRecord.GetLongStringContinuationRecordsCount(length);
                 }
-                dictionaryIndex++;
-            }
+                else
+                {
+                    // Variable is NOT a VeryLongString varaible
+                    // numeric type is 0 so lenght is 1, > 0 for the lenght of strings
+                    length = record.Type == 0 ? 1 : record.Type;
+                    // This ones have only one segment
+                    segments = 1;
+                    // Skip the string continuation records if any, or just move next.
+                    delta =  VariableRecord.GetStringContinuationRecordsCount(length);
+                }
+                
+                _variables.Add(GetVariable(variableIndex++, dictionaryIndex, MetaData, length, segmentIndex));
+                // Increment the segment count by how many segments this var had.
+		        segmentIndex += segments;
+		    }
         }
     }
 }

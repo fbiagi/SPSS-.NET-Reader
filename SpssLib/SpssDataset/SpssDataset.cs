@@ -1,18 +1,22 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using SpssLib.FileParser;
 using System.IO;
 
 namespace SpssLib.SpssDataset
 {
+	[Obsolete("Use SpssReader")]
     public class SpssDataset
     {
-        public VariablesCollection Variables { get; private set; }
+        public Collection<Variable> Variables { get; private set; }
         public RecordCollection Records { get; private set; }
+		// TODO delete
         public RecordCollectionMissingCategoryValuesAsNull RecordsMissingCategoryValuesAsNull { get; private set; }
 
         public SpssDataset()
         {
-            Variables = new VariablesCollection();
+            Variables = new Collection<Variable>();
             Records = new RecordCollection();
             RecordsMissingCategoryValuesAsNull = new RecordCollectionMissingCategoryValuesAsNull();
         }

@@ -6,18 +6,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.SpssLib", "Test.SpssLib\Test.SpssLib.csproj", "{5BED743E-E23F-4F0D-9E44-94B90FE8DF75}"
 EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 3
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = http://tsmmhtfs801:8080/tfs/cs_tfs
-		SccProjectUniqueName0 = SpssLib\\SpssLib.csproj
-		SccProjectName0 = SpssLib
-		SccLocalPath0 = SpssLib
-		SccLocalPath1 = .
-		SccProjectUniqueName2 = Test.SpssLib\\Test.SpssLib.csproj
-		SccProjectName2 = Test.SpssLib
-		SccLocalPath2 = Test.SpssLib
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms

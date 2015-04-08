@@ -1,40 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
 
 namespace SpssLib.FileParser.Records
 {
-    public class MachineFloatingPointInfoRecord
+    public class MachineFloatingPointInfoRecord : BaseInfoRecord
     {
-        private InfoRecord record;
-        internal MachineFloatingPointInfoRecord(InfoRecord record)
+        public override int SubType { get { return InfoRecordType.MachineFloatingPoint; } }
+
+        public double SystemMissingValue { get; private set; }
+        public double MissingHighestValue { get; private set; }
+        public double MissingLowestValue { get; private set; }
+
+        /// <summary>
+        /// Constructor for creating an appropiate floating point record for this machine
+        /// </summary>
+        internal MachineFloatingPointInfoRecord()
         {
-            if (record.SubType != 4 || record.ItemSize != 8 || record.ItemCount != 3)
-                throw new UnexpectedFileFormatException();
-            this.record = record;
+            ItemSize = 8;
+            ItemCount = 3;
+            SystemMissingValue = double.MinValue;
+            MissingHighestValue = double.MaxValue;
+            MissingLowestValue = BitConverter.ToDouble(BitConverter.GetBytes(0xffeffffffffffffe),0); // Second largest negative double. Is there a better way to calculate this?
         }
 
-        public double SystemMissingValue
+        public override void RegisterMetadata(MetaData metaData)
         {
-            get
-            {
-                return BitConverter.ToDouble(record.Items[0], 0);
-            }
+            metaData.FloatingPointInfo = this;
         }
-        public double MissingHighestValue
+
+        protected override void WriteInfo(BinaryWriter writer)
         {
-            get
-            {
-                return BitConverter.ToDouble(record.Items[1], 0);
-            }
+            writer.Write(SystemMissingValue);
+            writer.Write(MissingHighestValue);
+            writer.Write(MissingLowestValue);
         }
-        public double MissingLowestValue
+
+        protected override void FillInfo(BinaryReader reader)
         {
-            get
-            {
-                return BitConverter.ToDouble(record.Items[2], 0);
-            }
+            CheckInfoHeader(8, 3);
+
+            SystemMissingValue = reader.ReadDouble();
+            MissingHighestValue = reader.ReadDouble();
+            MissingLowestValue = reader.ReadDouble();
         }
     }
 }

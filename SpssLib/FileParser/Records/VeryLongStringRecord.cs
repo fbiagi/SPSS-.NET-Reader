@@ -1,47 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace SpssLib.FileParser.Records
 {
-    public class VeryLongStringRecord
+    public class VeryLongStringRecord : VariableDataInfoRecord<int>
     {
-        private InfoRecord record;
+        public override int SubType { get { return InfoRecordType.VeryLongString; } }
 
-        internal VeryLongStringRecord(InfoRecord record)
+        public VeryLongStringRecord(IDictionary<string, int> dictionary, Encoding encoding)
+            : base(dictionary, encoding)
+        {}
+
+        protected override int DecodeValue(string stringValue)
         {
-            if (record.SubType != 14 || record.ItemSize != 1)
-                throw new UnexpectedFileFormatException();
-            this.record = record;
+            int lenght;
+            if(!int.TryParse(stringValue, out lenght))
+                throw new SpssFileFormatException("Couldn't read the size of the VeryLongString as interger. Value read was '"+
+                    (stringValue.Length > 80 ? stringValue.Substring(0, 80)+"..." : stringValue) + "'");
 
-            this.LongStringDictionary = new Dictionary<string, string>();
-
-            // Not very efficient, but for now the best way I can come up with
-            //   without sacrificing the Inforecords-design.
-            var originalBytes = this.record.Items.Where(item => item[0] != 0).Select(item => item[0]).ToArray();
-            var dictionaryString = Encoding.ASCII.GetString(originalBytes);
-
-            // split on tabs:
-            var entries = dictionaryString.Split('\t');
-
-            foreach (var entry in entries)
-            {
-                if (!string.IsNullOrEmpty(entry.Trim()))
-                {
-                    var values = entry.Split('=');
-                    if (values.Length >= 2)
-                    {
-                        this.LongStringDictionary.Add(values[0], values[1]);
-                    }
-                }
-            }
-
+            return lenght;
         }
-        public Dictionary<string, string> LongStringDictionary
+
+        protected override string EncodeValue(int value)
         {
-            get;
-            private set;
+            var strValue = value.ToString(CultureInfo.InvariantCulture);
+            // The value fields must have exactly 5 bytes
+            if (strValue.Length > 5) 
+                throw new SpssFileFormatException("A string length of "+value+" is not supported");
+
+            // Add the 0 to the left to reach the 5 bytes and add the trailing null
+            return strValue.PadLeft(5, '0')+'\0';
+        }
+
+        public override void RegisterMetadata(MetaData metaData)
+        {
+            metaData.VeryLongStrings = this;
+            Metadata = metaData;
         }
     }
 }

@@ -2,60 +2,114 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 
 namespace SpssLib.FileParser.Records
 {
     // RecordType == 3
-    public class ValueLabelRecord
+    public class ValueLabelRecord : EncodeEnabledRecord, IRecord
     {
+        private IDictionary<byte[], KeyValuePair<byte, byte[]>> _labelsRaw;
+        public RecordType RecordType { get { return RecordType.ValueLabelRecord; } }
         public Int32 LabelCount { get; private set; }
-        public Dictionary<byte[], string> Labels { get; private set; }
-        public Int32 VarCount { get; private set; }
-        public Collection<Int32> Variables { get; private set; }
-
-        private ValueLabelRecord()
+        public IDictionary<byte[], string> Labels
         {
+            get { return _labelsRaw.ToDictionary(p => p.Key, p => DecodeLabel(p.Value)); }
+            private set { _labelsRaw = value.ToDictionary(p => p.Key, p => EncodeLabel(p.Value)); }
         }
 
-        public static ValueLabelRecord ParseNextRecord(BinaryReader reader)
+        public Int32 VarCount { get; private set; }
+        public ICollection<Int32> Variables { get; private set; }
+
+
+	    internal ValueLabelRecord(ValueLabel valueLabel, Encoding headerEncoding)
+	    {
+            // TODO add this to base constructor
+            Encoding = headerEncoding;
+		    
+            LabelCount = valueLabel.Labels.Count;
+	        Labels = valueLabel.Labels;
+		    VarCount = valueLabel.VariableIndex.Count;
+		    Variables = valueLabel.VariableIndex;
+	    }
+
+	    internal ValueLabelRecord(){}
+
+		public void WriteRecord(BinaryWriter writer)
+		{
+			writer.Write(RecordType);
+			writer.Write(LabelCount);
+		    foreach (var label in _labelsRaw)
+		    {
+		        // Write the value of the value label
+		        writer.Write(label.Key);
+                // Write the lenght of the label
+				writer.Write(label.Value.Key);
+				//Write the label bytes
+                writer.Write(label.Value.Value);
+			}
+
+            // Writes the variables for this dictionary
+			writer.Write(RecordType.ValueLabelVariablesRecord); 
+			writer.Write(Variables.Count);
+			foreach (var dictionaryIndex in Variables)
+			{
+				writer.Write(dictionaryIndex);
+			}
+		}
+
+        public void FillRecord(BinaryReader reader)
         {
-            var record = new ValueLabelRecord();
+            LabelCount = reader.ReadInt32();
+            _labelsRaw = new Dictionary<byte[], KeyValuePair<byte, byte[]>>();
 
-            record.LabelCount = reader.ReadInt32();
-            record.Labels = new Dictionary<byte[], string>();
-
-            for (int i = 0; i < record.LabelCount; i++)
+            for (int i = 0; i < LabelCount; i++)
             {
-                byte[] value = reader.ReadBytes(8);
-                int labelLength = (int)reader.ReadByte();
+                var value = reader.ReadBytes(8);
+                int labelLength = reader.ReadByte();
 
-                //Rounding up to nearest multiple of 32 bits.
-                int labelBytes = (((((labelLength) / 8) + 1) * 8) - 1);
+                // labelLenght + labelByte must be multiples of 8
+                int labelBytes = Common.RoundUp(labelLength+1, 8)-1;
                 byte[] chars = reader.ReadBytes(labelBytes);
 
-                string label = Common.ByteArrayToString(chars); 
-               
-                record.Labels.Add(
-                    value,
-                    label);
+                _labelsRaw.Add(value, new KeyValuePair<byte, byte[]>((byte)labelLength, chars));
             }
 
             // Parse the adjecent ValueLabelVariablesRecord as well:
-            RecordType type = (RecordType)reader.ReadInt32();
+            // TODO improve conversion to enum, as in SavFileParser
+            RecordType type = reader.ReadRecordType();
 
             if (type != RecordType.ValueLabelVariablesRecord)
-                throw new UnexpectedFileFormatException();
-
-            record.VarCount = reader.ReadInt32();
-            record.Variables = new Collection<int>();
-
-            for (int i = 0; i < record.VarCount; i++)
             {
-                record.Variables.Add(reader.ReadInt32());
+                throw new SpssFileFormatException();
             }
 
-            return record;
+            VarCount = reader.ReadInt32();
+            Variables = new Collection<int>();
+
+            for (int i = 0; i < VarCount; i++)
+            {
+                Variables.Add(reader.ReadInt32());
+            }
+        }
+
+        public void RegisterMetadata(MetaData metaData)
+        {
+            metaData.ValueLabelRecords.Add(this);
+            Metadata = metaData;
+        }
+
+        private string DecodeLabel(KeyValuePair<byte, byte[]> p)
+        {
+            return Encoding.GetString(p.Value, 0, p.Key);
+        }
+
+        private KeyValuePair<byte, byte[]> EncodeLabel(string value)
+        {
+            int length;
+            var bytes = Encoding.GetPaddedRounded(value, 8, out length, 120, roundUpDelta: 1);
+            return new KeyValuePair<byte, byte[]>((byte)length, bytes);
         }
     }
 }

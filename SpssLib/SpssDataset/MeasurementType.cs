@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿
 namespace SpssLib.SpssDataset
 {
     public enum MeasurementType
     {
-        Nominal,
-        Ordinal,
-        Scale
+        Nominal = 1,
+        Ordinal = 2,
+        Scale = 3
     }
 }

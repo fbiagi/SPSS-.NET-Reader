@@ -1,42 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
-using System.ComponentModel;
 
 namespace SpssLib.FileParser.Records
 {
-    public class LongVariableNamesRecord
+    public class LongVariableNamesRecord : VariableDataInfoRecord<string>
     {
-        private InfoRecord record;
+        public override int SubType { get { return InfoRecordType.LongVariableNames; }}
 
-        internal LongVariableNamesRecord(InfoRecord record)
+        public LongVariableNamesRecord(IDictionary<string, string> variableLongNames, Encoding encoding) 
+            : base(variableLongNames, encoding)
+        {}
+
+        public override void RegisterMetadata(MetaData metaData)
         {
-            if (record.SubType != 13 || record.ItemSize != 1)
-                throw new UnexpectedFileFormatException();
-            this.record = record;
-
-            this.LongNameDictionary = new Dictionary<string, string>();
-
-            // Not very efficient, but for now the best way I can come up with
-            //   without sacrificing the Inforecords-design.
-            var originalBytes = (from item in this.record.Items select item[0]).ToArray();
-            var dictionaryString = Encoding.ASCII.GetString(originalBytes);
-
-            // split on tabs:
-            var entries = dictionaryString.Split('\t');
-
-            foreach (var entry in entries)
-            {
-                var values = entry.Split('=');
-                this.LongNameDictionary.Add(values[0], values[1]);
-            }
-        }
-        public Dictionary<string, string> LongNameDictionary
-        {
-            get;
-            private set;
+            metaData.LongVariableNames = this;
+            Metadata = metaData;
         }
 
+        protected override string DecodeValue(string stringValue)
+        {
+            return stringValue;
+        }
+
+        protected override string EncodeValue(string value)
+        {
+            return value;
+        }
     }
 }

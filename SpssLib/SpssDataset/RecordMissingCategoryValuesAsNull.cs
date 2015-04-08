@@ -1,5 +1,8 @@
-﻿namespace SpssLib.SpssDataset
+﻿using System;
+
+namespace SpssLib.SpssDataset
 {
+	[Obsolete("Use Record.GetValue(object) for sanitized value")]
     public class RecordMissingCategoryValuesAsNull 
     {
         private readonly object[] _data;
@@ -22,14 +25,7 @@
             get
             {
                 var value = this[variable.Index];
-                if(value == null) return value;
-                if(!(value is double)) return value;
-                var castedValue = (double) value;
-                if(variable.MissingValues.Contains(castedValue))
-                {
-                    return null;
-                }
-                return value;
+	            return variable.GetValue(value);
             }
         }
         

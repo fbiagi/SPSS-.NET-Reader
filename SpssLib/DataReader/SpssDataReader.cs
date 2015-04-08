@@ -8,17 +8,17 @@ namespace SpssLib.DataReader
 {
     public class SpssDataReader: IDataReader
     {
-        FileParser.SavFileParser parser;
+        SavFileParser parser;
         byte[][] currentRecord;
-
-        public SpssDataReader(FileParser.SavFileParser parser)
+        
+        public SpssDataReader(SavFileParser parser)
         {
             this.parser = parser;
         }
 
         public SpssDataReader(Stream spssFileStream)
         {
-            this.parser = new FileParser.SavFileParser(spssFileStream);
+            this.parser = new SavFileParser(spssFileStream);
         }
 
         public MetaData FileMetaData
@@ -28,6 +28,15 @@ namespace SpssLib.DataReader
                 if (!parser.MetaDataParsed)
                     parser.ParseMetaData();
                 return this.parser.MetaData;
+            }
+        }
+
+
+        public double SysMissValue
+        {
+            get
+            {
+                return FileMetaData.SystemMissingValue;
             }
         }
 
@@ -141,7 +150,7 @@ namespace SpssLib.DataReader
         public double GetDouble(int i)
         {
             var value = BitConverter.ToDouble(currentRecord[i], 0);
-            if (value == this.FileMetaData.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue)
+            if (value == SysMissValue)
                 throw new InvalidOperationException("Value is sysmis");
             return value;
         }
@@ -211,7 +220,7 @@ namespace SpssLib.DataReader
             if(GetFieldType(i) == typeof(double))
             {
                 var value =  this.GetDouble(i);
-                if (value == this.FileMetaData.InfoRecords.MachineFloatingPointInfoRecord.SystemMissingValue)
+                if (value == SysMissValue)
                     return DBNull.Value;
                 else
                     return value;
