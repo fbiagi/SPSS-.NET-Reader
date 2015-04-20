@@ -37,7 +37,7 @@ namespace SpssLib.FileParser.Records
         {
             get
             {
-                return Encoding.GetTrimmed(_nameRaw);
+                return _nameRaw != null ? Encoding.GetTrimmed(_nameRaw) : null;
             }
             private set
             {
@@ -121,7 +121,7 @@ namespace SpssLib.FileParser.Records
             SortedSet<byte[]> previousVariableNames, ref int longNameCounter, IDictionary<string, int> longStringVariables)
 		{
 			var headVariable = new VariableRecord(variable, headerEncoding);
-
+            headVariable.DisplayInfo = GetVariableDisplayInfo(variable);
             CheckShortName(headVariable, previousVariableNames, ref longNameCounter);
 
 			// If it's numeric or a string of lenght 8 or less, no dummy vars are needed
@@ -171,7 +171,7 @@ namespace SpssLib.FileParser.Records
                     segmentLength = segmentsLeft > 1 ? 255 : GetFinalSegmentLenght(variable.TextWidth, segments);
                     segmentBlocks = GetStringContinuationRecordsCount(segmentLength);
 
-                    result[i++] = GetVlsExtraVariable(variable.Name, headerEncoding, segmentLength, previousVariableNames, ref longNameCounter);
+                    result[i++] = GetVlsExtraVariable(variable, headerEncoding, segmentLength, previousVariableNames, ref longNameCounter);
                 }
                 else
                 {
@@ -182,19 +182,49 @@ namespace SpssLib.FileParser.Records
             return result;
 		}
 
-        private static VariableRecord GetVlsExtraVariable(string name, Encoding encoding, int segmentLength, SortedSet<byte[]> previousVariableNames, ref int longNameCounter)
+        private static VariableRecord GetVlsExtraVariable(Variable variable, Encoding encoding, int segmentLength, SortedSet<byte[]> previousVariableNames, ref int longNameCounter)
         {
             var record = new VariableRecord
                 {
                     Encoding = encoding,
-                    Name = name,
+                    Name = variable.Name,
                     Type = segmentLength,    // TODO set other values that tell the length
+                    DisplayInfo = GetVariableDisplayInfo(variable)
                 };
             
             CheckShortName(record, previousVariableNames, ref longNameCounter);
             
             return record;
         }
+        
+        private static VariableDisplayInfo GetVariableDisplayInfo(Variable variable)
+        {
+            return new VariableDisplayInfo
+                {
+                    Alignment = variable.Alignment,
+                    MeasurementType = variable.MeasurementType,
+                    Width = GetDisplayInfoWith(variable),
+                };
+        }
+
+        private static int GetDisplayInfoWith(Variable variable)
+        {
+            // TODO verify which value should be the width of the display info, It's supposed to be "The width of the display column for the variable in characters"
+            if (variable.TextWidth > 0)
+            {
+                return variable.TextWidth;
+            }
+
+            var format = variable.PrintFormat ?? variable.WriteFormat;
+            if (format != null)
+            {
+                return format.FieldWidth;
+            }
+
+            return 0;
+        }
+
+        internal VariableDisplayInfo DisplayInfo { get; set; }
 
         /// <summary>
         /// Gets the amount of dummy variables (string continuation records) needed for a string of 

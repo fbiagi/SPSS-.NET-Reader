@@ -74,7 +74,8 @@ namespace SpssLib.FileParser
 
         public double SystemMissingValue { get; private set; }
         // Count number of variables (the number of variable-records with a name,
-        // the rest is part of a long string variable), this includes the variables for VeryLongStrings 
+        // the rest is part of a long string variable), this includes the variables 
+        // for VeryLongStrings segments
         private int VariableCount
         {
             get

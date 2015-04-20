@@ -42,8 +42,9 @@ namespace SpssLib.FileParser
 			// Process all variable info
 			var variableLongNames = new Dictionary<string, string>();
             var veryLongStrings = new Dictionary<string, int>();
-			SetVaraibles(headerRecords, variableLongNames, veryLongStrings);
-
+	        var displayInfoList = new List<VariableDisplayInfo>(_variables.Length);
+            SetVaraibles(headerRecords, variableLongNames, veryLongStrings, displayInfoList);
+            
 			// Integer & encoding info
 			var intInfoRecord = new MachineIntegerInfoRecord(_options.HeaderEncoding);
 			headerRecords.Add(intInfoRecord);
@@ -51,8 +52,17 @@ namespace SpssLib.FileParser
             // Integer & encoding info
             var fltInfoRecord = new MachineFloatingPointInfoRecord();
             headerRecords.Add(fltInfoRecord);
-			
-			// Variable Long names (as info record)
+
+            // Variable Display info, beware that the number of variables here must match the count of named varaibles 
+            // (exclude the string continuation, include VLS segments)
+	        var varDisplRecord = new VariableDisplayParameterRecord(displayInfoList.Count);
+	        for (int index = 0; index < displayInfoList.Count; index++)
+	        {
+	            varDisplRecord[index] = displayInfoList[index];
+	        }
+            headerRecords.Add(varDisplRecord);
+
+	        // Variable Long names (as info record)
 			if (variableLongNames.Any())
 			{
 				var longNameRecord = new LongVariableNamesRecord(variableLongNames, _options.HeaderEncoding);
@@ -90,18 +100,25 @@ namespace SpssLib.FileParser
             _stringWriter = new StringWriter(_options.DataEncoding, _recordWriter);
 		}
 
-        private void SetVaraibles(List<IRecord> headerRecords, IDictionary<string, string> variableLongNames, IDictionary<string, int> veryLongStrings)
+        private void SetVaraibles(List<IRecord> headerRecords, IDictionary<string, string> variableLongNames, IDictionary<string, int> veryLongStrings, List<VariableDisplayInfo> displayInfoList)
 		{
 			var variableRecords = new List<VariableRecord>(_variables.Length);
             var valueLabels = new List<ValueLabel>(_variables.Length);
 
-			// Read the variables and create the needed records
+            // Read the variables and create the needed records
             ProcessVariables(variableLongNames, veryLongStrings, variableRecords, valueLabels);
 			headerRecords.AddRange(variableRecords);
 			
 			// Set the count of varaibles as "nominal case size" on the HeaderRecord
 			var header = headerRecords.OfType<HeaderRecord>().First();
 			header.NominalCaseSize = variableRecords.Count;
+
+            var namedVaraibles = variableRecords.Where(v => v.DisplayInfo != null).ToList();
+            foreach (var variableRecord in namedVaraibles)
+            {
+                displayInfoList.Add(variableRecord.DisplayInfo);
+            }
+
 
 			SetValueLabels(headerRecords, valueLabels);
 		}

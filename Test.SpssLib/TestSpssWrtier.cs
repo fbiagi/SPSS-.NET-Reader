@@ -213,6 +213,8 @@ namespace Test.SpssLib
                     Name = "stringvar_02",
                     Type = DataType.Text,
                     TextWidth = 60,
+                    Alignment = Alignment.Centre,
+                    MeasurementType = MeasurementType.Ordinal
                 };
 
                 var variable2 = new Variable

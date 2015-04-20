@@ -14,7 +14,7 @@ namespace Test.SpssLib
         public void TestReadMetadata()
         {
             //var filename = @"C:\Users\ttbiagif\Documents\Datasets\Demo_set.sav";
-            var filename = @"C:\Users\ttbiagif\Documents\Datasets\tests\LongStringVar.sav";
+            var filename = @"C:\Users\francisco.biagi\Documents\datasets\Tests\VLS2.sav";
             //var filename = @"C:\Users\ttbiagif\Documents\Datasets\tests\special_chars4.sav";
 
 
