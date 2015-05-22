@@ -63,18 +63,31 @@ namespace SpssLib.FileParser.Records
         /// </remarks>
         private Encoding GetEncoding(string strEncoding)
         {
+            // Try to get the encoding by EncodingInfo name
             var encInfo = Encoding.GetEncodings();
             var info = encInfo.SingleOrDefault(ei => ei.Name.Equals(strEncoding, StringComparison.InvariantCultureIgnoreCase));
-            if (info == null)
+            if (info != null)
+                return info.GetEncoding();
+
+            // Try to get encoding by name or alias
+            try
             {
-                var cp = Int32.Parse(Regex.Match(strEncoding, @"\d+").Value);
-                info = encInfo.SingleOrDefault(ei => ei.CodePage == cp);
-                if (info == null)
-                {
-                    throw new SpssFileFormatException("Encoding not recognized: " + strEncoding);
-                }
+                var enc = Encoding.GetEncoding(strEncoding);
+                return enc;
             }
-            return info.GetEncoding();
+            catch (ArgumentException)
+            {}
+            
+            // Try to get encoding parsing codepage
+            int cp;
+            if (Int32.TryParse(Regex.Match(strEncoding, @"\d+").Value, out cp))
+            {
+                info = encInfo.SingleOrDefault(ei => ei.CodePage == cp);
+                if (info != null)
+                    return info.GetEncoding();
+            }
+
+            throw new SpssFileFormatException("Encoding not recognized: " + strEncoding);
         }
 	}
 }

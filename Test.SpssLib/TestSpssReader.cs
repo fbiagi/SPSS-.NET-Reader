@@ -14,11 +14,12 @@ namespace Test.SpssLib
         public void TestReadMetadata()
         {
             //var filename = @"C:\Users\ttbiagif\Documents\Datasets\Demo_set.sav";
-            var filename = @"C:\Users\francisco.biagi\Documents\datasets\Tests\VLS2.sav";
-            //var filename = @"C:\Users\ttbiagif\Documents\Datasets\tests\special_chars4.sav";
+            var filename = @"C:\Users\francisco.biagi\Documents\datasets\Tests\strvar.sav";
+            //var filename = @"C:\Users\francisco.biagi\Documents\Datasets\tests\LongNameVars.sav";
+            //var filename = @"C:\Users\francisco.biagi\Documents\datasets\Demo_set.sav";
 
 
-            FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read);
+            FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read,FileShare.Read, 2048*10, FileOptions.SequentialScan);
             SpssReader spssDataset = new SpssReader(fileStream);
             
             var variables = spssDataset.Variables;
