@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
-using SpssLib.FileParser.Records;
 
-namespace SpssLib.FileParser
+namespace SpssLib.FileParser.Records
 {
     public abstract class BaseInfoRecord : EncodeEnabledRecord, IRecord
     {
