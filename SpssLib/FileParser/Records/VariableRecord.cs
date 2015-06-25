@@ -59,9 +59,8 @@ namespace SpssLib.FileParser.Records
                 HasVariableLabel = !string.IsNullOrEmpty(value);
                 if (!HasVariableLabel) return;
 
-                // TODO it might support more than 120, may be 252 or 255
                 int length;
-                _labelRaw = Encoding.GetPaddedRounded(value, 4, out length, 120);
+                _labelRaw = Encoding.GetPaddedRounded(value, 4, out length, 252);
                 LabelLength = length;
             }
         }

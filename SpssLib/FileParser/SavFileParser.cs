@@ -383,7 +383,15 @@ namespace SpssLib.FileParser
             variable.Type = variableRecord.Type == 0 ? DataType.Numeric : DataType.Text;
             if (variable.Type == DataType.Text)
             {
-                variable.TextWidth = length;
+                int longLength;
+                if (metaData.VeryLongStringsDictionary.TryGetValue(variableRecord.Name, out longLength))
+                {
+                    variable.TextWidth = longLength;
+                }
+                else
+                {
+                    variable.TextWidth = length;
+                }
             }
 
             // TODO: There can be one value label for multiple varaibles, we might want to only cerate one and reference it from all variables
