@@ -401,7 +401,17 @@ namespace SpssLib.FileParser
             {
                 foreach (var label in valueLabelRecord.Labels)
                 {
-                    variable.ValueLabels.Add(BitConverter.ToDouble(label.Key, 0), label.Value.Replace("\0", string.Empty).Trim());
+                    var key = BitConverter.ToDouble(label.Key, 0);
+                    var value = label.Value.Replace("\0", string.Empty).Trim();
+
+                    if (variable.ValueLabels.ContainsKey(key))
+                    {
+                        var existingValue = variable.ValueLabels[key];
+                        var varibleName = GetLongName(metaData, variableRecord);
+                        throw new SpssFileFormatException(string.Format("Variable {0} has a duplicate key for value label {1}, found values \"{2}\" and \"{3}\"", varibleName, key, existingValue, value), dictionaryIndex);
+                    }
+
+                    variable.ValueLabels.Add(key, value);
                 }
             }
 
@@ -421,16 +431,22 @@ namespace SpssLib.FileParser
                 variable.Width = variable.PrintFormat.FieldWidth;
             }
 
-            variable.Name = variableRecord.Name;
-            string longName;
-            // Look for the right name
-            if (metaData.LongVariableNames != null 
-                    && metaData.LongVariableNames.Dictionary.TryGetValue(variable.Name, out longName))
-            {
-                variable.Name = longName;
-            }
+            variable.Name = GetLongName(metaData, variableRecord);
 
             return variable;
+        }
+
+        private static string GetLongName(MetaData metaData, VariableRecord variableRecord)
+        {
+            string longName;
+            // Look for the right (long) name if there is one
+            if (metaData.LongVariableNames != null
+                && metaData.LongVariableNames.Dictionary.TryGetValue(variableRecord.Name, out longName))
+            {
+                return longName;
+            }
+            // If not, just return the short name
+            return variableRecord.Name;
         }
 
 
