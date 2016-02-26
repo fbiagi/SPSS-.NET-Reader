@@ -6,7 +6,6 @@ using System.Text;
 using System.IO;
 using SpssLib.Compression;
 using SpssLib.FileParser.Records;
-using System.Data;
 using SpssLib.SpssDataset;
 
 namespace SpssLib.FileParser
@@ -303,12 +302,6 @@ namespace SpssLib.FileParser
         public SpssDataset.SpssDataset ToSpssDataset()
         {
             return new SpssDataset.SpssDataset(this);
-        }
-
-		[Obsolete("Use SpssDataReader constructor directly")]
-        public IDataReader GetDataReader()
-        {
-            return new DataReader.SpssDataReader(this);
         }
 
         public void Dispose()
