@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://raw.githubusercontent.com/TNSGlobal/SPSS-.NET-Reader/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/TNSGlobal/SPSS-.NET-Reader</projectUrl>
+    <iconUrl>http://www.tnsglobal.com/sites/default/files/tns-logo.jpg</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>Initial relsease!</releaseNotes>
+    <tags>SPSS PSPP SAV</tags>
+  </metadata>
+</package>
