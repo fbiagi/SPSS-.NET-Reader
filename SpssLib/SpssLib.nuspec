@@ -4,14 +4,15 @@
     <id>$id$</id>
     <version>$version$</version>
     <title>$title$</title>
-    <authors>$author$</authors>
+    <authors>Roeland Nieuwenhuis, Francisco Biagi</authors>
     <owners>$author$</owners>
     <licenseUrl>https://raw.githubusercontent.com/TNSGlobal/SPSS-.NET-Reader/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/TNSGlobal/SPSS-.NET-Reader</projectUrl>
     <iconUrl>http://www.tnsglobal.com/sites/default/files/tns-logo.jpg</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Initial relsease!</releaseNotes>
+    <summary>Allows you to read, write and manipulate SPSS files while being UTF save. Combat tested extensively within the TNS organization.</summary>
+    <releaseNotes>Initial release!</releaseNotes>
     <tags>SPSS PSPP SAV</tags>
   </metadata>
 </package>
