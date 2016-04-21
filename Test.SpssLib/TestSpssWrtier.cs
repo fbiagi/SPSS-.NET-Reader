@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpssLib.DataReader;
@@ -13,70 +14,77 @@ namespace Test.SpssLib
 		[TestMethod]
         public void TestWriteNumbers()
         {
-            var filename = @"C:\Tests\testWriteNumbers.sav";
+            var filename = @"testWriteNumbers.sav";
 
-			using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
-			{
+            using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
+            {
 
-				var variable1 = new Variable
-					{
-						Label = "The variable Label",
-						ValueLabels = new Dictionary<double, string>
-							{
-								{1, "Label for 1"},
-								{2, "Label for 2"},
-							},
-						Name = "avariablename_01",
-						PrintFormat = new OutputFormat(FormatType.F, 8, 2), 
-						WriteFormat = new OutputFormat(FormatType.F, 8, 2), 
-						Type = DataType.Numeric,
-						Width = 10,
-						MissingValueType = 1
-					};
-				variable1.MissingValues[0] = 999;
-				var variable2 = new Variable
-					{
-						Label = "Another variable",
-						ValueLabels = new Dictionary<double, string>
-								{
-									{1, "this is 1"},
-									{2, "this is 2"},
-								},
-						Name = "avariablename_02",
-						PrintFormat = new OutputFormat(FormatType.F, 8, 2),
-						WriteFormat = new OutputFormat(FormatType.F, 8, 2), 
-						Type = DataType.Numeric,
-						Width = 10,
-						MissingValueType = 1
-					};
-				variable2.MissingValues[0] = 999;
-				var variables = new List<Variable>
-					{
-						variable1,
-						variable2
-					};
+                var variable1 = new Variable
+                {
+                    Label = "The variable Label",
+                    ValueLabels = new Dictionary<double, string>
+                            {
+                                {1, "Label for 1"},
+                                {2, "Label for 2"},
+                            },
+                    Name = "avariablename_01",
+                    PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+                    WriteFormat = new OutputFormat(FormatType.F, 8, 2),
+                    Type = DataType.Numeric,
+                    Width = 10,
+                    MissingValueType = 1
+                };
+                variable1.MissingValues[0] = 999;
+                var variable2 = new Variable
+                {
+                    Label = "Another variable",
+                    ValueLabels = new Dictionary<double, string>
+                                {
+                                    {1, "this is 1"},
+                                    {2, "this is 2"},
+                                },
+                    Name = "avariablename_02",
+                    PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+                    WriteFormat = new OutputFormat(FormatType.F, 8, 2),
+                    Type = DataType.Numeric,
+                    Width = 10,
+                    MissingValueType = 1
+                };
+                variable2.MissingValues[0] = 999;
+                var variables = new List<Variable>
+                    {
+                        variable1,
+                        variable2
+                    };
 
-				var options = new SpssOptions();
+                var options = new SpssOptions();
 
-				using (var writer = new SpssWriter(fileStream, variables, options))
-				{ 
-					var newRecord = writer.CreateRecord();
-					newRecord[0] = 15d;
-					newRecord[1] = 15.5d;
-					writer.WriteRecord(newRecord);
-					newRecord = writer.CreateRecord();
-					newRecord[0] = null;
-					newRecord[1] = 200d;
-					writer.WriteRecord(newRecord);
-					writer.EndFile();
-				}
-			}
+                using (var writer = new SpssWriter(fileStream, variables, options))
+                {
+                    var newRecord = writer.CreateRecord();
+                    newRecord[0] = 15d;
+                    newRecord[1] = 15.5d;
+                    writer.WriteRecord(newRecord);
+                    newRecord = writer.CreateRecord();
+                    newRecord[0] = null;
+                    newRecord[1] = 200d;
+                    writer.WriteRecord(newRecord);
+                    writer.EndFile();
+                }
+            }
+
+            int varCount;
+            int rowCount;
+            ReadFile(filename, out varCount, out rowCount);
+
+            Assert.AreEqual(varCount, 2, 0, "Variable count does not match");
+            Assert.AreEqual(rowCount, 2, 0, "Rows count does not match");
         }
 
 		[TestMethod]
 		public void TestWriteString()
 		{
-			var filename = @"C:\Tests\testWriteString.sav";
+			var filename = @"testWriteString.sav";
 
 			using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
 			{
@@ -172,15 +180,22 @@ namespace Test.SpssLib
 					writer.EndFile();
 				}
 			}
-		}
+
+            int varCount;
+            int rowCount;
+            ReadFile(filename, out varCount, out rowCount);
+
+            Assert.AreEqual(varCount, 4, 0, "Variable count does not match");
+            Assert.AreEqual(rowCount, 3, 0, "Rows count does not match");
+        }
 
 
         [TestMethod]
         public void TestWriteLongWeirdString()
         {
-            var filename = @"C:\Tests\testTestWriteLongWeirdString.sav";
+            var filename = @"testTestWriteLongWeirdString.sav";
 
-            using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
+            using (FileStream writeFileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
             {
                 var varString1 = new Variable
                 {
@@ -244,7 +259,7 @@ namespace Test.SpssLib
 
                 var options = new SpssOptions();
 
-                using (var writer = new SpssWriter(fileStream, variables, options))
+                using (var writer = new SpssWriter(writeFileStream, variables, options))
                 {
                     var newRecord = writer.CreateRecord();
                     // Exactly 500
@@ -272,6 +287,28 @@ namespace Test.SpssLib
                     writer.EndFile();
                 }
             }
+
+            int varCount;
+            int rowCount;
+            ReadFile(filename, out varCount, out rowCount);
+
+            Assert.AreEqual(varCount, 4, 0, "Variable count does not match");
+            Assert.AreEqual(rowCount, 3, 0, "Rows count does not match");
         }
+
+	    private static void ReadFile(string filename, out int varCount, out int rowCount)
+	    {
+	        FileStream readFileStream = new FileStream(filename, FileMode.Open, FileAccess.Read,
+	            FileShare.Read, 2048*10, FileOptions.SequentialScan);
+
+	        try
+	        {
+	            TestSpssReader.ReadData(readFileStream, out varCount, out rowCount);
+	        }
+	        finally
+	        {
+	            readFileStream.Close();
+	        }
+	    }
     }
 }
