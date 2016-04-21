@@ -208,7 +208,11 @@ namespace SpssLib.FileParser.Records
 
         private static int GetDisplayInfoWith(Variable variable)
         {
-            // TODO verify which value should be the width of the display info, It's supposed to be "The width of the display column for the variable in characters"
+            if (variable.TextWidth > 0)
+            {
+                return variable.Width;
+            }
+            
             if (variable.TextWidth > 0)
             {
                 return variable.TextWidth;
