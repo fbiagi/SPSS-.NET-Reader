@@ -2,23 +2,42 @@
 
 namespace SpssLib.SpssDataset
 {
+    /// <summary>
+    /// Represents a data row or case
+    /// </summary>
     public class Record
     {
-        private object[] data;
+        private readonly object[] _data;
 
         internal Record(object[] data)
         {
-            this.data = data;
+            _data = data;
         }
 
+        /// <summary>
+        /// Contains each value for this case
+        /// </summary>
+        /// <param name="index">The 0-based index that corresponds to the variable order</param>
+        /// <returns>
+        ///     An object that can be either a <see cref="String"/> or a<see cref="Double"/>.
+        ///     When a value was read as SYSMISS it will be <c>null</c>
+        /// </returns>
         public object this[int index]
         {
             get
             {
-                return data[index];
+                return _data[index];
             }
         }
 
+        /// <summary>
+        /// Contains each value for this case
+        /// </summary>
+        /// <param name="variable">The variable to get the value from</param>
+        /// <returns>
+        ///     An object that can be either a <see cref="String"/> or a<see cref="Double"/>.
+        ///     When a value was read as SYSMISS it will be <c>null</c>
+        /// </returns>
         public object this[Variable variable]
         {
             get
@@ -33,7 +52,10 @@ namespace SpssLib.SpssDataset
 		/// Also, if the format fo this variable is a date, it will be tranformed into a <see cref="DateTime"/>.
 		/// </summary>
 		/// <param name="variable">The variable to get the value from</param>
-		/// <returns>The value for the variable on this record as object</returns>
+		/// <returns>
+		///     The value for the variable on this record as object, <c>null</c> 
+		///     if the value corresponds to one of the custom missing values rules.
+		/// </returns>
 		public object GetValue(Variable variable)
 		{
 			var value = this[variable];
