@@ -17,45 +17,43 @@ namespace Test.SpssLib
             var filename = @"testWriteNumbers.sav";
 
             using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
-            {
-
-                var variable1 = new Variable
-                {
-                    Label = "The variable Label",
-                    ValueLabels = new Dictionary<double, string>
-                            {
-                                {1, "Label for 1"},
-                                {2, "Label for 2"},
-                            },
-                    Name = "avariablename_01",
-                    PrintFormat = new OutputFormat(FormatType.F, 8, 2),
-                    WriteFormat = new OutputFormat(FormatType.F, 8, 2),
-                    Type = DataType.Numeric,
-                    Width = 10,
-                    MissingValueType = 1
-                };
-                variable1.MissingValues[0] = 999;
-                var variable2 = new Variable
-                {
-                    Label = "Another variable",
-                    ValueLabels = new Dictionary<double, string>
-                                {
-                                    {1, "this is 1"},
-                                    {2, "this is 2"},
-                                },
-                    Name = "avariablename_02",
-                    PrintFormat = new OutputFormat(FormatType.F, 8, 2),
-                    WriteFormat = new OutputFormat(FormatType.F, 8, 2),
-                    Type = DataType.Numeric,
-                    Width = 10,
-                    MissingValueType = 1
-                };
-                variable2.MissingValues[0] = 999;
+            {   
                 var variables = new List<Variable>
+                {
+                    new Variable
                     {
-                        variable1,
-                        variable2
-                    };
+                        Label = "The variable Label",
+                        ValueLabels = new Dictionary<double, string>
+                                {
+                                    {1, "Label for 1"},
+                                    {2, "Label for 2"},
+                                },
+                        Name = "avariablename_01",
+                        PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+                        WriteFormat = new OutputFormat(FormatType.F, 8, 2),
+                        Type = DataType.Numeric,
+
+                        Width = 10,
+                        MissingValueType = 1
+                    },
+                    new Variable
+                    {
+                        Label = "Another variable",
+                        ValueLabels = new Dictionary<double, string>
+                                    {
+                                        {1, "this is 1"},
+                                        {2, "this is 2"},
+                                    },
+                        Name = "avariablename_02",
+                        PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+                        WriteFormat = new OutputFormat(FormatType.F, 8, 2),
+                        Type = DataType.Numeric,
+                        Width = 10,
+                        MissingValueType = 1
+                    }
+                };
+                variables[0].MissingValues[0] = 999;
+                variables[1].MissingValues[0] = 999;
 
                 var options = new SpssOptions();
 
@@ -77,8 +75,8 @@ namespace Test.SpssLib
             int rowCount;
             ReadFile(filename, out varCount, out rowCount);
 
-            Assert.AreEqual(varCount, 2, 0, "Variable count does not match");
-            Assert.AreEqual(rowCount, 2, 0, "Rows count does not match");
+            Assert.AreEqual(varCount, 2, "Variable count does not match");
+            Assert.AreEqual(rowCount, 2, "Rows count does not match");
         }
 
 		[TestMethod]
@@ -185,8 +183,8 @@ namespace Test.SpssLib
             int rowCount;
             ReadFile(filename, out varCount, out rowCount);
 
-            Assert.AreEqual(varCount, 4, 0, "Variable count does not match");
-            Assert.AreEqual(rowCount, 3, 0, "Rows count does not match");
+            Assert.AreEqual(varCount, 4, "Variable count does not match");
+            Assert.AreEqual(rowCount, 3, "Rows count does not match");
         }
 
 
@@ -292,8 +290,8 @@ namespace Test.SpssLib
             int rowCount;
             ReadFile(filename, out varCount, out rowCount);
 
-            Assert.AreEqual(varCount, 4, 0, "Variable count does not match");
-            Assert.AreEqual(rowCount, 3, 0, "Rows count does not match");
+            Assert.AreEqual(varCount, 4, "Variable count does not match");
+            Assert.AreEqual(rowCount, 3, "Rows count does not match");
         }
 
 	    private static void ReadFile(string filename, out int varCount, out int rowCount)
