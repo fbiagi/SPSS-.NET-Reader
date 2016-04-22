@@ -56,7 +56,7 @@ namespace SpssLib.SpssDataset
         /// <summary>
         /// Type of custom missing values (besides sysmiss).
         /// </summary>
-        public int MissingValueType { get; set; }
+        public MissingValueType MissingValueType { get; set; }
         /// <summary>
         /// Holds the value information to be treated as missing values. Depends on the <see cref="MissingValueType"/>.<para/>
         /// This is a readonly 3 items array. 
@@ -104,7 +104,7 @@ namespace SpssLib.SpssDataset
 				return s.Length == 0 ? null : s;
 		    }
 
-			var cleanValue = MissingValueType == 0 ? value : GetWithMissingValueAsNull(value);
+			var cleanValue = MissingValueType == MissingValueType.NoMissingValues ? value : GetWithMissingValueAsNull(value);
 		    return cleanValue != null && IsDate() ? AsDate(cleanValue) : cleanValue;
 	    }
 
@@ -147,29 +147,35 @@ namespace SpssLib.SpssDataset
 			// ReSharper disable CompareOfFloatsByEqualityOperator
 		    // Comparisons are for exact value, as missing values have to be written in
 		    var dVal = (double) value;
-		    if (MissingValueType > 0)
-		    {
-			    for (int i = 0; i < MissingValueType && i < MissingValues.Length; i++)
-			    {
-				    if (dVal == MissingValues[i])
-				    {
-					    return null;
-				    }
-			    }
-		    }
-		    else
-		    {
-			    if (dVal >= MissingValues[0] && dVal <= MissingValues[1])
-			    {
-				    return null;
-			    }
-			    if (MissingValueType == -3 && dVal == MissingValues[3])
-			    {
-				    return null;
-			    }
-		    }
-		    // ReSharper restore CompareOfFloatsByEqualityOperator
-		    return value;
+
+	        switch (MissingValueType)
+	        {
+                case MissingValueType.NoMissingValues:
+                    break;
+                case MissingValueType.OneDiscreteMissingValue:
+                    if (dVal == MissingValues[0])
+                        return null;
+                    break;
+	            case MissingValueType.TwoDiscreteMissingValue:
+                    if (dVal == MissingValues[0] || dVal == MissingValues[1])
+                        return null;
+                    break;
+                case MissingValueType.ThreeDiscreteMissingValue:
+                    if (dVal == MissingValues[0] || dVal == MissingValues[1] || dVal == MissingValues[2])
+                        return null;
+                    break;
+	            case MissingValueType.Range:
+                    if (dVal >= MissingValues[0] && dVal <= MissingValues[1])
+                        return null;
+                    break;
+	            case MissingValueType.RangeAndDiscrete:
+                    if ((dVal >= MissingValues[0] && dVal <= MissingValues[1]) 
+                        || (MissingValueType == MissingValueType.RangeAndDiscrete && dVal == MissingValues[3]))
+                        return null;
+                    break;
+	        }
+	        // ReSharper restore CompareOfFloatsByEqualityOperator
+	        return value;
 	    }
     }
 }

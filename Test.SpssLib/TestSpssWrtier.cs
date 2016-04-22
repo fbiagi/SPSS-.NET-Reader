@@ -34,7 +34,7 @@ namespace Test.SpssLib
                         Type = DataType.Numeric,
 
                         Width = 10,
-                        MissingValueType = 1
+                        MissingValueType = MissingValueType.OneDiscreteMissingValue
                     },
                     new Variable
                     {
@@ -49,7 +49,7 @@ namespace Test.SpssLib
                         WriteFormat = new OutputFormat(FormatType.F, 8, 2),
                         Type = DataType.Numeric,
                         Width = 10,
-                        MissingValueType = 1
+                        MissingValueType = MissingValueType.OneDiscreteMissingValue
                     }
                 };
                 variables[0].MissingValues[0] = 999;
@@ -107,8 +107,8 @@ namespace Test.SpssLib
 					WriteFormat = new OutputFormat(FormatType.F, 8, 2), 
 					Type = DataType.Numeric,
 					Width = 10,
-					MissingValueType = 1
-				};
+					MissingValueType = MissingValueType.OneDiscreteMissingValue
+                };
 				variable1.MissingValues[0] = 999;
 
                 var varString = new Variable
@@ -135,8 +135,8 @@ namespace Test.SpssLib
 					WriteFormat = new OutputFormat(FormatType.F, 8, 2), 
 					Type = DataType.Numeric,
 					Width = 10,
-					MissingValueType = 1
-				};
+					MissingValueType = MissingValueType.OneDiscreteMissingValue
+                };
 				variable2.MissingValues[0] = 999;
 
 				var variables = new List<Variable>
@@ -216,7 +216,7 @@ namespace Test.SpssLib
                     WriteFormat = new OutputFormat(FormatType.F, 8, 2),
                     Type = DataType.Numeric,
                     Width = 10,
-                    MissingValueType = 1
+                    MissingValueType = MissingValueType.OneDiscreteMissingValue
                 };
                 variable1.MissingValues[0] = 999;
 
@@ -243,7 +243,7 @@ namespace Test.SpssLib
                     WriteFormat = new OutputFormat(FormatType.F, 8, 2),
                     Type = DataType.Numeric,
                     Width = 10,
-                    MissingValueType = 1
+                    MissingValueType = MissingValueType.OneDiscreteMissingValue
                 };
                 variable2.MissingValues[0] = 999;
 

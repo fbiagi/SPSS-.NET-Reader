@@ -12,15 +12,15 @@ namespace SpssLib.SpssDataset
         /// <summary>
         /// One speciffic custom missing value. The missing value should be specified on the fist item on <see cref="Variable.MissingValues"/>
         /// </summary>
-        OneDiscreteMisingValue = 1,
+        OneDiscreteMissingValue = 1,
         /// <summary>
         /// Two speciffic custom missing values. The missing values should be specified on the fist and second items on <see cref="Variable.MissingValues"/>.
         /// </summary>
-        TwoDiscreteMisingValue = 2,
+        TwoDiscreteMissingValue = 2,
         /// <summary>
         /// Two speciffic custom missing values. The missing values should be specified on the fist, second and third items on <see cref="Variable.MissingValues"/>.
         /// </summary>
-        ThreeDiscreteMisingValue = 3,
+        ThreeDiscreteMissingValue = 3,
         /// <summary>
         /// Defines a range to be treated as missing values, from the first item in the on <see cref="Variable.MissingValues"/> to the second value, inclusively. 
         /// </summary>
