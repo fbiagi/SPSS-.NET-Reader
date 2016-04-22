@@ -87,6 +87,7 @@
     <Compile Include="FileParser\Records\MachineIntegerInfoRecord.cs" />
     <Compile Include="SpssDataset\DataType.cs" />
     <Compile Include="SpssDataset\MeasurementType.cs" />
+    <Compile Include="SpssDataset\MissingValueType.cs" />
     <Compile Include="SpssDataset\OutputFormat.cs" />
     <Compile Include="FileParser\Records\RecordType.cs" />
     <Compile Include="FileParser\Records\ValueLabelRecord.cs" />
