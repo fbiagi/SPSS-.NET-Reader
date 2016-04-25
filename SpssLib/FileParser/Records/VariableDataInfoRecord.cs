@@ -7,6 +7,10 @@ namespace SpssLib.FileParser.Records
 {
     public abstract class VariableDataInfoRecord<T> : BaseInfoRecord
     {
+        protected virtual bool UsesTerminator
+        {
+            get { return false; }
+        }
         private IDictionary<string, T> _dictionary;
         // ReSharper disable StaticFieldInGenericType // Doesn't need to be shared
         private static readonly byte EqualsChar = Encoding.ASCII.GetBytes("=")[0];
@@ -37,8 +41,8 @@ namespace SpssLib.FileParser.Records
                 if (_dictionary == null)
                 {
                     if (Data == null || Data.Length == 0)
-                    {   // TODO generalize mesage
-                        throw new SpssFileFormatException("No long variable names data loaded");
+                    {   
+                        throw new SpssFileFormatException("Info record dicctionary has no data");
                     }
 
                     _dictionary = new Dictionary<string, T>();
@@ -48,8 +52,8 @@ namespace SpssLib.FileParser.Records
                     {
                         var separatorIndex = Array.IndexOf(Data, EqualsChar, startIndex);
                         if (separatorIndex == -1)
-                        {   // TODO generalize mesage
-                            throw new SpssFileFormatException("Long variable format in wrong status");
+                        {   
+                            throw new SpssFileFormatException("Info record dicctionary has no '=' char");
                         }
                         var endIndex = Array.IndexOf( Data, TabChar, separatorIndex);
                         string shortName = Encoding.GetString(Data, startIndex, separatorIndex - startIndex);
@@ -83,8 +87,14 @@ namespace SpssLib.FileParser.Records
                 buffer[byteIndex++] = TabChar;
             }
 
-            // Trim the excess of the array (and the trailing tab char)
-            Array.Resize(ref buffer, byteIndex - 1);
+            if (!UsesTerminator)
+            {
+                // Do not account for the triling tab
+                byteIndex--;
+            }
+
+            // Trim the excess of the array
+            Array.Resize(ref buffer, byteIndex);
             Data = buffer;
         }
         

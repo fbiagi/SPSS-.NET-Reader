@@ -25,10 +25,12 @@ namespace SpssLib.FileParser.Records
 	    private readonly int _missingValueCount;
 
         private static readonly VariableRecord StringContinuationRecord = new VariableRecord
-            {
-                _nameRaw = new byte[8],
+        {
+                _nameRaw = Encoding.ASCII.GetBytes("".PadRight(8)), // All  spaces
                 Type = -1,
-            };
+                PrintFormat = new OutputFormat(FormatType.A, 0x1d, 1), // SPSS writes this a the print and write formats
+                WriteFormat = new OutputFormat(FormatType.A, 0x1d, 1)  // 01 0d 01 00
+        };
 
         public OutputFormat PrintFormat { get; private set; }
         public OutputFormat WriteFormat { get; private set; }
@@ -165,17 +167,17 @@ namespace SpssLib.FileParser.Records
 
                 currentSegment++;
                 var segmentsLeft = segments - currentSegment;
-                if (segmentsLeft > 0)
-                {
-                    segmentLength = segmentsLeft > 1 ? 255 : GetFinalSegmentLenght(variable.TextWidth, segments);
-                    segmentBlocks = GetStringContinuationRecordsCount(segmentLength);
 
-                    result[i++] = GetVlsExtraVariable(variable, headerEncoding, segmentLength, previousVariableNames, ref longNameCounter);
-                }
-                else
+                if (segmentsLeft <= 0)
                 {
                     break;
                 }
+
+                segmentLength = segmentsLeft > 1 ? 255 : GetFinalSegmentLenght(variable.TextWidth, segments);
+                segmentBlocks = GetStringContinuationRecordsCount(segmentLength);
+
+                result[i++] = GetVlsExtraVariable(variable, headerEncoding, segmentLength, previousVariableNames,
+                    ref longNameCounter);
             }
             
             return result;
@@ -183,11 +185,15 @@ namespace SpssLib.FileParser.Records
 
         private static VariableRecord GetVlsExtraVariable(Variable variable, Encoding encoding, int segmentLength, SortedSet<byte[]> previousVariableNames, ref int longNameCounter)
         {
+            var outputFormat = new OutputFormat(FormatType.A, segmentLength);
             var record = new VariableRecord
                 {
                     Encoding = encoding,
                     Name = variable.Name,
-                    Type = segmentLength,    // TODO set other values that tell the length
+                    Label = variable.Label,
+                    Type = segmentLength,
+                    PrintFormat = outputFormat,
+                    WriteFormat = outputFormat,
                     DisplayInfo = GetVariableDisplayInfo(variable)
                 };
             
