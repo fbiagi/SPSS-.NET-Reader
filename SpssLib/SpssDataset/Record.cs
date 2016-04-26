@@ -7,11 +7,14 @@ namespace SpssLib.SpssDataset
     /// </summary>
     public class Record
     {
-        private readonly object[] _data;
+        /// <summary>
+        /// The data array. It should only contain strings, doubles or nulls.
+        /// </summary>
+        public object[] Data { get; internal set; }
 
         internal Record(object[] data)
         {
-            _data = data;
+            Data = data;
         }
 
         /// <summary>
@@ -19,14 +22,14 @@ namespace SpssLib.SpssDataset
         /// </summary>
         /// <param name="index">The 0-based index that corresponds to the variable order</param>
         /// <returns>
-        ///     An object that can be either a <see cref="String"/> or a<see cref="Double"/>.
-        ///     When a value was read as SYSMISS it will be <c>null</c>
+        /// An object that can be either a <see cref="String"/> or a<see cref="Double"/>.
+        /// When a value was read as SYSMISS it will be <c>null</c>
         /// </returns>
         public object this[int index]
         {
             get
             {
-                return _data[index];
+                return Data[index];
             }
         }
 
@@ -35,8 +38,8 @@ namespace SpssLib.SpssDataset
         /// </summary>
         /// <param name="variable">The variable to get the value from</param>
         /// <returns>
-        ///     An object that can be either a <see cref="String"/> or a<see cref="Double"/>.
-        ///     When a value was read as SYSMISS it will be <c>null</c>
+        /// An object that can be either a <see cref="String"/> or a<see cref="Double"/>.
+        /// When a value was read as SYSMISS it will be <c>null</c>
         /// </returns>
         public object this[Variable variable]
         {
@@ -53,8 +56,8 @@ namespace SpssLib.SpssDataset
 		/// </summary>
 		/// <param name="variable">The variable to get the value from</param>
 		/// <returns>
-		///     The value for the variable on this record as object, <c>null</c> 
-		///     if the value corresponds to one of the custom missing values rules.
+		/// The value for the variable on this record as object, <c>null</c> 
+		/// if the value corresponds to one of the custom missing values rules.
 		/// </returns>
 		public object GetValue(Variable variable)
 		{

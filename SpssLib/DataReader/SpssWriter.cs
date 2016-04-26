@@ -58,8 +58,27 @@ namespace SpssLib.DataReader
         /// <returns></returns>
 		public object[] CreateRecord()
 		{
-			return new object[_variables.Count()];
+			return new object[_variables.Count];
 		}
+
+        /// <summary>
+        /// Creates a record array for this file by using a Record object that could belong to another file.
+        /// It would contain the data from the original, but it would be resized to fit the current data variables.
+        /// To be able to copy to a new file, you must be careful that the varaibles from both are in the same order
+        /// </summary>
+        /// <param name="record">The record to get the data from.</param>
+        /// <returns>A copy of the data record, resized for the current dataset</returns>
+        /// <remarks>
+        /// This method clones the record's data array and the resizes it to fit the current dataset. Varaibles should
+        /// be in the same order for both records. If you are adding records, you might have to shift data to make it fit.
+        /// If the currentdataset has less variables, the last values left will be lost.
+        /// </remarks>
+        public object[] CreateRecord(Record record)
+        {
+            var data = (object[])record.Data.Clone();
+            Array.Resize(ref data, _variables.Count);
+            return data;
+        }
 
         /// <summary>
         /// Writes the record into the stream.
@@ -87,8 +106,9 @@ namespace SpssLib.DataReader
         /// Disposes the write stream
         /// </summary>
 		public void Dispose()
-		{   // TODO call EndFile
-			_output.Dispose();
+		{
+            _output.EndFile();
+            _output.Dispose();
 		}
 	}
 }
