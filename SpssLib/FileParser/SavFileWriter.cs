@@ -12,7 +12,6 @@ namespace SpssLib.FileParser
 	{
 		private readonly Stream _output;
 		private readonly BinaryWriter _writer;
-		private int _longNameCounter;
 		private Variable[] _variables;
 		private IRecordWriter _recordWriter;
 		private long _bias;
@@ -131,13 +130,15 @@ namespace SpssLib.FileParser
 
         private void ProcessVariables(IDictionary<string, string> variableLongNames, IDictionary<string, int> veryLongStrings, List<VariableRecord> variableRecords, List<ValueLabel> valueLabels)
 		{
+            int longNameCounter = 0;
             var namesList = new SortedSet<byte[]>(new ByteArrayComparer());
+            var segmentsNamesList = new SortedList<byte[], int>(new ByteArrayComparer());
 
             foreach (var variable in _variables)
 			{
 				int dictionaryIndex = variableRecords.Count + 1;
 
-                var records = VariableRecord.GetNeededVaraibles(variable, _options.HeaderEncoding, namesList, ref _longNameCounter, veryLongStrings);
+                var records = VariableRecord.GetNeededVaraibles(variable, _options.HeaderEncoding, namesList, ref longNameCounter, veryLongStrings, segmentsNamesList);
 				variableRecords.AddRange(records);
 
 				// Check if a longNameVariableRecord is needed

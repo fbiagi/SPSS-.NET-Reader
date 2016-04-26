@@ -25,10 +25,12 @@ namespace SpssLib.FileParser.Records
 	    private readonly int _missingValueCount;
 
         private static readonly VariableRecord StringContinuationRecord = new VariableRecord
-            {
-                _nameRaw = new byte[8],
+        {
+                _nameRaw = Encoding.ASCII.GetBytes("".PadRight(8)), // All  spaces
                 Type = -1,
-            };
+                PrintFormat = new OutputFormat(FormatType.A, 0x1d, 1), // SPSS writes this a the print and write formats
+                WriteFormat = new OutputFormat(FormatType.A, 0x1d, 1)  // 01 0d 01 00
+        };
 
         public OutputFormat PrintFormat { get; private set; }
         public OutputFormat WriteFormat { get; private set; }
@@ -111,13 +113,13 @@ namespace SpssLib.FileParser.Records
         ///     a proper long name that won't collide
         /// </param>
         /// <param name="longStringVariables"></param>
+        /// <param name="segmentsNamesList"></param>
         /// <returns>
         /// 		Only one var for numbers or text of lenght 8 or less, or the 
         /// 		main variable definition, followed by string continuation "dummy"
         /// 		variables. There should be one for each 8 chars after the first 8.
         ///  </returns>
-        internal static VariableRecord[] GetNeededVaraibles(Variable variable, Encoding headerEncoding, 
-            SortedSet<byte[]> previousVariableNames, ref int longNameCounter, IDictionary<string, int> longStringVariables)
+        internal static VariableRecord[] GetNeededVaraibles(Variable variable, Encoding headerEncoding, SortedSet<byte[]> previousVariableNames, ref int longNameCounter, IDictionary<string, int> longStringVariables, SortedList<byte[], int> segmentsNamesList)
 		{
 			var headVariable = new VariableRecord(variable, headerEncoding);
             headVariable.DisplayInfo = GetVariableDisplayInfo(variable);
@@ -165,33 +167,35 @@ namespace SpssLib.FileParser.Records
 
                 currentSegment++;
                 var segmentsLeft = segments - currentSegment;
-                if (segmentsLeft > 0)
-                {
-                    segmentLength = segmentsLeft > 1 ? 255 : GetFinalSegmentLenght(variable.TextWidth, segments);
-                    segmentBlocks = GetStringContinuationRecordsCount(segmentLength);
 
-                    result[i++] = GetVlsExtraVariable(variable, headerEncoding, segmentLength, previousVariableNames, ref longNameCounter);
-                }
-                else
+                if (segmentsLeft <= 0)
                 {
                     break;
                 }
+
+                segmentLength = segmentsLeft > 1 ? 255 : GetFinalSegmentLenght(variable.TextWidth, segments);
+                segmentBlocks = GetStringContinuationRecordsCount(segmentLength);
+
+                result[i++] = GetVlsExtraVariable(headVariable, headerEncoding, segmentLength, previousVariableNames,
+                    ref longNameCounter, segmentsNamesList);
             }
             
             return result;
 		}
 
-        private static VariableRecord GetVlsExtraVariable(Variable variable, Encoding encoding, int segmentLength, SortedSet<byte[]> previousVariableNames, ref int longNameCounter)
+        private static VariableRecord GetVlsExtraVariable(VariableRecord variable, Encoding encoding, int segmentLength, SortedSet<byte[]> previousVariableNames, ref int longNameCounter, SortedList<byte[], int> segmentsNamesList)
         {
+            var outputFormat = new OutputFormat(FormatType.A, segmentLength);
             var record = new VariableRecord
                 {
                     Encoding = encoding,
-                    Name = variable.Name,
-                    Type = segmentLength,    // TODO set other values that tell the length
-                    DisplayInfo = GetVariableDisplayInfo(variable)
+                    _nameRaw = GenrateContinuationSegmentShortName(variable, previousVariableNames, segmentsNamesList),
+                    Label = variable.Label,
+                    Type = segmentLength,
+                    PrintFormat = outputFormat,
+                    WriteFormat = outputFormat,
+                    DisplayInfo = variable.DisplayInfo
                 };
-            
-            CheckShortName(record, previousVariableNames, ref longNameCounter);
             
             return record;
         }
@@ -337,6 +341,69 @@ namespace SpssLib.FileParser.Records
             }
             // Add the raw encoded name byte array to avoid collitions in following variables
             previousVariableNames.Add(variable._nameRaw);
+        }
+
+        
+        /// <summary>
+        /// Generates a new short name for a VLS continuation variable, checking that the name is not already used.
+        /// This tries to replicate how SPSS does it, by shrinking the original var name to at most 5 chars and appending 
+        /// a number to make it unique. The nuber is at most 3 chars, padded to the left with spaces.
+        /// </summary>
+        /// <param name="variable">The head varaible reacord to get the name from</param>
+        /// <param name="previousVariableNames">The set of all other used short variable names</param>
+        /// <param name="segmentsNamesList">The cache to store up to which number has been used for each up to 5 char name</param>
+        /// <returns>The encoded short name for the VLS continuation segment</returns>
+        /// <remarks>
+        /// Apparently, for SPSS to reads VLS continuation segments consistenly, the segments should have the same first 5 characters.
+        /// If segments have different names that don't match, SPSS could not interpret them as part of the same varaible
+        /// </remarks>
+        private static byte[] GenrateContinuationSegmentShortName(VariableRecord variable, SortedSet<byte[]> previousVariableNames, SortedList<byte[], int> segmentsNamesList)
+        {
+            // Get a new array with the encoded name
+            var segmentName = (byte[])variable._nameRaw.Clone();
+            
+            // Find out the ending position of the name, or cut it to 5
+            var nameEndIndex = Array.IndexOf<byte>(segmentName, 0x20);
+            if (nameEndIndex == -1 || nameEndIndex > 5)
+            {
+                nameEndIndex = 5;
+            }
+
+            // Get the short name (of up to 5 chars) to use as key for the numeration cache
+            byte[] shortSegmentName = new byte[5];
+            Array.Copy(segmentName, shortSegmentName, nameEndIndex);
+
+            // Get the current number for the short name from the cache, or start by 0
+            int segmentContinuationNumber;
+            if (!segmentsNamesList.TryGetValue(shortSegmentName, out segmentContinuationNumber))
+            {
+                // Set to -1 so the first iteration would set it at 0
+                segmentContinuationNumber = -1;
+            }
+
+            do
+            {
+                // Get the bytes for the next number padded with spaces to 3, this way name will be overriten with the number at the end
+                segmentContinuationNumber++;
+                var numberBytes = Encoding.ASCII.GetBytes(segmentContinuationNumber.ToString().PadRight(3));
+
+                if (numberBytes.Length > 3)
+                {
+                    throw new SpssFileFormatException(
+                        "There can be no more than 999 segment continuation variables with se same 5 letter name");
+                }
+                // Set the number at the end of the name
+                Array.Copy(numberBytes, 0, segmentName, nameEndIndex, 3);
+                // Check if that name is already used
+            } while (previousVariableNames.Contains(segmentName));
+
+            // If not used, add the current number to the segments names number cache
+            segmentsNamesList[shortSegmentName] = segmentContinuationNumber;
+
+            // Add the raw encoded name byte array to avoid collitions in following variables
+            previousVariableNames.Add(segmentName);
+
+            return segmentName;
         }
 
         /// <summary>
