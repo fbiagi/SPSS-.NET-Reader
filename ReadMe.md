@@ -69,7 +69,7 @@ var variables = new List<Variable>
         WriteFormat = new OutputFormat(FormatType.F, 8, 2),
         Type = DataType.Numeric,
         Width = 10,
-        MissingValueType = 0  // No missing values
+        MissingValueType = MissingValueType.NoMissingValues
     },
     new Variable
     {
@@ -84,7 +84,7 @@ var variables = new List<Variable>
         WriteFormat = new OutputFormat(FormatType.F, 8, 2),
         Type = DataType.Numeric,
         Width = 10,
-        MissingValueType = 1 // Only one special missing value
+        MissingValueType = MissingValueType.OneDiscreteMissingValue
     }
 };
 // Set the one special missing value

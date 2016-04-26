@@ -365,7 +365,7 @@ namespace SpssLib.FileParser
             // Get variable record data:
             var variableRecord = metaData.VariableRecords[dictionaryIndex];
             variable.Label = variableRecord.HasVariableLabel ? variable.Label = variableRecord.Label : null;
-	        variable.MissingValueType = variableRecord.MissingValueType;
+	        variable.MissingValueType = (MissingValueType)variableRecord.MissingValueType;
 	        for (int i = 0; i < variableRecord.MissingValues.Count && i < variable.MissingValues.Length; i++)
 	        {
 		        variable.MissingValues[i] = variableRecord.MissingValues[i];

@@ -89,7 +89,7 @@ namespace SpssLib.FileParser.Records
 
 			MissingValues = variable.MissingValues;
 			
-			MissingValueType = variable.MissingValueType;
+			MissingValueType = (int)variable.MissingValueType;
 		    _missingValueCount = Math.Abs(MissingValueType);
 			PrintFormat = variable.PrintFormat;
 			WriteFormat = variable.WriteFormat;
