@@ -12,7 +12,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <summary>Allows you to read, write and manipulate SPSS files while being UTF save. Combat tested extensively within the TNS organization.</summary>
-    <releaseNotes></releaseNotes>
+    <releaseNotes>https://github.com/TNSGlobal/SPSS-.NET-Reader/releases</releaseNotes>
     <tags>SPSS PSPP SAV</tags>
   </metadata>
 </package>
