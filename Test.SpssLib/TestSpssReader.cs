@@ -13,7 +13,7 @@ namespace Test.SpssLib
     {
         [TestMethod]
         [DeploymentItem(@"TestFiles\test.sav")]
-        public void TestReadMetadata()
+        public void TestReadFile()
         {
             FileStream fileStream = new FileStream("test.sav", FileMode.Open, FileAccess.Read, 
                 FileShare.Read, 2048*10, FileOptions.SequentialScan);
