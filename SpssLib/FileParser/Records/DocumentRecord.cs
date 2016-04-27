@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
 
 namespace SpssLib.FileParser.Records
 {
     public class DocumentRecord : IRecord
     {
-        public RecordType RecordType { get { return RecordType.DocumentRecord; }}
-        public Int32 LineCount { get; private set; }
+        public RecordType RecordType => RecordType.DocumentRecord;
+        public int LineCount { get; private set; }
         public IList<string> LineCollection { get; private set; }
 
         internal DocumentRecord()
@@ -18,15 +17,7 @@ namespace SpssLib.FileParser.Records
         public DocumentRecord(IList<string> lines)
         {
             LineCollection = lines;
-            LineCount = lines.Count();
-        }
-
-        [Obsolete]
-        public static DocumentRecord ParseNextRecord(BinaryReader reader)
-        {
-            var record = new DocumentRecord();
-            record.FillRecord(reader);
-            return record;
+            LineCount = lines.Count;
         }
 
         public void FillRecord(BinaryReader reader)
@@ -35,7 +26,7 @@ namespace SpssLib.FileParser.Records
             LineCollection = new List<string>();
             for (int i = 0; i < LineCount; i++)
             {
-                LineCollection.Add(new String(reader.ReadChars(80)));
+                LineCollection.Add(new string(reader.ReadChars(80)));
             }
         }
 

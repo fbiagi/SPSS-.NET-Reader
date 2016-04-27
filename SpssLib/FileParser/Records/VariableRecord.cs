@@ -8,6 +8,9 @@ using System.Collections.ObjectModel;
 
 namespace SpssLib.FileParser.Records
 {
+    /// <summary>
+    /// Represents the record data for a variable, this contains name, type, labels, value type, formatting, missing value type, print format and write format
+    /// </summary>
     public class VariableRecord : EncodeEnabledRecord, IRecord
     {
         private byte[] _nameRaw;
@@ -18,10 +21,10 @@ namespace SpssLib.FileParser.Records
         /// </summary>
         private static readonly char[] AppendableChars = Enumerable.Range('A', 'Z').Select(i => (char)i).ToArray();
 
-		public RecordType RecordType { get { return RecordType.VariableRecord; } }
-        public Int32 Type { get; private set; }
+		public RecordType RecordType => RecordType.VariableRecord;
+        public int Type { get; private set; }
         public bool HasVariableLabel { get; private set; }
-        public Int32 MissingValueType { get; private set; }
+        public int MissingValueType { get; private set; }
 	    private readonly int _missingValueCount;
 
         private static readonly VariableRecord StringContinuationRecord = new VariableRecord
@@ -48,7 +51,7 @@ namespace SpssLib.FileParser.Records
             }
         }
 
-        public Int32 LabelLength { get; private set; }
+        public int LabelLength { get; private set; }
         
         public string Label
         {
@@ -75,7 +78,7 @@ namespace SpssLib.FileParser.Records
         /// <summary>
         /// Constructor for loading the reord info before writing the file
         /// </summary>
-        /// <param name="variable">The created varaible information</param>
+        /// <param name="variable">The created variable information</param>
         /// <param name="headerEncoding">The encoding used for the header. <see cref="MachineIntegerInfoRecord.CharacterCode"/></param>
         private VariableRecord(Variable variable, Encoding headerEncoding)
 	    {
@@ -102,7 +105,7 @@ namespace SpssLib.FileParser.Records
         /// <summary>
         /// Creates all variable records needed for this variable
         /// </summary>
-        /// <param name="variable">The varaible matadata to create the new variable</param>
+        /// <param name="variable">The variable matadata to create the new variable</param>
         /// <param name="headerEncoding">The encoding to use on the header</param>
         /// <param name="previousVariableNames">
         ///     A list of the variable names that were already 
@@ -119,21 +122,24 @@ namespace SpssLib.FileParser.Records
         /// 		main variable definition, followed by string continuation "dummy"
         /// 		variables. There should be one for each 8 chars after the first 8.
         ///  </returns>
-        internal static VariableRecord[] GetNeededVaraibles(Variable variable, Encoding headerEncoding, SortedSet<byte[]> previousVariableNames, ref int longNameCounter, IDictionary<string, int> longStringVariables, SortedList<byte[], int> segmentsNamesList)
-		{
-			var headVariable = new VariableRecord(variable, headerEncoding);
-            headVariable.DisplayInfo = GetVariableDisplayInfo(variable);
-            CheckShortName(headVariable, previousVariableNames, ref longNameCounter);
+        internal static VariableRecord[] GetNeededVariables(Variable variable, Encoding headerEncoding, SortedSet<byte[]> previousVariableNames, ref int longNameCounter, IDictionary<string, int> longStringVariables, SortedList<byte[], int> segmentsNamesList)
+        {
+            var header = new VariableRecord(variable, headerEncoding)
+                         {
+                             DisplayInfo = GetVariableDisplayInfo(variable)
+                         };
+
+            CheckShortName(header, previousVariableNames, ref longNameCounter);
 
 			// If it's numeric or a string of lenght 8 or less, no dummy vars are needed
 			if (variable.Type == DataType.Numeric || variable.TextWidth <= 8)
 			{
-				return new []{headVariable};
+				return new []{header};
 			}
 
             if (variable.TextWidth > 255)
             {
-                longStringVariables.Add(headVariable.Name, variable.TextWidth);
+                longStringVariables.Add(header.Name, variable.TextWidth);
             }
 
             var segments = GetLongStringSegmentsCount(variable.TextWidth);
@@ -152,8 +158,8 @@ namespace SpssLib.FileParser.Records
             var segmentLength = segments > 1 ? 255 : GetFinalSegmentLenght(variable.TextWidth, segments);
             var segmentBlocks = GetStringContinuationRecordsCount(segmentLength);
 
-            headVariable.Type = segmentLength;
-            result[0] = headVariable;
+            header.Type = segmentLength;
+            result[0] = header;
             
             var currentSegment = 0;
             var i = 1;
@@ -176,7 +182,7 @@ namespace SpssLib.FileParser.Records
                 segmentLength = segmentsLeft > 1 ? 255 : GetFinalSegmentLenght(variable.TextWidth, segments);
                 segmentBlocks = GetStringContinuationRecordsCount(segmentLength);
 
-                result[i++] = GetVlsExtraVariable(headVariable, headerEncoding, segmentLength, previousVariableNames,
+                result[i++] = GetVlsExtraVariable(header, headerEncoding, segmentLength, previousVariableNames,
                     ref longNameCounter, segmentsNamesList);
             }
             
@@ -235,20 +241,20 @@ namespace SpssLib.FileParser.Records
 
         /// <summary>
         /// Gets the amount of dummy variables (string continuation records) needed for a string of 
-        /// length <see cref="lenght"/>
+        /// length
         /// </summary>
-        /// <param name="lenght">The length (in bytes, not chars) for the string</param>
+        /// <param name="length">The length (in bytes, not chars) for the string</param>
         /// <exception cref="ArgumentException">
         /// If the lenght is more than 255 bytes. If the variable needs to hold longer text use
         /// <see cref="VeryLongStringRecord"/>
         /// </exception>
         /// <returns>Number of string continuation records needed (variables of type -1 and width 8)</returns>
-        internal static int GetStringContinuationRecordsCount(int lenght)
+        internal static int GetStringContinuationRecordsCount(int length)
         {
-            if(lenght > 255)
+            if(length > 255)
                 throw new ArgumentException("Continuation records are for string variables up to 255 bytes. For more, use VeryLongStringsRecords",
-                    "lenght");
-            return (int)Math.Ceiling(lenght/8d);
+                    nameof(length));
+            return (int)Math.Ceiling(length / 8d);
         }
 
         /// <summary>
@@ -258,7 +264,7 @@ namespace SpssLib.FileParser.Records
         /// <param name="lenght">The length (in bytes, not chars) for the string</param>
         /// <remarks>
         /// Up to 255 bytes, theres only one segment, for more there should be one segment 
-        /// for each 252 bytes of lenght, each segment will have one varaible with a name, 
+        /// for each 252 bytes of lenght, each segment will have one variable with a name, 
         /// the string length and multiple string continuation records.
         /// </remarks>
         /// <returns>The number of segments for <see cref="lenght"/> of bytes</returns>
@@ -336,7 +342,7 @@ namespace SpssLib.FileParser.Records
                 var appendCharIndex = 0;
                 do
                 {
-                    variable.Name = string.Format("V{0}_{1}", currentLongNameIndex, AppendableChars[appendCharIndex++]);
+                    variable.Name = $"V{currentLongNameIndex}_{AppendableChars[appendCharIndex++]}";
                 } while (previousVariableNames.Contains(variable._nameRaw));
             }
             // Add the raw encoded name byte array to avoid collitions in following variables
@@ -349,13 +355,13 @@ namespace SpssLib.FileParser.Records
         /// This tries to replicate how SPSS does it, by shrinking the original var name to at most 5 chars and appending 
         /// a number to make it unique. The nuber is at most 3 chars, padded to the left with spaces.
         /// </summary>
-        /// <param name="variable">The head varaible reacord to get the name from</param>
+        /// <param name="variable">The head variable reacord to get the name from</param>
         /// <param name="previousVariableNames">The set of all other used short variable names</param>
         /// <param name="segmentsNamesList">The cache to store up to which number has been used for each up to 5 char name</param>
         /// <returns>The encoded short name for the VLS continuation segment</returns>
         /// <remarks>
         /// Apparently, for SPSS to reads VLS continuation segments consistenly, the segments should have the same first 5 characters.
-        /// If segments have different names that don't match, SPSS could not interpret them as part of the same varaible
+        /// If segments have different names that don't match, SPSS could not interpret them as part of the same variable
         /// </remarks>
         private static byte[] GenrateContinuationSegmentShortName(VariableRecord variable, SortedSet<byte[]> previousVariableNames, SortedList<byte[], int> segmentsNamesList)
         {
@@ -423,8 +429,8 @@ namespace SpssLib.FileParser.Records
 		    writer.Write(Type);
 		    writer.Write(HasVariableLabel ? 1 : 0);
 			writer.Write(MissingValueType);
-			writer.Write(PrintFormat != null ? PrintFormat.GetInteger() : 0);
-			writer.Write(WriteFormat != null ? WriteFormat.GetInteger() : 0);
+			writer.Write(PrintFormat?.GetInteger() ?? 0);
+			writer.Write(WriteFormat?.GetInteger() ?? 0);
             
 			writer.Write(_nameRaw);
 			
@@ -447,7 +453,7 @@ namespace SpssLib.FileParser.Records
         public void FillRecord(BinaryReader reader)
         {
             Type = reader.ReadInt32();
-            HasVariableLabel = (reader.ReadInt32() == 1);
+            HasVariableLabel = reader.ReadInt32() == 1;
             MissingValueType = reader.ReadInt32();
             PrintFormat = new OutputFormat(reader.ReadInt32());
             WriteFormat = new OutputFormat(reader.ReadInt32());

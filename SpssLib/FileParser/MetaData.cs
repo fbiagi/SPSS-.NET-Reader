@@ -35,7 +35,7 @@ namespace SpssLib.FileParser
             }
         }
 
-        public IList<VariableRecord> VariableRecords { get; private set; }
+        public IList<VariableRecord> VariableRecords { get; }
         public IList<ValueLabelRecord> ValueLabelRecords { get; private set; }
         public DocumentRecord DocumentRecord { get; internal set; }
 
@@ -53,11 +53,8 @@ namespace SpssLib.FileParser
         public LongVariableNamesRecord LongVariableNames { get; internal set; }
         internal VeryLongStringRecord VeryLongStrings { private get; set; }
         
-        public IDictionary<string, int> VeryLongStringsDictionary
-        {
-            get { return VeryLongStrings != null ? VeryLongStrings.Dictionary : new Dictionary<string, int>(0); }
-        }
-        
+        public IDictionary<string, int> VeryLongStringsDictionary => VeryLongStrings != null ? VeryLongStrings.Dictionary : new Dictionary<string, int>(0);
+
         public VariableDisplayParameterRecord VariableDisplayParameters
         {
             get { return _variableDisplayParameters; }

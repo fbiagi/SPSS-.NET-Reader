@@ -48,7 +48,7 @@
     <Compile Include="TestSpssCopy.cs" />
     <Compile Include="TestSpssReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestSpssWrtier.cs" />
+    <Compile Include="TestSpssWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SpssLib\SpssLib.csproj">

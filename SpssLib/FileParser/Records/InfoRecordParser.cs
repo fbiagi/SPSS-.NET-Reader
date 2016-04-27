@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
-using SpssLib.FileParser.Records;
 
-namespace SpssLib.FileParser
+namespace SpssLib.FileParser.Records
 {
     internal class InfoRecordParser : IRecordParser
     {
-        public RecordType Accepts { get { return RecordType.InfoRecord; } }
+        public RecordType Accepts => RecordType.InfoRecord;
         private readonly IDictionary<int, Type> _infoRecordsTypes;
 
         public InfoRecordParser(IDictionary<int, Type> infoRecordsTypes)
@@ -35,7 +34,8 @@ namespace SpssLib.FileParser
             if (record.SubType != subType)
             {
                 // if it gets to here, we fucked up registering the infoRecordsTypes when calling the constructor
-                throw new Exception(string.Format("Wrong info record created for {0}, obtained record instance for {1}. Please, fix the InfoRecordParser", subType, record.SubType));
+                throw new Exception(
+                    $"Wrong info record created for {subType}, obtained record instance for {record.SubType}. Please, fix the InfoRecordParser");
             }
 
             return record;

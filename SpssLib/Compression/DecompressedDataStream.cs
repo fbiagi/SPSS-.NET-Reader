@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.IO;
-using System.Diagnostics;
 
 namespace SpssLib.Compression
 {
@@ -13,46 +11,37 @@ namespace SpssLib.Compression
         private const int DataElementByteSize = 8;
         const string SpaceString = "        ";
         
-        public Stream CompressedDataStream { get; private set; }
-        public double Bias { get; private set; }
-        public double SystemMissing { get; private set; }
+        public Stream CompressedDataStream { get; }
+        public double Bias { get; }
+        public double SystemMissing { get; }
         
-        private long position = 0;
-        private byte[][] elementBuffer = new byte[8][];
-        private int elementBufferPosition = 0;
-        private int elementBufferSize;
-        private int inElementPosition = 0; // for those rare cases where we end up in the middle of an element.
+        private long _position = 0;
+        private byte[][] _elementBuffer = new byte[8][];
+        private int _elementBufferPosition = 0;
+        private int _elementBufferSize;
+        private int _inElementPosition = 0; // for those rare cases where we end up in the middle of an element.
 
-        private byte[] systemMissingBytes;
-        private byte[] spacesBytes;
+        private byte[] _systemMissingBytes;
+        private byte[] _spacesBytes;
 
-        private BinaryReader reader;
+        private BinaryReader _reader;
 
         public DecompressedDataStream(Stream compressedDataStream, double bias, double systemMissing)
         {
-            this.CompressedDataStream = compressedDataStream;
-            this.Bias = bias;
-            this.SystemMissing = systemMissing;
-            this.reader = new BinaryReader(compressedDataStream, Encoding.ASCII);
+            CompressedDataStream = compressedDataStream;
+            Bias = bias;
+            SystemMissing = systemMissing;
+            _reader = new BinaryReader(compressedDataStream, Encoding.ASCII);
 
-            spacesBytes = Encoding.ASCII.GetBytes(SpaceString);
-            systemMissingBytes = BitConverter.GetBytes(this.SystemMissing);
+            _spacesBytes = Encoding.ASCII.GetBytes(SpaceString);
+            _systemMissingBytes = BitConverter.GetBytes(SystemMissing);
         }
 
-        public override bool CanRead
-        {
-            get { return CompressedDataStream.CanRead; }
-        }
+        public override bool CanRead => CompressedDataStream.CanRead;
 
-        public override bool CanSeek
-        {
-            get { return CompressedDataStream.CanSeek; }
-        }
+        public override bool CanSeek => CompressedDataStream.CanSeek;
 
-        public override bool CanWrite
-        {
-            get { return CompressedDataStream.CanWrite; }
-        }
+        public override bool CanWrite => CompressedDataStream.CanWrite;
 
         public override void Flush()
         {
@@ -68,7 +57,7 @@ namespace SpssLib.Compression
         {
             get
             {
-                return this.position;
+                return _position;
             }
             set
             {
@@ -79,11 +68,11 @@ namespace SpssLib.Compression
         public override int Read(byte[] buffer, int offset, int count)
         {
             // Usually we can just send out the next 8-byte element.
-            if (count == 8 && offset == 0 && this.inElementPosition == 0)
+            if (count == 8 && offset == 0 && _inElementPosition == 0)
             {
                 if (PreserveBuffer())
                 {
-                    this.elementBuffer[this.elementBufferPosition++].CopyTo(buffer, offset);
+                    _elementBuffer[_elementBufferPosition++].CopyTo(buffer, offset);
                     return 8;
                 }
                 else
@@ -99,15 +88,15 @@ namespace SpssLib.Compression
                 for (int i = 0; i < count; i++)
                 {                   
                     // Check for the unlikely case that the byte-request runs over multiple elements
-                    if (this.inElementPosition == 8)
+                    if (_inElementPosition == 8)
                     {
                         // Flow over to next 8-byte element
-                        this.elementBufferPosition++;
-                        this.inElementPosition = 0;
+                        _elementBufferPosition++;
+                        _inElementPosition = 0;
                     }
                     if (PreserveBuffer())
                     {
-                        buffer[i + offset] = this.elementBuffer[this.elementBufferPosition][this.inElementPosition];
+                        buffer[i + offset] = _elementBuffer[_elementBufferPosition][_inElementPosition];
                     }
                     else
                     {
@@ -122,11 +111,11 @@ namespace SpssLib.Compression
         private bool PreserveBuffer()
         {
             // Check whether the end of internal buffer is reached 
-            if (!(this.elementBufferPosition < this.elementBufferSize))
+            if (!(_elementBufferPosition < _elementBufferSize))
             {
-                if (this.parseNextInstructionSet())
+                if (ParseNextInstructionSet())
                 {
-                    elementBufferPosition = 0;
+                    _elementBufferPosition = 0;
                     return true;
                 }
                 else
@@ -152,9 +141,9 @@ namespace SpssLib.Compression
             throw new NotSupportedException();
         }
 
-        private bool parseNextInstructionSet()
+        private bool ParseNextInstructionSet()
         {
-            byte[] instructionSet = reader.ReadBytes(InstructionSetByteSize);
+            byte[] instructionSet = _reader.ReadBytes(InstructionSetByteSize);
 
             if (instructionSet.Length < InstructionSetByteSize)
             {
@@ -177,12 +166,12 @@ namespace SpssLib.Compression
                 else if (instruction > 0 && instruction < 252) // compressed value
                 {
                     // compute actual value:
-                    double value = instruction - this.Bias;
-                    this.elementBuffer[bufferPosition++] = BitConverter.GetBytes(value);
+                    double value = instruction - Bias;
+                    _elementBuffer[bufferPosition++] = BitConverter.GetBytes(value);
                 }
                 else if (instruction == 252) // end of file
                 {
-                    this.elementBufferSize = bufferPosition;
+                    _elementBufferSize = bufferPosition;
                     return false;
                 }
                 else if (instruction == 253) // uncompressed value
@@ -191,19 +180,19 @@ namespace SpssLib.Compression
                 }
                 else if (instruction == 254) // space string
                 {
-                    this.elementBuffer[bufferPosition++] = this.spacesBytes;
+                    _elementBuffer[bufferPosition++] = _spacesBytes;
                 }
                 else  if (instruction == 255) // system missing value
                 {
-                    this.elementBuffer[bufferPosition++] = this.systemMissingBytes;
+                    _elementBuffer[bufferPosition++] = _systemMissingBytes;
                 }
             }
-            this.elementBufferSize = bufferPosition++;
+            _elementBufferSize = bufferPosition;
 
             // Read the uncompressed values (they follow after the instruction set):
             foreach (int pos in uncompressedElementBufferPositions)
             {
-                this.elementBuffer[pos] = reader.ReadBytes(8);
+                _elementBuffer[pos] = _reader.ReadBytes(8);
             }
             return true;
         }

@@ -10,7 +10,7 @@ namespace SpssLib.SpssDataset
         /// <summary>
         /// The data array. It should only contain strings, doubles or nulls.
         /// </summary>
-        public object[] Data { get; internal set; }
+        public object[] Data { get;  }
 
         internal Record(object[] data)
         {
@@ -25,13 +25,7 @@ namespace SpssLib.SpssDataset
         /// An object that can be either a <see cref="String"/> or a<see cref="Double"/>.
         /// When a value was read as SYSMISS it will be <c>null</c>
         /// </returns>
-        public object this[int index]
-        {
-            get
-            {
-                return Data[index];
-            }
-        }
+        public object this[int index] => Data[index];
 
         /// <summary>
         /// Contains each value for this case
@@ -41,15 +35,9 @@ namespace SpssLib.SpssDataset
         /// An object that can be either a <see cref="String"/> or a<see cref="Double"/>.
         /// When a value was read as SYSMISS it will be <c>null</c>
         /// </returns>
-        public object this[Variable variable]
-        {
-            get
-            {
-                return this[variable.Index];
-            }
-        }
+        public object this[Variable variable] => this[variable.Index];
 
-		/// <summary>
+        /// <summary>
 		/// Gets the proper value of the variable for this record. This method will check the missing values
 		/// in case there are, and will return null in case the value is one of them.
 		/// Also, if the format fo this variable is a date, it will be tranformed into a <see cref="DateTime"/>.

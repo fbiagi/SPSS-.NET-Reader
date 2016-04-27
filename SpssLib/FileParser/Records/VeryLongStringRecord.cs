@@ -6,12 +6,9 @@ namespace SpssLib.FileParser.Records
 {
     public class VeryLongStringRecord : VariableDataInfoRecord<int>
     {
-        protected override bool UsesTerminator
-        {
-            get { return true; }
-        }
+        protected override bool UsesTerminator => true;
 
-        public override int SubType { get { return InfoRecordType.VeryLongString; } }
+        public override int SubType => InfoRecordType.VeryLongString;
 
         public VeryLongStringRecord(IDictionary<string, int> dictionary, Encoding encoding)
             : base(dictionary, encoding)

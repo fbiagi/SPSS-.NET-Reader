@@ -39,18 +39,12 @@ namespace SpssLib.DataReader
         /// <summary>
         /// The file options used.
         /// </summary>
-		public SpssOptions Options
-		{
-			get { return _options; }
-		}
+		public SpssOptions Options => _options;
 
         /// <summary>
         /// The variable collection. Once the writting has started, it should not be modified.
         /// </summary>
-		public ICollection<Variable> Variables 
-		{
-			get { return _variables; }
-		}
+		public ICollection<Variable> Variables => _variables;
 
         /// <summary>
         /// Creates a record array with the variable count as lenght
@@ -64,12 +58,12 @@ namespace SpssLib.DataReader
         /// <summary>
         /// Creates a record array for this file by using a Record object that could belong to another file.
         /// It would contain the data from the original, but it would be resized to fit the current data variables.
-        /// To be able to copy to a new file, you must be careful that the varaibles from both are in the same order
+        /// To be able to copy to a new file, you must be careful that the variables from both are in the same order
         /// </summary>
         /// <param name="record">The record to get the data from.</param>
         /// <returns>A copy of the data record, resized for the current dataset</returns>
         /// <remarks>
-        /// This method clones the record's data array and the resizes it to fit the current dataset. Varaibles should
+        /// This method clones the record's data array and the resizes it to fit the current dataset. Variables should
         /// be in the same order for both records. If you are adding records, you might have to shift data to make it fit.
         /// If the currentdataset has less variables, the last values left will be lost.
         /// </remarks>

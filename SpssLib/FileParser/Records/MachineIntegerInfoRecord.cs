@@ -6,9 +6,9 @@ namespace SpssLib.FileParser.Records
 {
     public class MachineIntegerInfoRecord : BaseInfoRecord
     {
-        public override int SubType { get { return InfoRecordType.MachineInteger; } }
+        public override int SubType => InfoRecordType.MachineInteger;
 
-	    public int VersionMajor { get; private set; }
+        public int VersionMajor { get; private set; }
 		public int VersionMinor { get; private set; }
 		public int VersionRevision { get; private set; }
 		public int MachineCode { get; private set; }

@@ -1,14 +1,13 @@
 ﻿using System;
 using System.IO;
-using SpssLib.FileParser.Records;
 
-namespace SpssLib.FileParser
+namespace SpssLib.FileParser.Records
 {
     internal class EbcdicHeaderRecord : IRecord
     {
-        public NotSupportedException Exception { get { return new NotSupportedException("EBCDIC???? Who uses that? Honestly!!"); } }
+        public NotSupportedException Exception => new NotSupportedException("EBCDIC???? Who uses that? Honestly!!");
 
-        public RecordType RecordType { get { return RecordType.EbcdicHeaderRecord;} }
+        public RecordType RecordType => RecordType.EbcdicHeaderRecord;
 
         public void WriteRecord(BinaryWriter writer)
         {

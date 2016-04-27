@@ -5,7 +5,7 @@ namespace SpssLib.FileParser.Records
 {
     public class LongVariableNamesRecord : VariableDataInfoRecord<string>
     {
-        public override int SubType { get { return InfoRecordType.LongVariableNames; }}
+        public override int SubType => InfoRecordType.LongVariableNames;
 
         public LongVariableNamesRecord(IDictionary<string, string> variableLongNames, Encoding encoding) 
             : base(variableLongNames, encoding)

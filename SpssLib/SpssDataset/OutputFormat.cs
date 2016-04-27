@@ -10,16 +10,16 @@ namespace SpssLib.SpssDataset
         /// <summary>
         /// Number of decimal places
         /// </summary>
-        public int DecimalPlaces { get; private set; }
+        public int DecimalPlaces { get; }
         
         /// <summary>
         /// The display width of the filed
         /// </summary>
-        public int FieldWidth { get; private set; }
+        public int FieldWidth { get; }
         /// <summary>
         /// The format type
         /// </summary>
-        public FormatType FormatType { get; private set; }
+        public FormatType FormatType { get; }
 
         /// <summary>
         /// Creates a write/print format specification
@@ -34,7 +34,7 @@ namespace SpssLib.SpssDataset
 			FormatType = formatType;
 		}
 
-        internal OutputFormat(Int32 formatValue)
+        internal OutputFormat(int formatValue)
         {
             byte[] formatBytes = BitConverter.GetBytes(formatValue);
             DecimalPlaces = formatBytes[0];

@@ -30,7 +30,7 @@ namespace Test.SpssLib
                     {
                         {0, (i, variable) =>
                         {
-                            Assert.AreEqual("varaible ñ", variable.Label, "Label mismatch");
+                            Assert.AreEqual("variable ñ", variable.Label, "Label mismatch");
                             Assert.AreEqual(DataType.Numeric, variable.Type, "First file variable should be  a Number");
                         }},
                         {1, (i, variable) =>

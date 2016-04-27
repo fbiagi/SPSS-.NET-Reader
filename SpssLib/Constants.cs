@@ -4,7 +4,7 @@ namespace SpssLib
 {
     static class Constants
     {
-        public const int BlockByteSize = 8;
+        public const int BLOCK_BYTE_SIZE = 8;
 
         /// <summary>
         /// The encoding to use for reading and writing the file with stream readers/writers.

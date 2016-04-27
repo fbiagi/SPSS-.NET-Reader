@@ -33,7 +33,7 @@ namespace SpssLib.DataReader
         }
         
         /// <summary>
-        /// Creates a reader and read the file header (with varaibles) from a stream
+        /// Creates a reader and read the file header (with variables) from a stream
         /// </summary>
         /// <param name="fileStream"></param>
 		public SpssReader(Stream fileStream)

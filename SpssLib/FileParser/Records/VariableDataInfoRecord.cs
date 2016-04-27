@@ -7,10 +7,8 @@ namespace SpssLib.FileParser.Records
 {
     public abstract class VariableDataInfoRecord<T> : BaseInfoRecord
     {
-        protected virtual bool UsesTerminator
-        {
-            get { return false; }
-        }
+        protected virtual bool UsesTerminator => false;
+
         private IDictionary<string, T> _dictionary;
         // ReSharper disable StaticFieldInGenericType // Doesn't need to be shared
         private static readonly byte EqualsChar = Encoding.ASCII.GetBytes("=")[0];

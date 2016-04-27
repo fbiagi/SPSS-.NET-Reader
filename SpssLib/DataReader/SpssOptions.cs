@@ -23,7 +23,7 @@ namespace SpssLib.DataReader
         /// </summary>
 		public long Bias { get; set; }
         /// <summary>
-        /// The varaible used to weight cases
+        /// The variable used to weight cases
         /// </summary>
 		public Variable WeightVariable { get; set; }
         /// <summary>

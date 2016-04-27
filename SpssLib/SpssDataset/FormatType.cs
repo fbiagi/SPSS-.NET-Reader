@@ -7,7 +7,6 @@ namespace SpssLib.SpssDataset
     /// </summary>
     public enum FormatType
     {
-#pragma warning disable 1591
         NotUsed1 = 0,
         A = 1,
         AHEX = 2,
@@ -25,7 +24,7 @@ namespace SpssLib.SpssDataset
         NotUsed3 = 14,
         Z = 15,
         N = 16,
-        E = 17,
+        E = 17,        
         NotUsed4 = 18,
         NotUsed5 = 19,
         DATE = 20,

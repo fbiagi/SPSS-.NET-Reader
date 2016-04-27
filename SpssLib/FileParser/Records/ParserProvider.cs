@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using SpssLib.FileParser.Records;
 
-namespace SpssLib.FileParser
+namespace SpssLib.FileParser.Records
 {
     internal class ParserProvider
     {
@@ -18,15 +17,15 @@ namespace SpssLib.FileParser
                     new GeneralRecordParser<VariableRecord>(RecordType.VariableRecord),
                     new GeneralRecordParser<ValueLabelRecord>(RecordType.ValueLabelRecord),
                     new GeneralRecordParser<DocumentRecord>(RecordType.DocumentRecord),
-                    new InfoRecordParser((new List<KeyValuePair<int, Type>>
-                        {
-                            RegisterInfoRecord<MachineIntegerInfoRecord>(InfoRecordType.MachineInteger),
-                            RegisterInfoRecord<MachineFloatingPointInfoRecord>(InfoRecordType.MachineFloatingPoint),
-                            RegisterInfoRecord<VariableDisplayParameterRecord>(InfoRecordType.VariableDisplayParameter),
-                            RegisterInfoRecord<LongVariableNamesRecord>(InfoRecordType.LongVariableNames),
-                            RegisterInfoRecord<VeryLongStringRecord>(InfoRecordType.VeryLongString),
-                            RegisterInfoRecord<CharacterEncodingRecord>(InfoRecordType.CharacterEncoding),
-                        }).ToDictionary(p => p.Key, p => p.Value)),
+                    new InfoRecordParser(new List<KeyValuePair<int, Type>>
+                                         {
+                                             RegisterInfoRecord<MachineIntegerInfoRecord>(InfoRecordType.MachineInteger),
+                                             RegisterInfoRecord<MachineFloatingPointInfoRecord>(InfoRecordType.MachineFloatingPoint),
+                                             RegisterInfoRecord<VariableDisplayParameterRecord>(InfoRecordType.VariableDisplayParameter),
+                                             RegisterInfoRecord<LongVariableNamesRecord>(InfoRecordType.LongVariableNames),
+                                             RegisterInfoRecord<VeryLongStringRecord>(InfoRecordType.VeryLongString),
+                                             RegisterInfoRecord<CharacterEncodingRecord>(InfoRecordType.CharacterEncoding),
+                                         }.ToDictionary(p => p.Key, p => p.Value)),
                     new GeneralRecordParser<DictionaryTerminationRecord>(RecordType.End),
                 };
 

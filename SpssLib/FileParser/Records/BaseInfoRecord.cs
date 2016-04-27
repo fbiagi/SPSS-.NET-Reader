@@ -5,7 +5,7 @@ namespace SpssLib.FileParser.Records
 {
     public abstract class BaseInfoRecord : EncodeEnabledRecord, IRecord
     {
-        public RecordType RecordType { get { return RecordType.InfoRecord; } }
+        public RecordType RecordType => RecordType.InfoRecord;
         public abstract int SubType { get; }
 
         protected int ItemSize;
@@ -39,12 +39,12 @@ namespace SpssLib.FileParser.Records
         {
             if (itemSize >= 0 && itemSize != ItemSize)
             {
-                throw new SpssFileFormatException(string.Format("Wrong info record subtype {0}. Expected {1}.", ItemSize, itemSize));
+                throw new SpssFileFormatException($"Wrong info record subtype {ItemSize}. Expected {itemSize}.");
             }
 
             if (itemCount >= 0 && itemCount != ItemCount)
             {
-                throw new SpssFileFormatException(string.Format("Wrong info record subtype {0}. Expected {1}.", ItemCount, itemCount));
+                throw new SpssFileFormatException($"Wrong info record subtype {ItemCount}. Expected {itemCount}.");
             }
         }
 
@@ -70,10 +70,7 @@ namespace SpssLib.FileParser.Records
             ItemCount = itemCount;
         }
 
-        public override int SubType
-        {
-            get { return _subType; }
-        }
+        public override int SubType => _subType;
 
         protected override void WriteInfo(BinaryWriter writer)
         {

@@ -8,9 +8,9 @@ namespace SpssLib.FileParser.Records
 {
     public class CharacterEncodingRecord : BaseInfoRecord
     {
-        public override int SubType { get { return InfoRecordType.CharacterEncoding; } }
+        public override int SubType => InfoRecordType.CharacterEncoding;
 
-		public string Name { get; private set; }
+        public string Name { get; private set; }
         
         public Encoding Encoding { get; private set; }
 
@@ -80,7 +80,7 @@ namespace SpssLib.FileParser.Records
             
             // Try to get encoding parsing codepage
             int cp;
-            if (Int32.TryParse(Regex.Match(strEncoding, @"\d+").Value, out cp))
+            if (int.TryParse(Regex.Match(strEncoding, @"\d+").Value, out cp))
             {
                 info = encInfo.SingleOrDefault(ei => ei.CodePage == cp);
                 if (info != null)

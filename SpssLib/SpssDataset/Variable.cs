@@ -74,7 +74,7 @@ namespace SpssLib.SpssDataset
         public int Index { get; internal set; }
         
         /// <summary>
-        /// Constructs a new Varaible object
+        /// Constructs a new Variable object
         /// </summary>
         public Variable()
         {
