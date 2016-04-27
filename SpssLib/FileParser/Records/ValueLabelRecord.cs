@@ -11,16 +11,16 @@ namespace SpssLib.FileParser.Records
     public class ValueLabelRecord : EncodeEnabledRecord, IRecord
     {
         private IDictionary<byte[], KeyValuePair<byte, byte[]>> _labelsRaw;
-        public RecordType RecordType { get { return RecordType.ValueLabelRecord; } }
-        public Int32 LabelCount { get; private set; }
+        public RecordType RecordType => RecordType.ValueLabelRecord;
+        public int LabelCount { get; private set; }
         public IDictionary<byte[], string> Labels
         {
             get { return _labelsRaw.ToDictionary(p => p.Key, p => DecodeLabel(p.Value)); }
             private set { _labelsRaw = value.ToDictionary(p => p.Key, p => EncodeLabel(p.Value)); }
         }
 
-        public Int32 VarCount { get; private set; }
-        public ICollection<Int32> Variables { get; private set; }
+        public int VarCount { get; private set; }
+        public ICollection<int> Variables { get; private set; }
 
 
 	    internal ValueLabelRecord(ValueLabel valueLabel, Encoding headerEncoding)

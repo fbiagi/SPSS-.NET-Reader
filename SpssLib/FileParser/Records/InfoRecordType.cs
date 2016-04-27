@@ -1,4 +1,4 @@
-﻿namespace SpssLib.FileParser
+﻿namespace SpssLib.FileParser.Records
 {
     public static class InfoRecordType
     {

@@ -6,7 +6,9 @@ namespace SpssLib.FileParser.Records
 {
     public class VeryLongStringRecord : VariableDataInfoRecord<int>
     {
-        public override int SubType { get { return InfoRecordType.VeryLongString; } }
+        protected override bool UsesTerminator => true;
+
+        public override int SubType => InfoRecordType.VeryLongString;
 
         public VeryLongStringRecord(IDictionary<string, int> dictionary, Encoding encoding)
             : base(dictionary, encoding)
@@ -17,7 +19,7 @@ namespace SpssLib.FileParser.Records
             int lenght;
             if(!int.TryParse(stringValue, out lenght))
                 throw new SpssFileFormatException("Couldn't read the size of the VeryLongString as interger. Value read was '"+
-                    (stringValue.Length > 80 ? stringValue.Substring(0, 80)+"..." : stringValue) + "'");
+                    (stringValue.Length > 80 ? stringValue.Substring(0, 77)+"..." : stringValue) + "'");
 
             return lenght;
         }
@@ -25,12 +27,7 @@ namespace SpssLib.FileParser.Records
         protected override string EncodeValue(int value)
         {
             var strValue = value.ToString(CultureInfo.InvariantCulture);
-            // The value fields must have exactly 5 bytes
-            if (strValue.Length > 5) 
-                throw new SpssFileFormatException("A string length of "+value+" is not supported");
-
-            // Add the 0 to the left to reach the 5 bytes and add the trailing null
-            return strValue.PadLeft(5, '0')+'\0';
+            return strValue + '\0';
         }
 
         public override void RegisterMetadata(MetaData metaData)

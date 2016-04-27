@@ -30,6 +30,7 @@
     <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Debug\SpssLib.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -42,10 +43,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compression\DecompressedDataStream.cs" />
@@ -74,10 +71,8 @@
     <Compile Include="FileParser\Records\VariableDataType.cs" />
     <Compile Include="FileParser\SpssFileFormatException.cs" />
     <Compile Include="FileParser\StringWriter.cs" />
-    <Compile Include="FileParser\UnexpectedFileFormatException.cs" />
     <Compile Include="FileParser\Records\VeryLongStringRecord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DataReader\SpssDataReader.cs" />
     <Compile Include="SpssDataset\Alignment.cs" />
     <Compile Include="FileParser\Records\DocumentRecord.cs" />
     <Compile Include="FileParser\Records\HeaderRecord.cs" />
@@ -87,6 +82,7 @@
     <Compile Include="FileParser\Records\MachineIntegerInfoRecord.cs" />
     <Compile Include="SpssDataset\DataType.cs" />
     <Compile Include="SpssDataset\MeasurementType.cs" />
+    <Compile Include="SpssDataset\MissingValueType.cs" />
     <Compile Include="SpssDataset\OutputFormat.cs" />
     <Compile Include="FileParser\Records\RecordType.cs" />
     <Compile Include="FileParser\Records\ValueLabelRecord.cs" />
@@ -95,17 +91,13 @@
     <Compile Include="FileParser\Records\VariableDisplayParameterRecord.cs" />
     <Compile Include="FileParser\Records\VariableRecord.cs" />
     <Compile Include="SpssDataset\Record.cs" />
-    <Compile Include="SpssDataset\RecordCollection.cs" />
     <Compile Include="SpssDataset\FormatType.cs" />
-    <Compile Include="FileParser\Records\VeryLongStringRecordOld.cs" />
     <Compile Include="FileParser\SavFileParser.cs" />
-    <Compile Include="SpssDataset\RecordCollectionMissingCategoryValuesAsNull.cs" />
-    <Compile Include="SpssDataset\RecordMissingCategoryValuesAsNull.cs" />
-    <Compile Include="SpssDataset\SpssDataset.cs" />
     <Compile Include="SpssDataset\Variable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="doc\BinaryDescription.txt" />
+    <None Include="SpssLib.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

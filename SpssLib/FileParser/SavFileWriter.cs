@@ -12,7 +12,6 @@ namespace SpssLib.FileParser
 	{
 		private readonly Stream _output;
 		private readonly BinaryWriter _writer;
-		private int _longNameCounter;
 		private Variable[] _variables;
 		private IRecordWriter _recordWriter;
 		private long _bias;
@@ -33,17 +32,18 @@ namespace SpssLib.FileParser
 			_compress = options.Compressed;
 			_bias = options.Bias;
 			_variables = variables.ToArray();
-            
-            var headerRecords = new List<IRecord>();
-            
-			// SPSS file header
-			headerRecords.Add(new HeaderRecord(options));
 
-			// Process all variable info
+            // SPSS file header
+            var headerRecords = new List<IRecord>
+	                            {
+	                                new HeaderRecord(options)
+	                            };
+
+	        // Process all variable info
 			var variableLongNames = new Dictionary<string, string>();
             var veryLongStrings = new Dictionary<string, int>();
 	        var displayInfoList = new List<VariableDisplayInfo>(_variables.Length);
-            SetVaraibles(headerRecords, variableLongNames, veryLongStrings, displayInfoList);
+            SetVariables(headerRecords, variableLongNames, veryLongStrings, displayInfoList);
             
 			// Integer & encoding info
 			var intInfoRecord = new MachineIntegerInfoRecord(_options.HeaderEncoding);
@@ -53,7 +53,7 @@ namespace SpssLib.FileParser
             var fltInfoRecord = new MachineFloatingPointInfoRecord();
             headerRecords.Add(fltInfoRecord);
 
-            // Variable Display info, beware that the number of variables here must match the count of named varaibles 
+            // Variable Display info, beware that the number of variables here must match the count of named variables 
             // (exclude the string continuation, include VLS segments)
 	        var varDisplRecord = new VariableDisplayParameterRecord(displayInfoList.Count);
 	        for (int index = 0; index < displayInfoList.Count; index++)
@@ -94,13 +94,13 @@ namespace SpssLib.FileParser
             }
             else
             {
-                throw new NotImplementedException("Uncompressed spss data writing is not yet implemented. Please set compressed to true");
+                throw new NotImplementedException("Uncompressed SPSS data writing is not yet implemented. Please set compressed to true");
             }
             
             _stringWriter = new StringWriter(_options.DataEncoding, _recordWriter);
 		}
 
-        private void SetVaraibles(List<IRecord> headerRecords, IDictionary<string, string> variableLongNames, IDictionary<string, int> veryLongStrings, List<VariableDisplayInfo> displayInfoList)
+        private void SetVariables(List<IRecord> headerRecords, IDictionary<string, string> variableLongNames, IDictionary<string, int> veryLongStrings, List<VariableDisplayInfo> displayInfoList)
 		{
 			var variableRecords = new List<VariableRecord>(_variables.Length);
             var valueLabels = new List<ValueLabel>(_variables.Length);
@@ -109,18 +109,16 @@ namespace SpssLib.FileParser
             ProcessVariables(variableLongNames, veryLongStrings, variableRecords, valueLabels);
 			headerRecords.AddRange(variableRecords);
 			
-			// Set the count of varaibles as "nominal case size" on the HeaderRecord
+			// Set the count of variables as "nominal case size" on the HeaderRecord
 			var header = headerRecords.OfType<HeaderRecord>().First();
 			header.NominalCaseSize = variableRecords.Count;
 
-            var namedVaraibles = variableRecords.Where(v => v.DisplayInfo != null).ToList();
-            foreach (var variableRecord in namedVaraibles)
-            {
-                displayInfoList.Add(variableRecord.DisplayInfo);
-            }
+            var namedVariables = variableRecords.Where(v => v.DisplayInfo != null).ToList();
+
+            displayInfoList.AddRange(namedVariables.Select(variableRecord => variableRecord.DisplayInfo));
 
 
-			SetValueLabels(headerRecords, valueLabels);
+            SetValueLabels(headerRecords, valueLabels);
 		}
 
 		private void SetValueLabels(List<IRecord> headerRecords, List<ValueLabel> valueLabels)
@@ -131,13 +129,15 @@ namespace SpssLib.FileParser
 
         private void ProcessVariables(IDictionary<string, string> variableLongNames, IDictionary<string, int> veryLongStrings, List<VariableRecord> variableRecords, List<ValueLabel> valueLabels)
 		{
+            int longNameCounter = 0;
             var namesList = new SortedSet<byte[]>(new ByteArrayComparer());
+            var segmentsNamesList = new SortedList<byte[], int>(new ByteArrayComparer());
 
             foreach (var variable in _variables)
 			{
 				int dictionaryIndex = variableRecords.Count + 1;
 
-                var records = VariableRecord.GetNeededVaraibles(variable, _options.HeaderEncoding, namesList, ref _longNameCounter, veryLongStrings);
+                var records = VariableRecord.GetNeededVariables(variable, _options.HeaderEncoding, namesList, ref longNameCounter, veryLongStrings, segmentsNamesList);
 				variableRecords.AddRange(records);
 
 				// Check if a longNameVariableRecord is needed
@@ -216,12 +216,7 @@ namespace SpssLib.FileParser
 	{
         public IDictionary<byte[], string> Labels { get; private set; }
 
-		public IList<int> VariableIndex
-		{
-			get { return _variableIndex; }
-		}
-
-		private IList<Int32> _variableIndex = new List<int>();
+		public IList<int> VariableIndex { get; } = new List<int>();
 
         public ValueLabel(IDictionary<byte[], string> labels)
 		{

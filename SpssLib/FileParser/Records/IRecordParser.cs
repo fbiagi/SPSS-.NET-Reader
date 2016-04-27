@@ -1,8 +1,7 @@
 ﻿using System.IO;
 using System.Runtime.Serialization;
-using SpssLib.FileParser.Records;
 
-namespace SpssLib.FileParser
+namespace SpssLib.FileParser.Records
 {
     internal interface IRecordParser
     {
@@ -12,16 +11,11 @@ namespace SpssLib.FileParser
 
     internal class GeneralRecordParser<TRecord> : IRecordParser where TRecord : IRecord
     {
-        private readonly RecordType _accepts;
-
-        public RecordType Accepts
-        {
-            get { return _accepts; }
-        }
+        public RecordType Accepts { get; }
 
         public GeneralRecordParser(RecordType accepts)
         {
-            _accepts = accepts;
+            Accepts = accepts;
         }
 
         public IRecord ParseRecord(BinaryReader reader)

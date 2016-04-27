@@ -7,8 +7,8 @@ namespace SpssLib.FileParser.Records
     public class VariableDisplayParameterRecord : BaseInfoRecord
     {
         private int[] _data;
-        public override int SubType { get { return InfoRecordType.VariableDisplayParameter; } }
-        
+        public override int SubType => InfoRecordType.VariableDisplayParameter;
+
         /// <summary>
         /// Count number of variables (the number of variable-records with a name,
         /// the rest is part of a long string variable), this includes the variables 
@@ -19,7 +19,7 @@ namespace SpssLib.FileParser.Records
         /// <summary>
         /// Contructor to write the record
         /// </summary>
-        /// <param name="variableCount">The count of named varaibles, this includes each VeryLongString segment
+        /// <param name="variableCount">The count of named variables, this includes each VeryLongString segment
         /// (but not the variable records per each 8 bytes of additional text)</param>
         internal VariableDisplayParameterRecord(int variableCount)
         {
@@ -35,7 +35,7 @@ namespace SpssLib.FileParser.Records
             {
                 if (VariableCount == 0)
                 {
-                    throw new Exception("Varaible count not set");
+                    throw new Exception("Variable count not set");
                 }
 
                 int fieldCount = ItemCount / VariableCount;
@@ -59,7 +59,8 @@ namespace SpssLib.FileParser.Records
                     };
                 }
 
-                throw new SpssFileFormatException(string.Format("There must be 2 or 3 fields per variable on the variable display info. Count of items is {0}and variable count has be set to {1}, thus fielc count is {2}", ItemCount, VariableCount, fieldCount));
+                throw new SpssFileFormatException(
+                    $"There must be 2 or 3 fields per variable on the variable display info. Count of items is {ItemCount}and variable count has be set to {VariableCount}, thus fielc count is {fieldCount}");
             }
             set
             {
@@ -83,7 +84,7 @@ namespace SpssLib.FileParser.Records
             {
                 return (Alignment)Enum.ToObject(typeof(Alignment), alignment);
             }
-            throw new SpssFileFormatException(string.Format("Value {0} is invalid for Alignment", alignment));
+            throw new SpssFileFormatException($"Value {alignment} is invalid for Alignment");
         }
 
 

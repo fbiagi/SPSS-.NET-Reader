@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SPSS / PSPP / PASW file library for .net")]
-[assembly: AssemblyDescription("Library for reading .sav files.")]
+[assembly: AssemblyTitle("SPSS / PSPP data file .net library")]
+[assembly: AssemblyDescription("A library for reading and writing .sav files")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Elmar Jansen")]
-[assembly: AssemblyProduct("SavFileLibrary")]
+[assembly: AssemblyCompany("TNS")]
+[assembly: AssemblyProduct("Sav")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -32,5 +32,4 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.1.0")]
-[assembly: AssemblyFileVersion("0.1.1.0")]
+[assembly: AssemblyVersion("1.1.*")]

@@ -15,12 +15,12 @@ namespace SpssLib.FileParser.Records
         {
             if (enc == null)
             {
-                throw new ArgumentNullException("enc", "No encoding set");
+                throw new ArgumentNullException(nameof(enc), "No encoding set");
             }
 
             if (arr == null)
             {
-                throw new ArgumentNullException("arr");
+                throw new ArgumentNullException(nameof(arr));
             }
 
             return enc.GetString(arr).TrimEnd();
@@ -44,12 +44,12 @@ namespace SpssLib.FileParser.Records
         {
             if (enc == null)
             {
-                throw new ArgumentNullException("enc", "No encoding set");
+                throw new ArgumentNullException(nameof(enc), "No encoding set");
             }
 
             if (value == null)
             {
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
             }
 
             int lastCharIndex;
@@ -83,17 +83,17 @@ namespace SpssLib.FileParser.Records
         {
             if (enc == null)
             {
-                throw new ArgumentNullException("enc", "No encoding set");
+                throw new ArgumentNullException(nameof(enc), "No encoding set");
             }
 
             if (value == null)
             {
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
             }
 
             if (maxLength != int.MaxValue && maxLength % roundUpBytes != 0)
             {
-                throw new ArgumentException("The max length should be a multiple of the round up bytes", "maxLength");
+                throw new ArgumentException("The max length should be a multiple of the round up bytes", nameof(maxLength));
             }
 
             int lastCharIndex, byteCount;

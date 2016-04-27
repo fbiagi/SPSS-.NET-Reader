@@ -23,7 +23,7 @@ namespace SpssLib.FileParser.Records
             {
                 if (_headerEncoding == null)
                 {
-                    if (Metadata == null || Metadata.HeaderEncoding == null)
+                    if (Metadata?.HeaderEncoding == null)
                     {
                         throw new SpssFileFormatException("Can not determine encoding.");
                     }

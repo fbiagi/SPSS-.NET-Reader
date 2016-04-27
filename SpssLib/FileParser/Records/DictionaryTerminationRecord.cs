@@ -8,9 +8,9 @@ namespace SpssLib.FileParser.Records
 	/// </summary>
 	class DictionaryTerminationRecord : IRecord
 	{
-		public RecordType RecordType { get { return RecordType.End; } }
+		public RecordType RecordType => RecordType.End;
 
-		public void WriteRecord(BinaryWriter writer)
+	    public void WriteRecord(BinaryWriter writer)
 		{
 			writer.Write((int)RecordType);
             // write filler

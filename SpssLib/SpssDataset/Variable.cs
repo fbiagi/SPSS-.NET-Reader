@@ -7,29 +7,75 @@ namespace SpssLib.SpssDataset
     {
 		private static DateTime _epoc = new DateTime(1582, 10, 14, 0, 0, 0, DateTimeKind.Unspecified);
 
+        /// <summary>
+        /// The measurement type of the variable,  for display purposes
+        /// </summary>
         public MeasurementType MeasurementType { get; set; }
+        
+        /// <summary>
+        /// The display with
+        /// </summary>
         public int Width { get; set; }
+        
         /// <summary>
         /// Length for strings variables. Expressed in bytes, not chars. Actual char count will depend on the 
-        /// encoding used for the data (equal or less than this)
+        /// encoding used for the data (equal or less than this).
         /// </summary>
         public int TextWidth { get; set; }
+        
+        /// <summary>
+        /// The alignment of the variable for display purposes
+        /// </summary> 
         public Alignment Alignment { get; set; }
-        // TODO ShortName should be created and handled allways from VariableRecord, this class shouldn't know about it
-        [Obsolete("Should not be needed on this class. Only needed for internal SPSS format issues.")]
-        public string ShortName { get; set; }
+        
+        /// <summary>
+        /// Name of the variable
+        /// </summary>
         public string Name { get; set; }
+        
+        /// <summary>
+        /// The variable label
+        /// </summary>
         public string Label { get; set; }
+        
+        /// <summary>
+        /// Print format settings
+        /// </summary>
         public OutputFormat PrintFormat { get; set; }
+        
+        /// <summary>
+        /// Write format settings
+        /// </summary>
         public OutputFormat WriteFormat { get; set; }
+        
+        /// <summary>
+        /// The type of spss data(Numeric/Text)
+        /// </summary>
         public DataType Type { get; set; }
-		
-		public int MissingValueType { get; set; }
-        public double[] MissingValues { get; private set;} 
-        public IDictionary<double, string> ValueLabels { get; set; }
 
+        /// <summary>
+        /// Type of custom missing values (besides sysmiss).
+        /// </summary>
+        public MissingValueType MissingValueType { get; set; }
+        /// <summary>
+        /// Holds the value information to be treated as missing values. Depends on the <see cref="MissingValueType"/>.<para/>
+        /// This is a readonly 3 items array. 
+        /// </summary>
+        public double[] MissingValues { get; private set;}
+        
+        /// <summary>
+        /// The labels for different values
+        /// </summary>
+        public IDictionary<double, string> ValueLabels { get; set; }
+        
+        /// <summary>
+        /// The 0-based index of the variable
+        /// </summary>
         public int Index { get; internal set; }
         
+        /// <summary>
+        /// Constructs a new Variable object
+        /// </summary>
         public Variable()
         {
             MissingValues = new double[3];
@@ -58,10 +104,15 @@ namespace SpssLib.SpssDataset
 				return s.Length == 0 ? null : s;
 		    }
 
-			var cleanValue = MissingValueType == 0 ? value : GetWithMissingValueAsNull(value);
+			var cleanValue = MissingValueType == MissingValueType.NoMissingValues ? value : GetWithMissingValueAsNull(value);
 		    return cleanValue != null && IsDate() ? AsDate(cleanValue) : cleanValue;
 	    }
 
+        /// <summary>
+        /// Detects whether the current variable is a date, depending on it's write format.
+        /// Time only formats are not considered as a date.
+        /// </summary>
+        /// <returns></returns>
 		public bool IsDate()
 	    {
 		    var format = WriteFormat.FormatType;
@@ -80,7 +131,11 @@ namespace SpssLib.SpssDataset
 			return _epoc.AddSeconds(dVal);
 		}
 
-        // TODO find out where is used, unit tests.
+        /// <summary>
+        /// Gets the numeric value of a date, acording to the spss file format
+        /// </summary>
+        /// <param name="date">The date to transform</param>
+        /// <returns>Number of seconds from the 14 of October 1582 to <c>date</c></returns>
 		public static double GetValueFromDate(DateTime date)
 		{
 			var span = date.Subtract(_epoc);
@@ -92,29 +147,35 @@ namespace SpssLib.SpssDataset
 			// ReSharper disable CompareOfFloatsByEqualityOperator
 		    // Comparisons are for exact value, as missing values have to be written in
 		    var dVal = (double) value;
-		    if (MissingValueType > 0)
-		    {
-			    for (int i = 0; i < MissingValueType && i < MissingValues.Length; i++)
-			    {
-				    if (dVal == MissingValues[i])
-				    {
-					    return null;
-				    }
-			    }
-		    }
-		    else
-		    {
-			    if (dVal >= MissingValues[0] && dVal <= MissingValues[1])
-			    {
-				    return null;
-			    }
-			    if (MissingValueType == -3 && dVal == MissingValues[3])
-			    {
-				    return null;
-			    }
-		    }
-		    // ReSharper restore CompareOfFloatsByEqualityOperator
-		    return value;
+
+	        switch (MissingValueType)
+	        {
+                case MissingValueType.NoMissingValues:
+                    break;
+                case MissingValueType.OneDiscreteMissingValue:
+                    if (dVal == MissingValues[0])
+                        return null;
+                    break;
+	            case MissingValueType.TwoDiscreteMissingValue:
+                    if (dVal == MissingValues[0] || dVal == MissingValues[1])
+                        return null;
+                    break;
+                case MissingValueType.ThreeDiscreteMissingValue:
+                    if (dVal == MissingValues[0] || dVal == MissingValues[1] || dVal == MissingValues[2])
+                        return null;
+                    break;
+	            case MissingValueType.Range:
+                    if (dVal >= MissingValues[0] && dVal <= MissingValues[1])
+                        return null;
+                    break;
+	            case MissingValueType.RangeAndDiscrete:
+                    if ((dVal >= MissingValues[0] && dVal <= MissingValues[1]) 
+                        || (MissingValueType == MissingValueType.RangeAndDiscrete && dVal == MissingValues[3]))
+                        return null;
+                    break;
+	        }
+	        // ReSharper restore CompareOfFloatsByEqualityOperator
+	        return value;
 	    }
     }
 }

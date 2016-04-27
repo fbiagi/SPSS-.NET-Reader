@@ -5,7 +5,7 @@ namespace SpssLib.FileParser.Records
 {
     public class MachineFloatingPointInfoRecord : BaseInfoRecord
     {
-        public override int SubType { get { return InfoRecordType.MachineFloatingPoint; } }
+        public override int SubType => InfoRecordType.MachineFloatingPoint;
 
         public double SystemMissingValue { get; private set; }
         public double MissingHighestValue { get; private set; }

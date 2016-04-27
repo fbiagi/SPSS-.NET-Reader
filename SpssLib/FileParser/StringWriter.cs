@@ -50,7 +50,7 @@ namespace SpssLib.FileParser
             _recordWriter.StartString();
 
             // Get the char array (excluding trailing spaces)
-            var chars = (s ?? String.Empty).TrimEnd(' ').ToCharArray();
+            var chars = (s ?? string.Empty).TrimEnd(' ').ToCharArray();
 
             // Actual byte length of this variable
             var length = VariableRecord.GetLongStringBytesCount(width);
@@ -104,7 +104,7 @@ namespace SpssLib.FileParser
                 while (writtenUpToIndex < writeUpToIndex && writtenBytes < length)
                 {
                     // Write wither a full block or less, not more
-                    var writeBytes = Math.Min(writeUpToIndex - writtenUpToIndex, Constants.BlockByteSize);
+                    var writeBytes = Math.Min(writeUpToIndex - writtenUpToIndex, Constants.BLOCK_BYTE_SIZE);
                     _recordWriter.WriteCharBytes(_stringSegmentBuffer, writtenUpToIndex, writeBytes);
                     writtenUpToIndex += writeBytes;
                     writtenBytes += writeBytes;

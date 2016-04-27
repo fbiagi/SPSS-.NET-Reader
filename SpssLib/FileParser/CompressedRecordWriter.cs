@@ -36,7 +36,7 @@ namespace SpssLib.FileParser
 		/// The buffer to accumulate the uncompressed data. The uncompressed data item is written in a 8 byte block, 
 		/// and the it can have a max of 8 items (the size of the compressed block)
 		/// </summary>
-		private readonly byte[] _uncompressedBuffer = new byte[(Constants.BlockByteSize+1) * Constants.BlockByteSize];
+		private readonly byte[] _uncompressedBuffer = new byte[(Constants.BLOCK_BYTE_SIZE+1) * Constants.BLOCK_BYTE_SIZE];
 
         // Compessed codes
 	    private const byte Padding = 0;
@@ -120,7 +120,7 @@ namespace SpssLib.FileParser
 
             // Is compressible if the value + bias is between 1 and 251 and it's and integer value
 			double val = d + _bias;
-			if (val > Padding && val < EndOfFile && (val % 1) == 0)
+			if (val > Padding && val < EndOfFile && Math.Abs(val % 1) < 0.00001)
 			{
 				WriteCompressedCode((byte)val);
 				return true;
@@ -139,12 +139,12 @@ namespace SpssLib.FileParser
         {
             if (bytes.Length != 8)
             {
-                throw new ArgumentException("Uncompressed numbers must have an 8 bytes representation", "bytes");
+                throw new ArgumentException("Uncompressed numbers must have an 8 bytes representation", nameof(bytes));
             }
 
             // Add bytes to uncompressed buffer
-            Buffer.BlockCopy(bytes, 0, _uncompressedBuffer, _uncompressedIndex, Constants.BlockByteSize);
-            _uncompressedIndex += Constants.BlockByteSize;
+            Buffer.BlockCopy(bytes, 0, _uncompressedBuffer, _uncompressedIndex, Constants.BLOCK_BYTE_SIZE);
+            _uncompressedIndex += Constants.BLOCK_BYTE_SIZE;
         }
 
 	    /// <summary>
@@ -158,14 +158,14 @@ namespace SpssLib.FileParser
         /// <summary>
 	    /// Writes bytes that correspond to chars in a string from a buffer.
 	    /// The caller method should keep track of the segments itself and the max length 
-	    /// in bytes that should be written according to the varaible info
+	    /// in bytes that should be written according to the variable info
 	    /// </summary>
 	    /// <param name="bytes">The byte array to copy from</param>
 	    /// <param name="start">The starting position from where to copy</param>
 	    /// <param name="length">Ammount of bytes to write from the buffer</param>
-	    public void WriteCharBytes(byte[] bytes, int start = 0, int length = Constants.BlockByteSize)
+	    public void WriteCharBytes(byte[] bytes, int start = 0, int length = Constants.BLOCK_BYTE_SIZE)
 		{
-            if(length > Constants.BlockByteSize)
+            if(length > Constants.BLOCK_BYTE_SIZE)
                 throw new ArgumentException("Can only write up to 8 bytes max");
 
             var currentUncompressedBlock = FullBlocksCount(_uncompressedIndex);
@@ -186,7 +186,7 @@ namespace SpssLib.FileParser
 
 	    /// <summary>
 	    /// Fills the last block with padding spaces and fill the rest of the length of the
-	    /// varaibles with padding spaces blocks (if needed).
+	    /// variables with padding spaces blocks (if needed).
 	    /// </summary>
 	    /// <param name="writtenBytes">Bytes that have already been written</param>
 	    /// <param name="length">Total length of bytes that must be written for the variable</param>
@@ -219,12 +219,12 @@ namespace SpssLib.FileParser
         /// <returns>True if there is an uncompleted block on the uncompressed buffer, false otherwise</returns>
         private bool AreUncompletedUncompressedBlocks()
         {
-            return _uncompressedIndex % Constants.BlockByteSize != 0;
+            return _uncompressedIndex % Constants.BLOCK_BYTE_SIZE != 0;
         }
 
         /// <summary>
         /// Throws an exception if there is an uncompleted block on the uncompressed buffer.
-        /// This method should be called when starting to write a new varaible, to detect possible errors
+        /// This method should be called when starting to write a new variable, to detect possible errors
         /// (like a string that hasn't been well terminated)
         /// </summary>
         private void CheckUncompressedBlock()
@@ -245,7 +245,7 @@ namespace SpssLib.FileParser
         /// <returns>The count of full uncompressed blocks</returns>
         private int FullBlocksCount(int uncompressedBytes)
         {
-            return uncompressedBytes/Constants.BlockByteSize;
+            return uncompressedBytes/Constants.BLOCK_BYTE_SIZE;
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace SpssLib.FileParser
             if(!AreUncompletedUncompressedBlocks()) return 0;
             
             // Get the end of the uncomplete uncompressed buffer block
-            var blockBoundary = Common.RoundUp(_uncompressedIndex, Constants.BlockByteSize);
+            var blockBoundary = Common.RoundUp(_uncompressedIndex, Constants.BLOCK_BYTE_SIZE);
             // Fill the remainding bytes with padding spaces
             for (int i = _uncompressedIndex; i < blockBoundary; i++)
             {
@@ -282,10 +282,10 @@ namespace SpssLib.FileParser
 		private void CheckBlock()
 		{
 			// Check if the end of a compressed block has been reached
-            if (_blockIndex < Constants.BlockByteSize) return;
+            if (_blockIndex < Constants.BLOCK_BYTE_SIZE) return;
 
             // We should have written up to 8 compressed code blocks befor flusing, if not, there's something wrong
-            if (_blockIndex > Constants.BlockByteSize)
+            if (_blockIndex > Constants.BLOCK_BYTE_SIZE)
                 throw new Exception("A compressed block size must be no longer than 8. Current: "+_blockIndex);
 
             // Reset compresed block index
@@ -295,7 +295,7 @@ namespace SpssLib.FileParser
 			if (_uncompressedIndex >= 0)
 			{
                 // Get the ammount of uncompressed bytes  ready to be written 
-			    var currentFullBlockIndex = FullBlocksCount(_uncompressedIndex) * Constants.BlockByteSize;
+			    var currentFullBlockIndex = FullBlocksCount(_uncompressedIndex) * Constants.BLOCK_BYTE_SIZE;
                 // Write buffer to stream
 				_writer.Write(_uncompressedBuffer, 0, currentFullBlockIndex);
 
@@ -314,7 +314,7 @@ namespace SpssLib.FileParser
 		{
 			if (_blockIndex != 0)
 			{   // if there's at least one compressed code on the last block, fill it with pading and check for flush
-				for (int i = _blockIndex; i < Constants.BlockByteSize; i++)
+				for (int i = _blockIndex; i < Constants.BLOCK_BYTE_SIZE; i++)
 				{
 					WriteCompressedCode(Padding);
 				}

@@ -119,24 +119,15 @@ namespace SpssLib.FileParser
             }
         }
 
-        public IEnumerable<IEnumerable<object>> ParsedDataRecords
-        {
-            get
-            {
-                foreach (var rawrecord in DataRecords)
-                {
-                    yield return RecordToObjects(rawrecord);
-                }
-            }
-        }
+        public IEnumerable<IEnumerable<object>> ParsedDataRecords => DataRecords.Select(RecordToObjects);
 
         public byte[][] ReadNextDataRecord()
         {
             byte[][] record = new byte[MetaData.VariableRecords.Count][];
             for (int i = 0; i < MetaData.VariableRecords.Count; i++)
 			{   // TODO check unexpected eof?
-			    record[i]= _reader.ReadBytes(Constants.BlockByteSize);
-                if (record[i].Length < Constants.BlockByteSize)
+			    record[i]= _reader.ReadBytes(Constants.BLOCK_BYTE_SIZE);
+                if (record[i].Length < Constants.BLOCK_BYTE_SIZE)
                 {
                     return null;
                 }
@@ -147,7 +138,7 @@ namespace SpssLib.FileParser
         /// <summary>
         /// Convert a row of raw data to proper objects. (strings or doubles)
         /// </summary>
-        /// <param name="record">The complete row data, as an array of byte[8] (the block of a single VaraibleRecord)</param>
+        /// <param name="record">The complete row data, as an array of byte[8] (the block of a single VariableRecord)</param>
         /// <returns>The enumeration of objects for this row</returns>
         public IEnumerable<object> RecordToObjects(byte[][] record)
         {
@@ -157,17 +148,17 @@ namespace SpssLib.FileParser
             var charBuffer = new char[MetaData.DataEncoding.GetMaxCharCount(256)];
             // String builder to get the full string result (mainly for VLS)
             StringBuilder sBuilder = new StringBuilder();
-            // The dictionary with the lengths for each VLS varaible
+            // The dictionary with the lengths for each VLS variable
             var veryLongStrings = MetaData.VeryLongStringsDictionary;
 
             // All raw variable records and it's count (i's also the count of 8 bytes blocks in the row)
             var variableRecords = MetaData.VariableRecords;
             var variableCount = variableRecords.Count;
 
-            // Read the values, guided by it's VaraibleRecord
+            // Read the values, guided by it's VariableRecord
             for (int variableIndex = 0; variableIndex < variableCount; )
             {
-                // Varaible record that correspond to the current 8 bytes block
+                // Variable record that correspond to the current 8 bytes block
                 VariableRecord variableRecord;
                 // Currrent 8 bytes block
                 byte[] element = MoveNext(record, variableRecords, out variableRecord, ref variableIndex);
@@ -298,12 +289,6 @@ namespace SpssLib.FileParser
             return value;
         }
 
-        [Obsolete("Use SpssDataset constructor directly")]
-        public SpssDataset.SpssDataset ToSpssDataset()
-        {
-            return new SpssDataset.SpssDataset(this);
-        }
-
         public void Dispose()
         {
             Dispose(true);
@@ -351,7 +336,7 @@ namespace SpssLib.FileParser
         /// <summary>
         /// Creates a <see cref="Variable"/> object with it's actual informantion
         /// </summary>
-        /// <param name="variableIndex">The actual index of the varaible</param>
+        /// <param name="variableIndex">The actual index of the variable</param>
         /// <param name="dictionaryIndex">The index of the varible's <see cref="VariableRecord"/></param>
         /// <param name="metaData">The parsed metada with all needed info from the file</param>
         /// <param name="length">The string lenght in bytes (only needed for string vars)</param>
@@ -359,21 +344,25 @@ namespace SpssLib.FileParser
         /// <returns>The variable with all it's information inside</returns>
         private Variable GetVariable(int variableIndex, int dictionaryIndex, MetaData metaData, int length, int segmentIndex)
         {
-            var variable = new Variable();
-            variable.Index = variableIndex;
-
             // Get variable record data:
             var variableRecord = metaData.VariableRecords[dictionaryIndex];
-            variable.Label = variableRecord.HasVariableLabel ? variable.Label = variableRecord.Label : null;
-	        variable.MissingValueType = variableRecord.MissingValueType;
-	        for (int i = 0; i < variableRecord.MissingValues.Count && i < variable.MissingValues.Length; i++)
-	        {
-		        variable.MissingValues[i] = variableRecord.MissingValues[i];
-	        }
 
-            variable.PrintFormat = variableRecord.PrintFormat;
-            variable.WriteFormat = variableRecord.WriteFormat;
-            variable.Type = variableRecord.Type == 0 ? DataType.Numeric : DataType.Text;
+            var variable = new Variable
+                           {
+                               Index = variableIndex,
+                               PrintFormat = variableRecord.PrintFormat,
+                               WriteFormat = variableRecord.WriteFormat,
+                               Type = variableRecord.Type == 0 ? DataType.Numeric : DataType.Text,
+                               MissingValueType = (MissingValueType) variableRecord.MissingValueType,
+                               Label = variableRecord.HasVariableLabel ? variableRecord.Label : null
+                           };
+
+            for (int i = 0; i < variableRecord.MissingValues.Count && i < variable.MissingValues.Length; i++)
+            {
+                variable.MissingValues[i] = variableRecord.MissingValues[i];
+            }
+
+            
             if (variable.Type == DataType.Text)
             {
                 int longLength;
@@ -387,7 +376,7 @@ namespace SpssLib.FileParser
                 }
             }
 
-            // TODO: There can be one value label for multiple varaibles, we might want to only cerate one and reference it from all variables
+            // TODO: There can be one value label for multiple variables, we might want to only cerate one and reference it from all variables
             // Get value labels:
             var valueLabelRecord = metaData.ValueLabelRecords.FirstOrDefault(record => record.Variables.Contains(dictionaryIndex + 1));
             if (valueLabelRecord != null)
@@ -400,8 +389,9 @@ namespace SpssLib.FileParser
                     if (variable.ValueLabels.ContainsKey(key))
                     {
                         var existingValue = variable.ValueLabels[key];
-                        var varibleName = GetLongName(metaData, variableRecord);
-                        throw new SpssFileFormatException(string.Format("Variable {0} has a duplicate key for value label {1}, found values \"{2}\" and \"{3}\"", varibleName, key, existingValue, value), dictionaryIndex);
+                        var variableName = GetLongName(metaData, variableRecord);
+                        throw new SpssFileFormatException(
+                            $"Variable {variableName} has a duplicate key for value label {key}, found values \"{existingValue}\" and \"{value}\"", dictionaryIndex);
                     }
 
                     variable.ValueLabels.Add(key, value);
@@ -444,7 +434,7 @@ namespace SpssLib.FileParser
 
 
         /// <summary>
-        /// Fills the varaibles collection with just the actual variables (no string continuation records or very long
+        /// Fills the variables collection with just the actual variables (no string continuation records or very long
         /// strings extra segments)
         /// </summary>
 		private void GetVariablesFromRecords()
@@ -453,14 +443,14 @@ namespace SpssLib.FileParser
             // Get the longs strings dictionary
 		    var veryLongStrings = MetaData.VeryLongStringsDictionary;
             
-            // Ammount of varaibles to jump (to skip variable continuation records and additional very long string segments)
+            // Ammount of variables to jump (to skip variable continuation records and additional very long string segments)
             int delta;
             // Index of variable with out string continuation records but INCLUDING very long string record variables (segments)
             // This will be used for things like finding the VariableDisplayInfoRecord
 		    int segmentIndex = 0;
             // Index of variable with out string continuation records AND very long string record variables (segments)
             int variableIndex = 0;
-            // Dictionary index is the VariableRecord index that contains the header info for this varaible
+            // Dictionary index is the VariableRecord index that contains the header info for this variable
 		    for (int dictionaryIndex = 0; dictionaryIndex < MetaData.VariableRecords.Count; dictionaryIndex+=delta)
 		    {
                 var record = MetaData.VariableRecords[dictionaryIndex];
@@ -476,7 +466,7 @@ namespace SpssLib.FileParser
 		        int segments;
                 if (veryLongStrings.ContainsKey(record.Name))
                 {
-                    // Variable is a VeryLongString varaible
+                    // Variable is a VeryLongString variable
                     // Take actual length from VLSR dictionary
                     length = veryLongStrings[record.Name];
                     // Calculate the ammount of segments and the amount of VariableRecords to skip (SCR)
@@ -485,7 +475,7 @@ namespace SpssLib.FileParser
                 }
                 else
                 {
-                    // Variable is NOT a VeryLongString varaible
+                    // Variable is NOT a VeryLongString variable
                     // numeric type is 0 so lenght is 1, > 0 for the lenght of strings
                     length = record.Type == 0 ? 1 : record.Type;
                     // This ones have only one segment
