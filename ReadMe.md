@@ -1,15 +1,15 @@
-# C# sav file reader/writer library
+# C# SPSS SAV file reader and writer library
 
-This library enables to read and write SPSS data files (.sav) on .net from ans to a Stream.
-It's available as a nuget at https://www.nuget.org/packages/SpssLib, or can be installed by:
+This library enables to read and write SPSS data files (.sav) on .net from and to a Stream. The library is UTF-8 safe.
+
+It is available as a nuget package at https://www.nuget.org/packages/SpssLib, and can be installed using the package manager or by issueing:
 ```
 Install-Package SpssLib
-```
+``` 
 
-It's a fork of spsslib-80132 by elmarj at http://spsslib.codeplex.com/, with added writting hability and a few bugs solved.
+It's a fork of [spsslib-80132](http://spsslib.codeplex.com/) by elmarj. Since forking we have added writing ability, solved many bugs, provided closer SPSS binary integration by following the [PSPP provided SPSS format](https://www.gnu.org/software/pspp/pspp-dev/html_node/SPSS_002fPC_002b-System-File-Format.html). 
 
 This library has been tested in production on a few large deployments at @tns_global.
-
 
 ### To read a data file:
 
@@ -111,3 +111,5 @@ using (FileStream fileStream = new FileStream("data.sav", FileMode.Create, FileA
     }
 }
 ```
+
+If you find any bugs or have issues, please open an issue on GitHub. 
