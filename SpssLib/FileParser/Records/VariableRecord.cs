@@ -98,9 +98,11 @@ namespace SpssLib.FileParser.Records
 		    _missingValueCount = Math.Abs(MissingValueType);
 			PrintFormat = variable.PrintFormat;
 			WriteFormat = variable.WriteFormat;
-            if (variable.Name == null)
+
+            // Verify that a name for the variable is provided, this to avoid a NullRef
+            if (string.IsNullOrWhiteSpace(variable.Name))
             {
-                throw new ArgumentException("The name of a variable can no be null", nameof(variable));
+                throw new ArgumentException("The name of a variable can not be null, empty or consist only of whitespace", nameof(variable));
             }
 
             Name = variable.Name;
