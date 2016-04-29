@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpssLib.DataReader;
+using SpssLib.FileParser;
 using SpssLib.SpssDataset;
 
 namespace Test.SpssLib
@@ -17,7 +19,7 @@ namespace Test.SpssLib
 
             var variables = new List<Variable>
             {
-                new Variable
+                new Variable("avariablename_01")
                 {
                     Label = "The variable Label",
                     ValueLabels = new Dictionary<double, string>
@@ -25,7 +27,6 @@ namespace Test.SpssLib
                                 {1, "Label for 1"},
                                 {2, "Label for 2"},
                             },
-                    Name = "avariablename_01",
                     PrintFormat = new OutputFormat(FormatType.F, 8, 2),
                     WriteFormat = new OutputFormat(FormatType.F, 8, 2),
                     Type = DataType.Numeric,
@@ -33,7 +34,7 @@ namespace Test.SpssLib
                     Width = 10,
                     MissingValueType = MissingValueType.OneDiscreteMissingValue
                 },
-                new Variable
+                new Variable("avariablename_02")
                 {
                     Label = "Another variable",
                     ValueLabels = new Dictionary<double, string>
@@ -41,7 +42,6 @@ namespace Test.SpssLib
                                     {1, "this is 1"},
                                     {2, "this is 2"},
                                 },
-                    Name = "avariablename_02",
                     PrintFormat = new OutputFormat(FormatType.F, 8, 2),
                     WriteFormat = new OutputFormat(FormatType.F, 8, 2),
                     Type = DataType.Numeric,
@@ -83,23 +83,21 @@ namespace Test.SpssLib
 	    {
 	        var filename = @"testWriteString.sav";
 
-	        var varString1 = new Variable
+	        var varString1 = new Variable("stringvar_01")
 	                         {
 	                             Label = "This is a string variable",
-	                             Name = "stringvar_01",
 	                             Type = DataType.Text,
 	                             TextWidth = 500,
 	                         };
 
-	        var variable1 = new Variable
-	                        {
+	        var variable1 = new Variable("avariablename_01")
+                            {
 	                            Label = "The variable Label",
 	                            ValueLabels = new Dictionary<double, string>
 	                                          {
 	                                              {1, "Label for 1"},
 	                                              {2, "Label for 2"},
 	                                          },
-	                            Name = "avariablename_01",
 	                            PrintFormat = new OutputFormat(FormatType.F, 8, 2),
 	                            WriteFormat = new OutputFormat(FormatType.F, 8, 2),
 	                            Type = DataType.Numeric,
@@ -108,10 +106,9 @@ namespace Test.SpssLib
 	                            MissingValues = {[0] = 999}
 	                        };
 
-	        var varString = new Variable
-	                        {
+	        var varString = new Variable("stringvar_02")
+                            {
 	                            Label = "This is a string variable",
-	                            Name = "stringvar_02",
 	                            PrintFormat = new OutputFormat(FormatType.A, 60),
 	                            WriteFormat = new OutputFormat(FormatType.A, 60),
 	                            Type = DataType.Text,
@@ -119,15 +116,14 @@ namespace Test.SpssLib
 	                            TextWidth = 60,
 	                        };
 
-	        var variable2 = new Variable
-	                        {
+	        var variable2 = new Variable("avariablename_02")
+                            {
 	                            Label = "Another variable",
 	                            ValueLabels = new Dictionary<double, string>
 	                                          {
 	                                              {1, "this is 1"},
 	                                              {2, "this is 2"},
 	                                          },
-	                            Name = "avariablename_02",
 	                            PrintFormat = new OutputFormat(FormatType.F, 8, 2),
 	                            WriteFormat = new OutputFormat(FormatType.F, 8, 2),
 	                            Type = DataType.Numeric,
@@ -202,23 +198,21 @@ namespace Test.SpssLib
 	    {
 	        var filename = @"testTestWriteLongWeirdString.sav";
 
-	        var varString1 = new Variable
-	                         {
+	        var varString1 = new Variable("stringvar_01")
+                            {
 	                             Label = "This is a string variable",
-	                             Name = "stringvar_01",
 	                             Type = DataType.Text,
 	                             TextWidth = 5000,
-	                         };
+	                        };
 
-	        var variable1 = new Variable
-	                        {
+	        var variable1 = new Variable("avariablename_01")
+                            {
 	                            Label = "The variable Label",
 	                            ValueLabels = new Dictionary<double, string>
 	                                          {
 	                                              {1, "Label for 1"},
 	                                              {2, "Label for 2"},
 	                                          },
-	                            Name = "avariablename_01",
 	                            PrintFormat = new OutputFormat(FormatType.F, 8, 2),
 	                            WriteFormat = new OutputFormat(FormatType.F, 8, 2),
 	                            Type = DataType.Numeric,
@@ -227,25 +221,23 @@ namespace Test.SpssLib
 	                            MissingValues = {[0] = 999}
 	                        };
 
-	        var varString = new Variable
-	                        {
+	        var varString = new Variable("stringvar_02")
+                            {
 	                            Label = "This is a string variable",
-	                            Name = "stringvar_02",
 	                            Type = DataType.Text,
 	                            TextWidth = 60,
 	                            Alignment = Alignment.Centre,
 	                            MeasurementType = MeasurementType.Ordinal
 	                        };
 
-	        var variable2 = new Variable
-	                        {
+	        var variable2 = new Variable("avariablename_02")
+                            {
 	                            Label = "Another variable",
 	                            ValueLabels = new Dictionary<double, string>
 	                                          {
 	                                              {1, "this is 1"},
 	                                              {2, "this is 2"},
 	                                          },
-	                            Name = "avariablename_02",
 	                            PrintFormat = new OutputFormat(FormatType.F, 8, 2),
 	                            WriteFormat = new OutputFormat(FormatType.F, 8, 2),
 	                            Type = DataType.Numeric,
@@ -307,7 +299,43 @@ namespace Test.SpssLib
 	        Assert.AreEqual(rowCount, 3, "Rows count does not match");
 	    }
 
-	    private static void ReadFile(string filename, out int varCount, out int rowCount)
+        [ExpectedException(typeof(ArgumentNullException))]
+        [TestMethod]
+        public void TestNullVarnameException()
+        {
+            var filename = @"thisFileShouldNotExist.sav";
+
+            var variables = new List<Variable>
+            {
+                new Variable(null)
+            };
+
+            using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
+            {
+                using (new SpssWriter(fileStream, variables)) { }
+            }
+        }
+
+        [ExpectedException(typeof(ArgumentException))]
+	    [TestMethod]
+	    public void TestNoVarnameException()
+	    {
+            var filename = @"emptyErrorFile.sav";
+
+            var variables = new List<Variable>
+            {
+#pragma warning disable 618
+                new Variable()
+#pragma warning restore 618
+            };
+            
+            using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
+            {
+                using (new SpssWriter(fileStream, variables)) {}
+            }
+        }
+
+        private static void ReadFile(string filename, out int varCount, out int rowCount)
 	    {
 	        FileStream readFileStream = new FileStream(filename, FileMode.Open, FileAccess.Read,
 	            FileShare.Read, 2048*10, FileOptions.SequentialScan);

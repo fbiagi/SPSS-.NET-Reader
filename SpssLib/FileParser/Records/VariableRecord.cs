@@ -98,6 +98,11 @@ namespace SpssLib.FileParser.Records
 		    _missingValueCount = Math.Abs(MissingValueType);
 			PrintFormat = variable.PrintFormat;
 			WriteFormat = variable.WriteFormat;
+            if (variable.Name == null)
+            {
+                throw new ArgumentException("The name of a variable can no be null", nameof(variable));
+            }
+
             Name = variable.Name;
 			Label = variable.Label;
 		}
