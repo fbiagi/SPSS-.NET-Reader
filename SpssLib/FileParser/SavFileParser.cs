@@ -346,8 +346,9 @@ namespace SpssLib.FileParser
         {
             // Get variable record data:
             var variableRecord = metaData.VariableRecords[dictionaryIndex];
+            var variableName = GetLongName(metaData, variableRecord);
 
-            var variable = new Variable
+            var variable = new Variable(variableName)
                            {
                                Index = variableIndex,
                                PrintFormat = variableRecord.PrintFormat,
@@ -389,7 +390,6 @@ namespace SpssLib.FileParser
                     if (variable.ValueLabels.ContainsKey(key))
                     {
                         var existingValue = variable.ValueLabels[key];
-                        var variableName = GetLongName(metaData, variableRecord);
                         throw new SpssFileFormatException(
                             $"Variable {variableName} has a duplicate key for value label {key}, found values \"{existingValue}\" and \"{value}\"", dictionaryIndex);
                     }
@@ -413,8 +413,6 @@ namespace SpssLib.FileParser
                 variable.MeasurementType = MeasurementType.Scale;
                 variable.Width = variable.PrintFormat.FieldWidth;
             }
-
-            variable.Name = GetLongName(metaData, variableRecord);
 
             return variable;
         }

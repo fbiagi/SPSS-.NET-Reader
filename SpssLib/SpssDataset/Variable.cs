@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace SpssLib.SpssDataset
 {
     public class Variable
     {
 		private static DateTime _epoc = new DateTime(1582, 10, 14, 0, 0, 0, DateTimeKind.Unspecified);
+        private string _name;
 
         /// <summary>
         /// The measurement type of the variable,  for display purposes
@@ -27,12 +29,23 @@ namespace SpssLib.SpssDataset
         /// The alignment of the variable for display purposes
         /// </summary> 
         public Alignment Alignment { get; set; }
-        
+
         /// <summary>
         /// Name of the variable
         /// </summary>
-        public string Name { get; set; }
-        
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(Name));
+                }
+                _name = value;
+            }
+        }
+
         /// <summary>
         /// The variable label
         /// </summary>
@@ -76,20 +89,37 @@ namespace SpssLib.SpssDataset
         /// <summary>
         /// Constructs a new Variable object
         /// </summary>
+        [Obsolete("Use the constructor with variable name as parameter")]
         public Variable()
         {
             MissingValues = new double[3];
             ValueLabels = new Dictionary<double, string>();
         }
 
-		/// <summary>
-		/// Gets the proper value of this variable. This method will check the missing values
-		/// in case there are, and will return null in case the value is one of them.
-		/// Also, if the format fo this variable is a date, it will be tranformed into a <see cref="DateTime"/>.
-		/// </summary>
-		/// <param name="value">A value that should be of this variable</param>
-		/// <returns>The value as object</returns>
-	    public object GetValue(object value)
+        /// <summary>
+        /// Constructs a new Variable object
+        /// </summary>
+        /// <param name="name">The variable name</param>
+        /// <exception cref="ArgumentNullException">if name is null</exception>
+        public Variable(string name)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+            Name = name;
+            MissingValues = new double[3];
+            ValueLabels = new Dictionary<double, string>();
+        }
+
+        /// <summary>
+        /// Gets the proper value of this variable. This method will check the missing values
+        /// in case there are, and will return null in case the value is one of them.
+        /// Also, if the format fo this variable is a date, it will be tranformed into a <see cref="DateTime"/>.
+        /// </summary>
+        /// <param name="value">A value that should be of this variable</param>
+        /// <returns>The value as object</returns>
+        public object GetValue(object value)
 	    {
 			// TODO use strategy pattern to evaluate value (replace MissingValues for strategy impl object)
 			
