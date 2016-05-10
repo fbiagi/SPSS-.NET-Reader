@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using SpssLib.SpssDataset;
 using System.Collections.ObjectModel;
+using System.Security.Cryptography;
 
 namespace SpssLib.FileParser.Records
 {
@@ -136,18 +137,33 @@ namespace SpssLib.FileParser.Records
                              DisplayInfo = GetVariableDisplayInfo(variable)
                          };
 
+            var originalName = header._nameRaw;
+
             CheckShortName(header, previousVariableNames, ref longNameCounter);
 
-			// If it's numeric or a string of lenght 8 or less, no dummy vars are needed
-			if (variable.Type == DataType.Numeric || variable.TextWidth <= 8)
+            // Set output format for text variables to be equal to textwidth
+            // Also detect if a variable is extra wide and needs to be cut up over multiple variables (long string variables)
+            if (variable.Type == DataType.Text)
+            {
+                if (variable.TextWidth <= 255)
+                {
+                    header.WriteFormat = new OutputFormat(FormatType.A, variable.TextWidth);
+                    header.PrintFormat = new OutputFormat(FormatType.A, variable.TextWidth);
+                }
+                else
+                {
+                    longStringVariables.Add(header.Name, variable.TextWidth);
+                    header.WriteFormat = new OutputFormat(FormatType.A, 255);
+                    header.PrintFormat = new OutputFormat(FormatType.A, 255);
+                }
+            }
+
+            // If it's numeric or a string of lenght 8 or less, no dummy vars are needed
+            if (variable.Type == DataType.Numeric || variable.TextWidth <= 8)
 			{
 				return new []{header};
 			}
 
-            if (variable.TextWidth > 255)
-            {
-                longStringVariables.Add(header.Name, variable.TextWidth);
-            }
 
             var segments = GetLongStringSegmentsCount(variable.TextWidth);
             if(!(segments > 0))
@@ -189,20 +205,19 @@ namespace SpssLib.FileParser.Records
                 segmentLength = segmentsLeft > 1 ? 255 : GetFinalSegmentLenght(variable.TextWidth, segments);
                 segmentBlocks = GetStringContinuationRecordsCount(segmentLength);
 
-                result[i++] = GetVlsExtraVariable(header, headerEncoding, segmentLength, previousVariableNames,
-                    ref longNameCounter, segmentsNamesList);
+                result[i++] = GetVlsExtraVariable(header, headerEncoding, segmentLength, previousVariableNames, segmentsNamesList, originalName);
             }
             
             return result;
 		}
 
-        private static VariableRecord GetVlsExtraVariable(VariableRecord variable, Encoding encoding, int segmentLength, SortedSet<byte[]> previousVariableNames, ref int longNameCounter, SortedList<byte[], int> segmentsNamesList)
+        private static VariableRecord GetVlsExtraVariable(VariableRecord variable, Encoding encoding, int segmentLength, SortedSet<byte[]> previousVariableNames, SortedList<byte[], int> segmentsNamesList, byte[] originalName)
         {
             var outputFormat = new OutputFormat(FormatType.A, segmentLength);
             var record = new VariableRecord
                 {
                     Encoding = encoding,
-                    _nameRaw = GenrateContinuationSegmentShortName(variable, previousVariableNames, segmentsNamesList),
+                    _nameRaw = GenerateContinuationSegmentShortName(originalName, previousVariableNames, segmentsNamesList),
                     Label = variable.Label,
                     Type = segmentLength,
                     PrintFormat = outputFormat,
@@ -370,10 +385,10 @@ namespace SpssLib.FileParser.Records
         /// Apparently, for SPSS to reads VLS continuation segments consistenly, the segments should have the same first 5 characters.
         /// If segments have different names that don't match, SPSS could not interpret them as part of the same variable
         /// </remarks>
-        private static byte[] GenrateContinuationSegmentShortName(VariableRecord variable, SortedSet<byte[]> previousVariableNames, SortedList<byte[], int> segmentsNamesList)
+        private static byte[] GenerateContinuationSegmentShortName(byte[] variable, SortedSet<byte[]> previousVariableNames, SortedList<byte[], int> segmentsNamesList)
         {
             // Get a new array with the encoded name
-            var segmentName = (byte[])variable._nameRaw.Clone();
+            var segmentName = (byte[])variable.Clone();
             
             // Find out the ending position of the name, or cut it to 5
             var nameEndIndex = Array.IndexOf<byte>(segmentName, 0x20);
