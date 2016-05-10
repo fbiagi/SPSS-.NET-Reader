@@ -40,7 +40,7 @@ namespace SpssLib.FileParser.Records
                 {
                     if (Data == null || Data.Length == 0)
                     {   
-                        throw new SpssFileFormatException("Info record dicctionary has no data");
+                        throw new SpssFileFormatException("Info record dictionary has no data");
                     }
 
                     _dictionary = new Dictionary<string, T>();
@@ -51,7 +51,7 @@ namespace SpssLib.FileParser.Records
                         var separatorIndex = Array.IndexOf(Data, EqualsChar, startIndex);
                         if (separatorIndex == -1)
                         {   
-                            throw new SpssFileFormatException("Info record dicctionary has no '=' char");
+                            throw new SpssFileFormatException("Info record dictionary has no '=' char");
                         }
                         var endIndex = Array.IndexOf( Data, TabChar, separatorIndex);
                         string shortName = Encoding.GetString(Data, startIndex, separatorIndex - startIndex);
