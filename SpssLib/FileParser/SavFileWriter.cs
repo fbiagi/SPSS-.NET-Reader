@@ -140,11 +140,8 @@ namespace SpssLib.FileParser
                 var records = VariableRecord.GetNeededVariables(variable, _options.HeaderEncoding, namesList, ref longNameCounter, veryLongStrings, segmentsNamesList);
 				variableRecords.AddRange(records);
 
-				// Check if a longNameVariableRecord is needed
-				if (records[0].Name != variable.Name)
-				{
-					variableLongNames.Add(records[0].Name, variable.Name);
-				}
+                // Even if the variable name is the same, it still needs a long record indicator otherwise SPSS doesn't know how to handle it.
+				variableLongNames.Add(records[0].Name, variable.Name);
 
 				// TODO Avoid repeating the same valueLabels on the file
 				// Add ValueLabels if necesary

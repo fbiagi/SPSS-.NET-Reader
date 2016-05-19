@@ -368,7 +368,7 @@ namespace Test.SpssLib
                                      Type = DataType.Text,
                                      Width = 50,
                                      TextWidth = 5000
-                                 };
+                                 };                
 
                 var var4 = new Variable("stringvar_04")
                 {
@@ -386,13 +386,25 @@ namespace Test.SpssLib
                     TextWidth = 4
                 };
 
+                var var6 = new Variable("LIKES")
+                {
+                    Label = "This is a string variable",
+                    PrintFormat = new OutputFormat(FormatType.A, 255),
+                    WriteFormat = new OutputFormat(FormatType.A, 255),
+                    Type = DataType.Text,
+                    Width = 50,
+                    TextWidth = 1026
+                };
+
+
                 var variables = new List<Variable>
                                 {
                                     var1,
                                     var2,
                                     var3,
                                     var4,
-                                    var5
+                                    var5,
+                                    var6
                                 };
 
                 var options = new SpssOptions();
