@@ -200,7 +200,7 @@ namespace SpssLib.SpssDataset
                     break;
 	            case MissingValueType.RangeAndDiscrete:
                     if ((dVal >= MissingValues[0] && dVal <= MissingValues[1]) 
-                        || (MissingValueType == MissingValueType.RangeAndDiscrete && dVal == MissingValues[3]))
+                        || (MissingValueType == MissingValueType.RangeAndDiscrete && dVal == MissingValues[2]))
                         return null;
                     break;
 	        }
