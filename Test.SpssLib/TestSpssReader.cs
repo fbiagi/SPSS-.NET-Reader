@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpssLib.DataReader;
+using SpssLib.FileParser;
 using SpssLib.SpssDataset;
 
 namespace Test.SpssLib
@@ -64,7 +65,14 @@ namespace Test.SpssLib
             Assert.AreEqual(rowCount, 3, "Rows count does not match");
         }
 
-
+        [TestMethod]
+        [ExpectedException(typeof(SpssFileFormatException))]
+        public void TestEmptyStream()
+        {
+            int varCount;
+            int rowCount;
+            ReadData(new MemoryStream(new byte[0]), out varCount, out rowCount);
+        }
 
         [TestMethod]
         [DeploymentItem(@"TestFiles\MissingValues.sav")]
@@ -118,7 +126,7 @@ namespace Test.SpssLib
             }
         }
 
-        internal static void ReadData(FileStream fileStream, out int varCount, out int rowCount, 
+        internal static void ReadData(Stream fileStream, out int varCount, out int rowCount, 
             IDictionary<int, Action<int, Variable>> variableValidators = null, IDictionary<int, Action<int, int, Variable, object>> valueValidators = null)
         {
             SpssReader spssDataset = new SpssReader(fileStream);
