@@ -8,7 +8,7 @@ namespace SpssLib.FileParser.Records
     {
         private readonly Dictionary<RecordType, IRecordParser> _parsers;
 
-        internal ParserProvider()
+        public ParserProvider()
         {
             var parsers = new IRecordParser[]
                 {

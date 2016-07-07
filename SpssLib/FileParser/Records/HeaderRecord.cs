@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using SpssLib.DataReader;
 
 namespace SpssLib.FileParser.Records
@@ -24,14 +25,14 @@ namespace SpssLib.FileParser.Records
         // char[3] padding
         public string Padding { get; private set; }
 
-        internal HeaderRecord()
+        public HeaderRecord()
         {
         }
 
 		internal HeaderRecord(SpssOptions options)
 		{
-			var assemblyName = GetType().Assembly.GetName();
-			ProductName = "@(#) SPSS DATA FILE " + assemblyName.Name + " " + assemblyName.Version;
+            var assembly = typeof(MachineIntegerInfoRecord).GetTypeInfo().Assembly.GetName();
+			ProductName = "@(#) SPSS DATA FILE " + assembly.Name + " " + assembly.Version;
 			LayoutCode = 2;
 			Compressed = options.Compressed;
 			Bias = options.Bias;

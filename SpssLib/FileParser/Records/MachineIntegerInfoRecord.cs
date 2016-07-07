@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Text;
+using System.Reflection;
+using Portable.Text;
 
 namespace SpssLib.FileParser.Records
 {
@@ -25,11 +26,11 @@ namespace SpssLib.FileParser.Records
             ItemSize = 4;
             ItemCount = 8;
 
-			var assemblyName = GetType().Assembly.GetName();
+            var assembly = typeof(MachineIntegerInfoRecord).GetTypeInfo().Assembly.GetName();
 
-			VersionMajor = assemblyName.Version.Major;
-			VersionMinor = assemblyName.Version.Minor;
-			VersionRevision = assemblyName.Version.Revision;
+            VersionMajor = assembly.Version.Major;
+			VersionMinor = assembly.Version.Minor;
+			VersionRevision = assembly.Version.Revision;
 			MachineCode = -1;
 			FloatingPointRepresentation = 1;	// IEEE 754
 			CompressionCode = 1;
@@ -39,14 +40,14 @@ namespace SpssLib.FileParser.Records
 
         private int GetCharacterCode(Encoding encoding)
         {
-            if (encoding.EncodingName.Equals("US-ASCII", StringComparison.InvariantCultureIgnoreCase))
+            if (encoding.WebName.Equals("US-ASCII", StringComparison.OrdinalIgnoreCase))
             {
                 return 2;
             }
             return encoding.CodePage;
         }
 
-        public new Encoding Encoding
+        public new Encoding SpssEncoding
         {
             get
             {
@@ -55,7 +56,6 @@ namespace SpssLib.FileParser.Records
                     case 1: // EBCDIC
                         throw new NotSupportedException("EBCDIC???? Who uses that? Honestly!!");
                     case 2: // 7-bit ASCII
-                        return Encoding.ASCII;
                     case 3: // 8-bit ASCII
                         return Encoding.UTF8;
                     case 4: // DEC Kanji
@@ -76,7 +76,7 @@ namespace SpssLib.FileParser.Records
         public override void RegisterMetadata(MetaData metaData)
         {
             metaData.MachineIntegerInfo = this;
-            metaData.HeaderEncoding = Encoding;
+            metaData.HeaderEncoding = SpssEncoding;
         }
 
         protected override void WriteInfo(BinaryWriter writer)

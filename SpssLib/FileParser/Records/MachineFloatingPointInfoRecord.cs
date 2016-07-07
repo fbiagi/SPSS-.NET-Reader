@@ -14,7 +14,7 @@ namespace SpssLib.FileParser.Records
         /// <summary>
         /// Constructor for creating an appropiate floating point record for this machine
         /// </summary>
-        internal MachineFloatingPointInfoRecord()
+        public MachineFloatingPointInfoRecord()
         {
             ItemSize = 8;
             ItemCount = 3;

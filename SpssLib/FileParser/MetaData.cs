@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using Portable.Text;
 using SpssLib.FileParser.Records;
 
 namespace SpssLib.FileParser

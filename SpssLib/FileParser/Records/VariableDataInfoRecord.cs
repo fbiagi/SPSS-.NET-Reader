@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using Portable.Text;
 
 namespace SpssLib.FileParser.Records
 {
@@ -11,15 +11,20 @@ namespace SpssLib.FileParser.Records
 
         private IDictionary<string, T> _dictionary;
         // ReSharper disable StaticFieldInGenericType // Doesn't need to be shared
-        private static readonly byte EqualsChar = Encoding.ASCII.GetBytes("=")[0];
-        private static readonly byte TabChar = Encoding.ASCII.GetBytes("\t")[0];
+        private static readonly byte EqualsChar = Encoding.UTF8.GetBytes("=")[0];
+        private static readonly byte TabChar = Encoding.UTF8.GetBytes("\t")[0];
         // ReSharper restore StaticFieldInGenericType
 
         /// <summary>
         /// Holds the encoded byte sequence for the long names dictionary string
         /// </summary>
         protected byte[] Data { get; set; }
-        
+
+        public VariableDataInfoRecord()
+        {
+            
+        }
+
         public VariableDataInfoRecord(IDictionary<string, T> dictionary, Encoding encoding)
 		{
 		    Encoding = encoding;

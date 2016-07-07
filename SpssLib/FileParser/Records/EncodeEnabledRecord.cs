@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using Portable.Text;
 
 namespace SpssLib.FileParser.Records
 {

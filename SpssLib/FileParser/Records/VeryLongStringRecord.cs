@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
+using Portable.Text;
 
 namespace SpssLib.FileParser.Records
 {
@@ -9,6 +9,11 @@ namespace SpssLib.FileParser.Records
         protected override bool UsesTerminator => true;
 
         public override int SubType => InfoRecordType.VeryLongString;
+
+        public VeryLongStringRecord()
+        {
+            
+        }
 
         public VeryLongStringRecord(IDictionary<string, int> dictionary, Encoding encoding)
             : base(dictionary, encoding)

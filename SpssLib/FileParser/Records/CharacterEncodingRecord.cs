@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
+using Encoding = Portable.Text.Encoding;
 
 namespace SpssLib.FileParser.Records
 {
@@ -12,30 +12,30 @@ namespace SpssLib.FileParser.Records
 
         public string Name { get; private set; }
         
-        public Encoding Encoding { get; private set; }
+        public Encoding SpssEncoding { get; private set; }
 
-        internal CharacterEncodingRecord()
+        public CharacterEncodingRecord()
         {}
 
-		internal CharacterEncodingRecord(Encoding encoding)
+		internal CharacterEncodingRecord(Encoding spssEncoding)
 		{
             ItemSize = 1;
             // Supposedly has to be the IANA name
-			Name = encoding.WebName;
+			Name = spssEncoding.WebName;
 		    ItemCount = Name.Length;
 
-		    Encoding = encoding;
+		    SpssEncoding = spssEncoding;
 		}
 
         public override void RegisterMetadata(MetaData metaData)
         {
             metaData.CharEncodingRecord = this;
-            metaData.DataEncoding = Encoding;
+            metaData.DataEncoding = SpssEncoding;
         }
 
         protected override void WriteInfo(BinaryWriter writer)
 		{
-            var bytes = Encoding.ASCII.GetBytes(Name);
+            var bytes = Portable.Text.Encoding.UTF8.GetBytes(Name);
 			writer.Write(bytes);
 		}
 
@@ -45,8 +45,8 @@ namespace SpssLib.FileParser.Records
 
             // TODO test if ReadString will work
             var nameBytes = reader.ReadBytes(ItemCount);
-            Name = Encoding.ASCII.GetString(nameBytes);
-            Encoding = GetEncoding(Name);
+            Name = Portable.Text.Encoding.UTF8.GetString(nameBytes);
+            SpssEncoding = GetEncoding(Name);
         }
         
         /// <summary>
@@ -64,15 +64,15 @@ namespace SpssLib.FileParser.Records
         private Encoding GetEncoding(string strEncoding)
         {
             // Try to get the encoding by EncodingInfo name
-            var encInfo = Encoding.GetEncodings();
-            var info = encInfo.SingleOrDefault(ei => ei.Name.Equals(strEncoding, StringComparison.InvariantCultureIgnoreCase));
+            var encInfo = Portable.Text.Encoding.GetEncodings();
+            var info = encInfo.SingleOrDefault(ei => ei.Name.Equals(strEncoding, StringComparison.OrdinalIgnoreCase));
             if (info != null)
                 return info.GetEncoding();
 
             // Try to get encoding by name or alias
             try
             {
-                var enc = Encoding.GetEncoding(strEncoding);
+                var enc = Portable.Text.Encoding.GetEncoding(strEncoding);
                 return enc;
             }
             catch (ArgumentException)

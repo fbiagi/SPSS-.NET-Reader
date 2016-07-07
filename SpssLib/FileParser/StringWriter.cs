@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using Portable.Text;
 using SpssLib.FileParser.Records;
 
 namespace SpssLib.FileParser
@@ -37,7 +37,7 @@ namespace SpssLib.FileParser
         public StringWriter(Encoding encoding, IRecordWriter recordWriter)
         {
             _recordWriter = recordWriter;
-            _encoder = encoding.GetEncoder();
+            _encoder = (Encoder) encoding.GetEncoder();
 
             _stringBytesBuffer = new byte[encoding.GetMaxByteCount(CharsBufferSize)];
 

@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Text;
 using SpssLib.SpssDataset;
 using System.Collections.ObjectModel;
-using System.Security.Cryptography;
+using Portable.Text;
 
 namespace SpssLib.FileParser.Records
 {
@@ -73,7 +72,7 @@ namespace SpssLib.FileParser.Records
 
         public IList<double> MissingValues { get; private set; }
 
-        private VariableRecord()
+        public VariableRecord()
 	    {}
 
         /// <summary>
@@ -130,7 +129,7 @@ namespace SpssLib.FileParser.Records
         /// 		main variable definition, followed by string continuation "dummy"
         /// 		variables. There should be one for each 8 chars after the first 8.
         ///  </returns>
-        internal static VariableRecord[] GetNeededVariables(Variable variable, Encoding headerEncoding, SortedSet<byte[]> previousVariableNames, ref int longNameCounter, IDictionary<string, int> longStringVariables, SortedList<byte[], int> segmentsNamesList)
+        internal static VariableRecord[] GetNeededVariables(Variable variable, Encoding headerEncoding, SortedSet<byte[]> previousVariableNames, ref int longNameCounter, IDictionary<string, int> longStringVariables, SortedDictionary<byte[], int> segmentsNamesList)
         {
             var header = new VariableRecord(variable, headerEncoding)
                          {
@@ -211,7 +210,7 @@ namespace SpssLib.FileParser.Records
             return result;
 		}
 
-        private static VariableRecord GetVlsExtraVariable(VariableRecord variable, Encoding encoding, int segmentLength, SortedSet<byte[]> previousVariableNames, SortedList<byte[], int> segmentsNamesList, byte[] originalName)
+        private static VariableRecord GetVlsExtraVariable(VariableRecord variable, Encoding encoding, int segmentLength, SortedSet<byte[]> previousVariableNames, SortedDictionary<byte[], int> segmentsNamesList, byte[] originalName)
         {
             var outputFormat = new OutputFormat(FormatType.A, segmentLength);
             var record = new VariableRecord
@@ -385,7 +384,7 @@ namespace SpssLib.FileParser.Records
         /// Apparently, for SPSS to reads VLS continuation segments consistenly, the segments should have the same first 5 characters.
         /// If segments have different names that don't match, SPSS could not interpret them as part of the same variable
         /// </remarks>
-        private static byte[] GenerateContinuationSegmentShortName(byte[] variable, SortedSet<byte[]> previousVariableNames, SortedList<byte[], int> segmentsNamesList)
+        private static byte[] GenerateContinuationSegmentShortName(byte[] variable, SortedSet<byte[]> previousVariableNames, SortedDictionary<byte[], int> segmentsNamesList)
         {
             // Get a new array with the encoded name
             var segmentName = (byte[])variable.Clone();

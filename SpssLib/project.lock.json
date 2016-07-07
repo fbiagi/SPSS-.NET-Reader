@@ -1,0 +1,38 @@
+{
+  "locked": false,
+  "version": 2,
+  "targets": {
+    ".NETPortable,Version=v4.5,Profile=Profile78": {
+      "Portable.Text.Encoding/0.8.3": {
+        "type": "package",
+        "compile": {
+          "lib/portable-net45+win+wp80+MonoAndroid10+xamarinios10+MonoTouch10/Portable.Text.Encoding.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win+wp80+MonoAndroid10+xamarinios10+MonoTouch10/Portable.Text.Encoding.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Portable.Text.Encoding/0.8.3": {
+      "sha512": "uIm6HTmHAextu7Z2qtMsOfhEOJwx16GeEONKvm/zYI4pYSqDiZcHRMdGzWiXRu9r5swO3bOyffJqNpVt83HNdw==",
+      "type": "package",
+      "path": "Portable.Text.Encoding/0.8.3",
+      "files": [
+        "Portable.Text.Encoding.0.8.3.nupkg.sha512",
+        "Portable.Text.Encoding.nuspec",
+        "lib/portable-net45+win+wp80+MonoAndroid10+xamarinios10+MonoTouch10/Portable.Text.Encoding.dll",
+        "lib/portable-net45+win+wpa81+MonoAndroid10+xamarinios10+MonoTouch10/Portable.Text.Encoding.dll"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "Portable.Text.Encoding >= 0.8.3"
+    ],
+    ".NETPortable,Version=v4.5,Profile=Profile78": []
+  },
+  "tools": {},
+  "projectFileToolGroups": {}
+}

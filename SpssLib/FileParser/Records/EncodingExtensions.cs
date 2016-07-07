@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using Encoding = Portable.Text.Encoding;
 
 namespace SpssLib.FileParser.Records
 {

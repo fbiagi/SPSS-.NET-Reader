@@ -1,11 +1,16 @@
 ﻿using System.Collections.Generic;
-using System.Text;
+using Portable.Text;
 
 namespace SpssLib.FileParser.Records
 {
     public class LongVariableNamesRecord : VariableDataInfoRecord<string>
     {
         public override int SubType => InfoRecordType.LongVariableNames;
+
+        public LongVariableNamesRecord()
+        {
+            
+        }
 
         public LongVariableNamesRecord(IDictionary<string, string> variableLongNames, Encoding encoding) 
             : base(variableLongNames, encoding)

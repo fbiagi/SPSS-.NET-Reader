@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.IO;
 using SpssLib.Compression;
 using SpssLib.FileParser.Records;
 using SpssLib.SpssDataset;
+using Portable.Text;
+using StringBuilder = System.Text.StringBuilder;
 
 namespace SpssLib.FileParser
 {
@@ -143,7 +144,7 @@ namespace SpssLib.FileParser
         public IEnumerable<object> RecordToObjects(byte[][] record)
         {
             // Decoder for strings
-            Decoder dec = MetaData.DataEncoding.GetDecoder();
+            var dec = (Decoder) MetaData.DataEncoding.GetDecoder();
             // Buffer to write the decoded chars to
             var charBuffer = new char[MetaData.DataEncoding.GetMaxCharCount(256)];
             // String builder to get the full string result (mainly for VLS)
@@ -301,17 +302,17 @@ namespace SpssLib.FileParser
             {
                 if (_reader != null)
                 {
-                    _reader.Close();
+                    _reader.Dispose();
                     _reader = null;
                 }
                 if (Stream != null)
                 {
-                    Stream.Close();
+                    Stream.Dispose();
                     Stream = null;
                 }
                 if (_dataRecordStream != null)
                 {
-                    _dataRecordStream.Close();
+                    _dataRecordStream.Dispose();
                     _dataRecordStream = null;
                 }
             }

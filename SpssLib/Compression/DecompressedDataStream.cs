@@ -31,9 +31,9 @@ namespace SpssLib.Compression
             CompressedDataStream = compressedDataStream;
             Bias = bias;
             SystemMissing = systemMissing;
-            _reader = new BinaryReader(compressedDataStream, Encoding.ASCII);
+            _reader = new BinaryReader(compressedDataStream, Encoding.UTF8);
 
-            _spacesBytes = Encoding.ASCII.GetBytes(SpaceString);
+            _spacesBytes = Encoding.UTF8.GetBytes(SpaceString);
             _systemMissingBytes = BitConverter.GetBytes(SystemMissing);
         }
 

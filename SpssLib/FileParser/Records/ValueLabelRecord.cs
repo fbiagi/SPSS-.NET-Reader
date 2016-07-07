@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
+using Portable.Text;
 
 namespace SpssLib.FileParser.Records
 {
@@ -22,7 +21,6 @@ namespace SpssLib.FileParser.Records
         public int VarCount { get; private set; }
         public ICollection<int> Variables { get; private set; }
 
-
 	    internal ValueLabelRecord(ValueLabel valueLabel, Encoding headerEncoding)
 	    {
             // TODO add this to base constructor
@@ -34,7 +32,7 @@ namespace SpssLib.FileParser.Records
 		    Variables = valueLabel.VariableIndex;
 	    }
 
-	    internal ValueLabelRecord(){}
+	    public ValueLabelRecord(){}
 
 		public void WriteRecord(BinaryWriter writer)
 		{

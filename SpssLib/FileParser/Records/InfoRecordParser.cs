@@ -10,6 +10,11 @@ namespace SpssLib.FileParser.Records
         public RecordType Accepts => RecordType.InfoRecord;
         private readonly IDictionary<int, Type> _infoRecordsTypes;
 
+        public InfoRecordParser()
+        {
+            
+        }
+
         public InfoRecordParser(IDictionary<int, Type> infoRecordsTypes)
         {
             _infoRecordsTypes = infoRecordsTypes;
@@ -27,7 +32,7 @@ namespace SpssLib.FileParser.Records
             int subType = reader.ReadInt32();
             Type type;
             var record = _infoRecordsTypes.TryGetValue(subType, out type)
-                             ? (BaseInfoRecord)FormatterServices.GetUninitializedObject(type)
+                             ? (BaseInfoRecord)Activator.CreateInstance(type)
                              : new UnknownInfoRecord(subType);
             
             // Check that we created the correct one

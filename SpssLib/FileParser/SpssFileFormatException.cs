@@ -2,7 +2,6 @@
 
 namespace SpssLib.FileParser
 {
-    [Serializable]
     public class SpssFileFormatException: Exception
     {
         public int DictionaryIndex { get; set; }

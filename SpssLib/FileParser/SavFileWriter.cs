@@ -131,7 +131,7 @@ namespace SpssLib.FileParser
 		{
             int longNameCounter = 0;
             var namesList = new SortedSet<byte[]>(new ByteArrayComparer());
-            var segmentsNamesList = new SortedList<byte[], int>(new ByteArrayComparer());
+            var segmentsNamesList = new SortedDictionary<byte[], int>(new ByteArrayComparer());
 
             foreach (var variable in _variables)
 			{
@@ -167,7 +167,7 @@ namespace SpssLib.FileParser
 	    public void Dispose()
 		{
 			_writer.Flush();
-			_writer.Close();
+			_writer.Dispose();
 			_output.Dispose();
 		}
 

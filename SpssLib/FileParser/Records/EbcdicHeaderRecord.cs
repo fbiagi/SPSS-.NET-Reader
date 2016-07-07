@@ -7,6 +7,11 @@ namespace SpssLib.FileParser.Records
     {
         public NotSupportedException Exception => new NotSupportedException("EBCDIC???? Who uses that? Honestly!!");
 
+        public EbcdicHeaderRecord()
+        {
+            
+        }
+
         public RecordType RecordType => RecordType.EbcdicHeaderRecord;
 
         public void WriteRecord(BinaryWriter writer)

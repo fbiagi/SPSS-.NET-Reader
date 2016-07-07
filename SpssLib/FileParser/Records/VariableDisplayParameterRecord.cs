@@ -16,6 +16,11 @@ namespace SpssLib.FileParser.Records
         /// </summary>
         internal int VariableCount { get; set; }
 
+        public VariableDisplayParameterRecord()
+        {
+            
+        }
+
         /// <summary>
         /// Contructor to write the record
         /// </summary>

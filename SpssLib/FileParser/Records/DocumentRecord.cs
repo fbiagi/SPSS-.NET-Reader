@@ -10,7 +10,7 @@ namespace SpssLib.FileParser.Records
         public int LineCount { get; private set; }
         public IList<string> LineCollection { get; private set; }
 
-        internal DocumentRecord()
+        public DocumentRecord()
         {
         }
 

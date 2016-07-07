@@ -10,6 +10,11 @@ namespace SpssLib.FileParser.Records
 	{
 		public RecordType RecordType => RecordType.End;
 
+	    public DictionaryTerminationRecord()
+	    {
+	        
+	    }
+
 	    public void WriteRecord(BinaryWriter writer)
 		{
 			writer.Write((int)RecordType);

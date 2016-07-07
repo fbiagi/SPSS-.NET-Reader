@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using Portable.Text;
 using SpssLib.SpssDataset;
 
 namespace SpssLib.DataReader
