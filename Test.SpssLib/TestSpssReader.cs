@@ -64,6 +64,60 @@ namespace Test.SpssLib
             Assert.AreEqual(rowCount, 3, "Rows count does not match");
         }
 
+
+
+        [TestMethod]
+        [DeploymentItem(@"TestFiles\MissingValues.sav")]
+        public void TestReadMissingValuesAsNull()
+        {
+            FileStream fileStream = new FileStream("MissingValues.sav", FileMode.Open, FileAccess.Read,
+                FileShare.Read, 2048 * 10, FileOptions.SequentialScan);
+
+            double?[][] varValues =
+            {
+                new double?[]{ 0, 1, 2, 3, 4, 5, 6, 7 }, // No missing values
+                new double?[]{ 0, null, 2, 3, 4, 5, 6, 7 }, // One mssing value
+                new double?[]{ 0, null, null, 3, 4, 5, 6, 7 }, // Two missing values
+                new double?[]{ 0, null, null, null, 4, 5, 6, 7 }, // Three missing values
+                new double?[]{ 0, null, null, null, null, null, 6, 7 }, // Range
+                new double?[]{ 0, null, null, null, null, null, 6, null }, // Range & one value
+            };
+
+            Action<int, int, Variable, object> rowCheck = (r, c, variable, value) =>
+            {
+                Assert.AreEqual(varValues[c][r], value, $"Wrong value: row {r}, variable {c}");
+            };
+
+
+            try
+            {
+                int varCount, rowCount;
+                ReadData(fileStream, out varCount, out rowCount, new Dictionary<int, Action<int, Variable>>
+                    {
+                        {0, (i, variable) => Assert.AreEqual(MissingValueType.NoMissingValues, variable.MissingValueType)},
+                        {1, (i, variable) => Assert.AreEqual(MissingValueType.OneDiscreteMissingValue, variable.MissingValueType)},
+                        {2, (i, variable) => Assert.AreEqual(MissingValueType.TwoDiscreteMissingValue, variable.MissingValueType)},
+                        {3, (i, variable) => Assert.AreEqual(MissingValueType.ThreeDiscreteMissingValue, variable.MissingValueType)},
+                        {4, (i, variable) => Assert.AreEqual(MissingValueType.Range, variable.MissingValueType)},
+                        {5, (i, variable) => Assert.AreEqual(MissingValueType.RangeAndDiscrete, variable.MissingValueType)},
+                    },
+                    new Dictionary<int, Action<int, int, Variable, object>>
+                    {
+                        {0, rowCheck},
+                        {1, rowCheck},
+                        {2, rowCheck},
+                        {3, rowCheck},
+                        {4, rowCheck},
+                        {5, rowCheck},
+                        {6, rowCheck},
+                    });
+            }
+            finally
+            {
+                fileStream.Close();
+            }
+        }
+
         internal static void ReadData(FileStream fileStream, out int varCount, out int rowCount, 
             IDictionary<int, Action<int, Variable>> variableValidators = null, IDictionary<int, Action<int, int, Variable, object>> valueValidators = null)
         {

@@ -59,6 +59,9 @@
     <None Include="TestFiles\cakespss1000similarvars.sav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="TestFiles\MissingValues.sav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="TestFiles\test.sav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
