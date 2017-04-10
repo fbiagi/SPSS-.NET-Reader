@@ -86,6 +86,12 @@ namespace SpssLib.FileParser.Records
                 if (info != null)
                     return info.GetEncoding();
             }
+            
+            if (strEncoding.Equals("windows-31j", StringComparison.InvariantCultureIgnoreCase))
+            {
+                // 932 - Japanese (Shift-JIS)
+                return Encoding.GetEncoding(932); 
+            }
 
             throw new SpssFileFormatException("Encoding not recognized: " + strEncoding);
         }
