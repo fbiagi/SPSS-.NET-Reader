@@ -7,7 +7,7 @@ It is available as a nuget package at https://www.nuget.org/packages/SpssLib, an
 Install-Package SpssLib
 ``` 
 
-It's a fork of [spsslib-80132](http://spsslib.codeplex.com/) by elmarj. Since forking we have added writing ability, solved many bugs, provided closer SPSS binary integration by following the [PSPP provided SPSS format](https://www.gnu.org/software/pspp/pspp-dev/html_node/SPSS_002fPC_002b-System-File-Format.html). 
+It's a fork of [spsslib-80132](http://spsslib.codeplex.com/) by elmarj. Since forking we have added writing ability, solved many bugs, provided closer SPSS binary integration by following the [PSPP provided SPSS format](https://www.gnu.org/software/pspp/pspp-dev/html_node/System-File-Format.html#System-File-Format). 
 
 This library has been tested in production on a few large deployments at @tns_global.
 
