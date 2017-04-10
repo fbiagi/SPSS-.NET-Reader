@@ -35,28 +35,50 @@ namespace SpssLib.FileParser
             IList<IRecord> records = new List<IRecord>(1000);
 
             MetaData = new MetaData();
-            
+
             RecordType readRecordType;
+            IRecord record;
+            IRecordParser recordParser;
+
+            // Read the header record and validate this file
+            try
+            {
+                readRecordType = _reader.ReadRecordType();
+                if (readRecordType != RecordType.HeaderRecord)
+                {
+                    throw new SpssFileFormatException("No header record is present. A header record is required. Is this a valid SPSS file?");
+                }
+                recordParser = parsers.GetParser(readRecordType);
+                record = recordParser.ParseRecord(_reader);
+                record.RegisterMetadata(MetaData);
+                records.Add(record);
+            }
+            catch (EndOfStreamException)
+            {
+                throw new SpssFileFormatException("No header record is present. A header record is required. Is your file empty?");
+            }
+
+            // Read the rest of the records
             do
             {
                 readRecordType = _reader.ReadRecordType();
-                var recordParser = parsers.GetParser(readRecordType);
-                var record = recordParser.ParseRecord(_reader);
+                recordParser = parsers.GetParser(readRecordType);
+                record = recordParser.ParseRecord(_reader);
                 record.RegisterMetadata(MetaData);
                 records.Add(record);
             } while (readRecordType != RecordType.End);
-            
+
 
             try
-	        {
-				_dataStartPosition = Stream.Position;
-	        }
-	        catch (NotSupportedException)
-	        {
-				// Some stream types don't support the Position property (CryptoStream...)
-				_dataStartPosition = 0;
-	        }
-            
+            {
+                _dataStartPosition = Stream.Position;
+            }
+            catch (NotSupportedException)
+            {
+                // Some stream types don't support the Position property (CryptoStream...)
+                _dataStartPosition = 0;
+            }
+
             SetDataRecordStream();
             MetaDataParsed = true;
         }
