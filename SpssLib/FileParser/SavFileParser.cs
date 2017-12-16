@@ -18,7 +18,7 @@ namespace SpssLib.FileParser
         public MetaData MetaData { get; private set; }
         public double SysmisValue { get; set; }
 
-        private BinaryReader _reader;
+        private DualBinaryReader _reader;
         private Stream _dataRecordStream;
         private long _dataStartPosition;
 
@@ -29,7 +29,7 @@ namespace SpssLib.FileParser
 
         public void ParseMetaData()
         {
-            _reader = new BinaryReader(Stream, Encoding.ASCII);
+            _reader = new DualBinaryReader(Stream, Encoding.ASCII);
 
             var parsers = new ParserProvider();
             IList<IRecord> records = new List<IRecord>(1000);
@@ -86,9 +86,13 @@ namespace SpssLib.FileParser
         private void SetDataRecordStream()
         {
             _dataRecordStream = MetaData.HeaderRecord.Compressed ? 
-                new DecompressedDataStream(Stream, MetaData.HeaderRecord.Bias, MetaData.SystemMissingValue) 
+                new DecompressedDataStream(Stream, MetaData.HeaderRecord.Bias, MetaData.SystemMissingValue, MetaData.IsLittleEndian) 
                 : Stream;
-            _reader = new BinaryReader(_dataRecordStream, Encoding.ASCII);
+
+            _reader = new DualBinaryReader(_dataRecordStream, Encoding.ASCII);
+
+            if (MetaData.MachineIntegerInfo.Endianness == 1)    // Machine endianness. 1 indicates big-endian, 2 indicates little-endian.
+                _reader.IsLittleEndian = false;
         }
 
         public IEnumerable<byte[][]> DataRecords
@@ -301,7 +305,17 @@ namespace SpssLib.FileParser
         /// <returns></returns>
         private object ParseDoubleValue(byte[] element)
         {
-            var value = BitConverter.ToDouble(element, 0);
+            double value;
+
+            if (MetaData.IsLittleEndian)
+                value = BitConverter.ToDouble(element, 0);
+            else
+            {
+                // Big-endian: reverse bytes in element before conversion to double.
+                byte[] revBytes = new byte[8];
+                Helper.ReverseArray(element, revBytes);
+                value = BitConverter.ToDouble(revBytes, 0);
+            }
             // ReSharper disable CompareOfFloatsByEqualityOperator SysMiss is an exact value
             if (value == MetaData.SystemMissingValue)
             // ReSharper restore CompareOfFloatsByEqualityOperator
@@ -406,7 +420,11 @@ namespace SpssLib.FileParser
             {
                 foreach (var label in valueLabelRecord.Labels)
                 {
-                    var key = BitConverter.ToDouble(label.Key, 0);
+                    object nullableKey = ParseDoubleValue(label.Key);
+                    if (!(nullableKey is double))
+                        throw new SpssFileFormatException();
+                    double key = (double)nullableKey;
+
                     var value = label.Value.Replace("\0", string.Empty).Trim();
 
                     if (variable.ValueLabels.ContainsKey(key))

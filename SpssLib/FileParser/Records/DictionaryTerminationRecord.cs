@@ -17,7 +17,7 @@ namespace SpssLib.FileParser.Records
 			writer.Write(0); 
 		}
 
-	    public void FillRecord(BinaryReader reader)
+	    public void FillRecord(DualBinaryReader reader)
 	    {
             // skip filler
 	        reader.ReadInt32();

@@ -21,7 +21,7 @@ namespace SpssLib.FileParser.Records
             WriteInfo(writer);
         }
 
-        public void FillRecord(BinaryReader reader)
+        public void FillRecord(DualBinaryReader reader)
         {
             ItemSize = reader.ReadInt32();
             ItemCount = reader.ReadInt32();
@@ -49,7 +49,7 @@ namespace SpssLib.FileParser.Records
         }
 
         protected abstract void WriteInfo(BinaryWriter writer);
-        protected abstract void FillInfo(BinaryReader reader);
+        protected abstract void FillInfo(DualBinaryReader reader);
     }
 
     public class UnknownInfoRecord : BaseInfoRecord
@@ -78,7 +78,7 @@ namespace SpssLib.FileParser.Records
             writer.Write(Data);
         }
 
-        protected override void FillInfo(BinaryReader reader)
+        protected override void FillInfo(DualBinaryReader reader)
         {
             Data = reader.ReadBytes(ItemCount * ItemSize);
         }

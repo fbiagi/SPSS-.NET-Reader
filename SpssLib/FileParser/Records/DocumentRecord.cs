@@ -20,7 +20,7 @@ namespace SpssLib.FileParser.Records
             LineCount = lines.Count;
         }
 
-        public void FillRecord(BinaryReader reader)
+        public void FillRecord(DualBinaryReader reader)
         {
             LineCount = reader.ReadInt32();
             LineCollection = new List<string>();

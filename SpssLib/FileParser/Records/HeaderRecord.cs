@@ -58,10 +58,24 @@ namespace SpssLib.FileParser.Records
 			writer.Write(new byte[3]);
 	    }
 
-        public void FillRecord(BinaryReader reader)
+        public void FillRecord(DualBinaryReader reader)
         {
             ProductName = new string(reader.ReadChars(60));
             LayoutCode = reader.ReadInt32();
+            switch(LayoutCode)
+            {
+                case 2:
+                case 3:
+                    reader.IsLittleEndian = true;
+                    break;
+                case 0x02000000:
+                case 0x03000000:
+                    reader.IsLittleEndian = false;
+                    break;
+                default:
+                    throw new SpssFileFormatException("Failed to detect endianness.");
+            }
+
             NominalCaseSize = reader.ReadInt32();
             Compressed = reader.ReadInt32() == 1;
             WeightIndex = reader.ReadInt32();

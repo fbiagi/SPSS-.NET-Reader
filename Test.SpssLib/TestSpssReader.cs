@@ -126,6 +126,76 @@ namespace Test.SpssLib
             }
         }
 
+        [TestMethod]
+        [DeploymentItem(@"TestFiles\BigEndian.sav")]
+        public void TestReadFileWithBigEndianNumbers()
+        {
+            FileStream fileStream = new FileStream("BigEndian.sav", FileMode.Open, FileAccess.Read,
+                FileShare.Read, 2048 * 10, FileOptions.SequentialScan);
+
+            int varCount;
+            int rowCount;
+            try
+            {
+                ReadData(fileStream, out varCount, out rowCount,
+                    new Dictionary<int, Action<int, Variable>>
+                    {
+                        {0, (i, variable) =>
+                        {
+                            Assert.AreEqual("ID", variable.Name, "Name mismatch");
+                            Assert.AreEqual(DataType.Numeric, variable.Type, "First file variable should be a Number");
+                        }},
+                        {1, (i, variable) =>
+                        {
+                            Assert.AreEqual("SEX", variable.Name, "Name mismatch");
+                            Assert.AreEqual(DataType.Numeric, variable.Type, "Second file variable should be a Number");
+                            CollectionAssert.AreEqual(new Dictionary<double, string>(){ { 1, "MALE" }, {2, "FEMALE" } }, (Dictionary<double, string>)variable.ValueLabels, "Value labels mismatch");
+                        }},
+                        {2, (i, variable) =>
+                        {
+                            Assert.AreEqual("GROUP", variable.Name, "Name mismatch");
+                            Assert.AreEqual(DataType.Numeric, variable.Type, "Third file variable should be a Number");
+                            CollectionAssert.AreEqual(new Dictionary<double, string>(){ { 0, "Control" }, {1, "Treatment" } }, (Dictionary<double, string>)variable.ValueLabels, "Value labels mismatch");
+                        }}
+                    },
+                    new Dictionary<int, Action<int, int, Variable, object>>
+                    {
+                        {0, (r, c, variable, value) =>
+                        {   // ID column contains 1-based row numbers
+                            Assert.IsInstanceOfType(value, typeof(double), "First row variable should be a Number");
+                            double v = (double) value;
+                            Assert.AreEqual(r + 1, v, "First row variable should contain number of the current row");
+                        }},
+                        {1, (r, c, variable, value) =>
+                        {   // SEX column contains numbers 1 or 2
+                            Assert.IsInstanceOfType(value, typeof(double), "Second row variable should be a Number");
+                            double v = (double) value;
+                            Assert.IsTrue((v == 1 || v == 2), "Second row variable should contain either 1 or 2");
+                        }},
+                        {5, (r, c, variable, value) =>
+                        {   
+                            // POSTTEST columns contains numbers from 47.5110642482932 to 111.011279434702
+                            Assert.IsInstanceOfType(value, typeof(double), "Sixth row variable should be a Number");
+                            double v = (double) value;
+                            Assert.IsTrue((v > 47 && v < 112), "Sixth row variable should contain numbers from 47 to 112 but it contains {0} in row {1}", v, r);
+
+                            // Check number in the first row
+                            if (r == 0)
+                            {
+                                Assert.AreEqual(53.321541454892696, v, "Numeric value in the sixth variable and the first row is different");
+                            }
+                        }}
+                    });
+            }
+            finally
+            {
+                fileStream.Close();
+            }
+
+            Assert.AreEqual(varCount, 6, "Variable count does not match");
+            Assert.AreEqual(rowCount, 49, "Rows count does not match");
+        }
+
         internal static void ReadData(Stream fileStream, out int varCount, out int rowCount, 
             IDictionary<int, Action<int, Variable>> variableValidators = null, IDictionary<int, Action<int, int, Variable, object>> valueValidators = null)
         {

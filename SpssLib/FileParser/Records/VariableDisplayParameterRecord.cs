@@ -101,7 +101,7 @@ namespace SpssLib.FileParser.Records
             }
         }
 
-        protected override void FillInfo(BinaryReader reader)
+        protected override void FillInfo(DualBinaryReader reader)
         {
             CheckInfoHeader(4);
 

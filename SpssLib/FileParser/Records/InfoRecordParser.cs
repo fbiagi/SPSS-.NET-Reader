@@ -15,7 +15,7 @@ namespace SpssLib.FileParser.Records
             _infoRecordsTypes = infoRecordsTypes;
         }
 
-        public IRecord ParseRecord(BinaryReader reader)
+        public IRecord ParseRecord(DualBinaryReader reader)
         {
             IRecord record = CreateRecord(reader);
             record.FillRecord(reader);

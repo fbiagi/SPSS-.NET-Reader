@@ -17,7 +17,7 @@ namespace SpssLib.DataReader
         // TODO add needed metadata info (use SpssOptions?)
 
         /// <summary>
-        /// A collection of variables read from teh file 
+        /// A collection of variables read from the file 
         /// </summary>
 		public ICollection<Variable> Variables { get; private set; }
         /// <summary>
