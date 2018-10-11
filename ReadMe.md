@@ -17,6 +17,7 @@ This library has been tested in production on a few large deployments at @tns_gl
 // Open file, can be read only and sequetial (for performance), or anything else
 using (FileStream fileStream = new FileStream("data.sav", FileMode.Open, FileAccess.Read, FileShare.Read, 2048*10, 
                                               FileOptions.SequentialScan))
+{
     // Create the reader, this will read the file header
     SpssReader spssDataset = new SpssReader(fileStream);
     
