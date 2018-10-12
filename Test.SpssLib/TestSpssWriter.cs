@@ -338,37 +338,37 @@ namespace Test.SpssLib
         [TestMethod]
         public void TestWriteDoubleLongStringVar()
         {
-            var filename = @"c:\temp\testWriteDoubleLongString.sav";
+            var filename = @"testWriteDoubleLongString.sav";
 
             using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
             {
                 var var1 = new Variable("stringvar_01")
-                                 {
-                                     Label = "This is a string variable",
-                                     Type = DataType.Text,
-                                     Width = 50,
-                                     TextWidth = 5000
-                                 };
+                {
+                    Label = "This is a string variable",
+                    Type = DataType.Text,
+                    Width = 50,
+                    TextWidth = 5000
+                };
 
                 var var2 = new Variable("stringvar_02")
-                                {
-                                    Label = "This is a string variable",
-                                    PrintFormat = new OutputFormat(FormatType.A, 60),
-                                    WriteFormat = new OutputFormat(FormatType.A, 70),
-                                    Type = DataType.Text,
-                                    Width = 50,
-                                    TextWidth = 5000
-                                };
+                {
+                    Label = "This is a string variable",
+                    PrintFormat = new OutputFormat(FormatType.A, 60),
+                    WriteFormat = new OutputFormat(FormatType.A, 70),
+                    Type = DataType.Text,
+                    Width = 50,
+                    TextWidth = 5000
+                };
 
                 var var3 = new Variable("stringvar_03")
-                                 {
-                                     Label = "This is a string variable",
-                                     PrintFormat = new OutputFormat(FormatType.A, 60),
-                                     WriteFormat = new OutputFormat(FormatType.A, 70),
-                                     Type = DataType.Text,
-                                     Width = 50,
-                                     TextWidth = 5000
-                                 };                
+                {
+                    Label = "This is a string variable",
+                    PrintFormat = new OutputFormat(FormatType.A, 60),
+                    WriteFormat = new OutputFormat(FormatType.A, 70),
+                    Type = DataType.Text,
+                    Width = 50,
+                    TextWidth = 5000
+                };
 
                 var var4 = new Variable("stringvar_04")
                 {
@@ -420,6 +420,15 @@ namespace Test.SpssLib
                     writer.EndFile();
                 }
             }
+
+            FileStream readFileStream = new FileStream(filename, FileMode.Open, FileAccess.Read,
+                FileShare.Read, 2048 * 10, FileOptions.SequentialScan);
+
+            int varCount, rowCount;
+            TestSpssReader.ReadData(readFileStream, out varCount, out rowCount);
+
+            Assert.AreEqual(varCount, 6, "Variable count does not match");
+            Assert.AreEqual(rowCount, 1, "Rows count does not match");
         }
 
         private static void ReadFile(string filename, out int varCount, out int rowCount)
