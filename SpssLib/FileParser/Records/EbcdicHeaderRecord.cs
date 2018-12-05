@@ -5,7 +5,7 @@ namespace SpssLib.FileParser.Records
 {
     internal class EbcdicHeaderRecord : IRecord
     {
-        public NotSupportedException Exception => new NotSupportedException("EBCDIC???? Who uses that? Honestly!!");
+        public NotSupportedException Exception => new NotSupportedException("EBCDIC records not supported.");
 
         public RecordType RecordType => RecordType.EbcdicHeaderRecord;
 
@@ -14,7 +14,7 @@ namespace SpssLib.FileParser.Records
             throw Exception;
         }
 
-        public void FillRecord(BinaryReader reader)
+        public void FillRecord(DualBinaryReader reader)
         {
             throw Exception;
         }

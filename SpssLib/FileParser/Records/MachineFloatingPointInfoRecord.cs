@@ -35,7 +35,7 @@ namespace SpssLib.FileParser.Records
             writer.Write(MissingLowestValue);
         }
 
-        protected override void FillInfo(BinaryReader reader)
+        protected override void FillInfo(DualBinaryReader reader)
         {
             CheckInfoHeader(8, 3);
 

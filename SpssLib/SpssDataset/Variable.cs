@@ -155,7 +155,7 @@ namespace SpssLib.SpssDataset
 
 	    }
 
-		private DateTime AsDate(object value)
+		public DateTime AsDate(object value)
 		{
 			var dVal = (double)value;
 			return _epoc.AddSeconds(dVal);

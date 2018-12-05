@@ -6,7 +6,7 @@ namespace SpssLib.FileParser.Records
     internal interface IRecordParser
     {
         RecordType Accepts { get; }
-        IRecord ParseRecord(BinaryReader reader);
+        IRecord ParseRecord(DualBinaryReader reader);
     }
 
     internal class GeneralRecordParser<TRecord> : IRecordParser where TRecord : IRecord
@@ -18,7 +18,7 @@ namespace SpssLib.FileParser.Records
             Accepts = accepts;
         }
 
-        public IRecord ParseRecord(BinaryReader reader)
+        public IRecord ParseRecord(DualBinaryReader reader)
         {
             TRecord record = CreateRecord();
             record.FillRecord(reader);

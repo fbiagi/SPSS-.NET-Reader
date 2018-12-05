@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
+using SpssLib.FileParser;
+
 namespace SpssLib.Compression
 {
     class DecompressedDataStream: Stream
@@ -24,15 +26,15 @@ namespace SpssLib.Compression
         private byte[] _systemMissingBytes;
         private byte[] _spacesBytes;
 
-        private BinaryReader _reader;
+        private DualBinaryReader _reader;
 
-        public DecompressedDataStream(Stream compressedDataStream, double bias, double systemMissing)
+        public DecompressedDataStream(Stream compressedDataStream, double bias, double systemMissing, bool isLittleEndian)
         {
             CompressedDataStream = compressedDataStream;
             Bias = bias;
             SystemMissing = systemMissing;
-            _reader = new BinaryReader(compressedDataStream, Encoding.ASCII);
-
+            _reader = new DualBinaryReader(compressedDataStream, Encoding.ASCII);
+            _reader.IsLittleEndian = isLittleEndian;
             _spacesBytes = Encoding.ASCII.GetBytes(SpaceString);
             _systemMissingBytes = BitConverter.GetBytes(SystemMissing);
         }
@@ -163,11 +165,19 @@ namespace SpssLib.Compression
                 {
                 }
 
-                else if (instruction > 0 && instruction < 252) // compressed value
+                else if (instruction > 0 && instruction < 252) // compressed value (small 1-byte integers)
                 {
                     // compute actual value:
                     double value = instruction - Bias;
-                    _elementBuffer[bufferPosition++] = BitConverter.GetBytes(value);
+                    byte[] element = BitConverter.GetBytes(value);
+                    if(_reader.IsLittleEndian)
+                        _elementBuffer[bufferPosition++] = BitConverter.GetBytes(value);
+                    else
+                    {
+                        byte[] revElement = new byte[InstructionSetByteSize];
+                        Helper.ReverseArray(element, revElement);
+                        _elementBuffer[bufferPosition++] = revElement;
+                    }
                 }
                 else if (instruction == 252) // end of file
                 {

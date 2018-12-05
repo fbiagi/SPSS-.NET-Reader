@@ -91,7 +91,7 @@ namespace SpssLib.FileParser.Records
 			writer.Write(CharacterCode);
 		}
 
-        protected override void FillInfo(BinaryReader reader)
+        protected override void FillInfo(DualBinaryReader reader)
         {
             // Must have 8 int of 32 bits
             CheckInfoHeader(itemSize:4, itemCount:8);

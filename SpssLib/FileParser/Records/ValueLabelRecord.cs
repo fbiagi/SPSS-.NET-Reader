@@ -59,7 +59,7 @@ namespace SpssLib.FileParser.Records
 			}
 		}
 
-        public void FillRecord(BinaryReader reader)
+        public void FillRecord(DualBinaryReader reader)
         {
             LabelCount = reader.ReadInt32();
             _labelsRaw = new Dictionary<byte[], KeyValuePair<byte, byte[]>>();

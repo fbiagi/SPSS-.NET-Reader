@@ -49,6 +49,7 @@
     <Compile Include="Compression\DecompressedDataStream.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="FileParser\Common.cs" />
+    <Compile Include="FileParser\DualBinaryReader.cs" />
     <Compile Include="FileParser\Records\BaseInfoRecord.cs" />
     <Compile Include="FileParser\Records\EbcdicHeaderRecord.cs" />
     <Compile Include="FileParser\Records\InfoRecordParser.cs" />

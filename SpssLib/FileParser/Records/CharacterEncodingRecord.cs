@@ -39,7 +39,7 @@ namespace SpssLib.FileParser.Records
 			writer.Write(bytes);
 		}
 
-        protected override void FillInfo(BinaryReader reader)
+        protected override void FillInfo(DualBinaryReader reader)
         {
             CheckInfoHeader(1); // items must be of size 1 (byte)
 

@@ -56,6 +56,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="test.runsettings" />
+    <None Include="TestFiles\BigEndian.sav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="TestFiles\cakespss1000similarvars.sav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

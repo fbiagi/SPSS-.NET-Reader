@@ -69,6 +69,19 @@ namespace SpssLib.FileParser
 
         public IList<BaseInfoRecord> InfoRecords { get; private set; }
 
+        public bool IsLittleEndian
+        {
+            get
+            {
+                if (this.MachineIntegerInfo.Endianness == 2)
+                    return true;
+                else if (this.MachineIntegerInfo.Endianness == 1)
+                    return false;
+                else
+                    throw new SpssFileFormatException("Failed to detect endianness.");
+            }
+        }
+
         public double SystemMissingValue { get; private set; }
         // Count number of variables (the number of variable-records with a name,
         // the rest is part of a long string variable), this includes the variables 

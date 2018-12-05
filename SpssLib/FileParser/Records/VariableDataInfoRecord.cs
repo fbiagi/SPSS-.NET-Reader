@@ -96,7 +96,7 @@ namespace SpssLib.FileParser.Records
             Data = buffer;
         }
         
-        protected override void FillInfo(BinaryReader reader)
+        protected override void FillInfo(DualBinaryReader reader)
         {
             CheckInfoHeader(1);
             Data = reader.ReadBytes(ItemCount);

@@ -472,7 +472,7 @@ namespace SpssLib.FileParser.Records
 		    
 	    }
 
-        public void FillRecord(BinaryReader reader)
+        public void FillRecord(DualBinaryReader reader)
         {
             Type = reader.ReadInt32();
             HasVariableLabel = reader.ReadInt32() == 1;
