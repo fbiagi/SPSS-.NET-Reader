@@ -60,6 +60,8 @@ namespace SpssLib.FileParser.Records
                         return Encoding.UTF8;
                     case 4: // DEC Kanji
                         throw new NotSupportedException("SPSS machine info record character code not suported: 4 - DEC Kanji. What year is this?? Where am I?");
+                    case 1252:
+                        return CodePagesEncodingProvider.Instance.GetEncoding(1252);
                     default: // Other, look by codepage
                         try
                         {

@@ -93,6 +93,11 @@ namespace SpssLib.FileParser.Records
                 return Encoding.GetEncoding(932); 
             }
 
+            if (strEncoding.Equals("CP1252", StringComparison.InvariantCultureIgnoreCase))
+            {                
+                return CodePagesEncodingProvider.Instance.GetEncoding(1252);
+            }
+
             throw new SpssFileFormatException("Encoding not recognized: " + strEncoding);
         }
 	}
