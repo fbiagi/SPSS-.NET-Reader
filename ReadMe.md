@@ -6,10 +6,10 @@ It is available as a nuget package at https://www.nuget.org/packages/SpssLib, an
 ```
 Install-Package SpssLib
 ``` 
+It's a fork of [SPSS-.NET-Reader](https://github.com/fbiagi/SPSS-.NET-Reader) by fbiagi (based on [spsslib-80132](http://spsslib.codeplex.com/) by elmarj). 
+Since forking we have added writing ability, solved many bugs, provided closer SPSS binary integration by following the [PSPP provided SPSS format](https://www.gnu.org/software/pspp/pspp-dev/html_node/System-File-Format.html#System-File-Format). 
 
-It's a fork of [spsslib-80132](http://spsslib.codeplex.com/) by elmarj. Since forking we have added writing ability, solved many bugs, provided closer SPSS binary integration by following the [PSPP provided SPSS format](https://www.gnu.org/software/pspp/pspp-dev/html_node/System-File-Format.html#System-File-Format). 
-
-This library has been tested in production on a few large deployments at @tns_global.
+This library has been tested in production on a few large deployments at @SIIS-Ltd.
 
 ### To read a data file:
 
@@ -114,3 +114,7 @@ using (FileStream fileStream = new FileStream("data.sav", FileMode.Create, FileA
 ```
 
 If you find any bugs or have issues, please open an issue on GitHub. 
+
+## SAV file format
+
+Binary description of `*.sav` file format is available here: http://www.gnu.org/software/pspp/pspp-dev/html_node/System-File-Format.html.

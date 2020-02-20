@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="$USER_HOME$/.Rider2019.3/system/extResources" t="IncludeRecursive" />
+    <e p="$USER_HOME$/.Rider2019.3/system/resharper-host/local/Transient/ReSharperHost/v193/SolutionCaches/_Curisoity.SPSS.1482962060.00" t="ExcludeRecursive" />
+    <e p="$USER_HOME$/.nuget/packages/microsoft.net.test.sdk/16.5.0/build/netcoreapp2.1" t="Include">
+      <e p="Microsoft.NET.Test.Sdk.Program.cs" t="Include" />
+    </e>
+    <e p="$USER_HOME$/.nuget/packages/xunit.runner.visualstudio/2.4.1/build/netcoreapp1.0/xunit.runner.reporters.netcoreapp10.dll" t="Include" />
+    <e p="$USER_HOME$/.nuget/packages/xunit.runner.visualstudio/2.4.1/build/netcoreapp1.0/xunit.runner.utility.netcoreapp10.dll" t="Include" />
+    <e p="$USER_HOME$/.nuget/packages/xunit.runner.visualstudio/2.4.1/build/netcoreapp1.0/xunit.runner.visualstudio.dotnetcore.testadapter.dll" t="Include" />
+    <e p="$PROJECT_DIR$" t="IncludeFlat">
+      <e p="Curisoity.SPSS.sln" t="IncludeFlat" />
+      <e p="packages" t="ExcludeRecursive" />
+      <e p="src" t="Include">
+        <e p="Curiosity.SPSS" t="IncludeRecursive">
+          <e p="Compression" t="Include">
+            <e p="DecompressedDataStream.cs" t="Include" />
+          </e>
+          <e p="Constants.cs" t="Include" />
+          <e p="Curiosity.SPSS.csproj" t="IncludeRecursive" />
+          <e p="DataReader" t="Include">
+            <e p="SpssOptions.cs" t="Include" />
+            <e p="SpssReader.cs" t="Include" />
+            <e p="SpssWriter.cs" t="Include" />
+          </e>
+          <e p="FileParser" t="Include">
+            <e p="Common.cs" t="Include" />
+            <e p="CompressedRecordWriter.cs" t="Include" />
+            <e p="IRecordWriter.cs" t="Include" />
+            <e p="MetaData.cs" t="Include" />
+            <e p="Records" t="Include">
+              <e p="BaseInfoRecord.cs" t="Include" />
+              <e p="CharacterEncodingRecord.cs" t="Include" />
+              <e p="DictionaryTerminationRecord.cs" t="Include" />
+              <e p="DocumentRecord.cs" t="Include" />
+              <e p="EbcdicHeaderRecord.cs" t="Include" />
+              <e p="EncodeEnabledRecord.cs" t="Include" />
+              <e p="EncodingExtensions.cs" t="Include" />
+              <e p="HeaderRecord.cs" t="Include" />
+              <e p="IRecord.cs" t="Include" />
+              <e p="IRecordParser.cs" t="Include" />
+              <e p="InfoRecord.cs" t="Include" />
+              <e p="InfoRecordParser.cs" t="Include" />
+              <e p="InfoRecordType.cs" t="Include" />
+              <e p="LongVariableNamesRecord.cs" t="Include" />
+              <e p="MachineFloatingPointInfoRecord.cs" t="Include" />
+              <e p="MachineIntegerInfoRecord.cs" t="Include" />
+              <e p="ParserProvider.cs" t="Include" />
+              <e p="ReaderWriterExtensions.cs" t="Include" />
+              <e p="RecordType.cs" t="Include" />
+              <e p="ValueLabelRecord.cs" t="Include" />
+              <e p="VariableDataInfoRecord.cs" t="Include" />
+              <e p="VariableDataType.cs" t="Include" />
+              <e p="VariableDisplayInfo.cs" t="Include" />
+              <e p="VariableDisplayInfoCollection.cs" t="Include" />
+              <e p="VariableDisplayParameterRecord.cs" t="Include" />
+              <e p="VariableRecord.cs" t="Include" />
+              <e p="VeryLongStringRecord.cs" t="Include" />
+            </e>
+            <e p="SavFileParser.cs" t="Include" />
+            <e p="SavFileWriter.cs" t="Include" />
+            <e p="SpssFileFormatException.cs" t="Include" />
+            <e p="StringWriter.cs" t="Include" />
+          </e>
+          <e p="SpssDataset" t="Include">
+            <e p="Alignment.cs" t="Include" />
+            <e p="DataType.cs" t="Include" />
+            <e p="FormatType.cs" t="Include" />
+            <e p="MeasurementType.cs" t="Include" />
+            <e p="MissingValueType.cs" t="Include" />
+            <e p="OutputFormat.cs" t="Include" />
+            <e p="Record.cs" t="Include" />
+            <e p="Variable.cs" t="Include" />
+          </e>
+          <e p="bin" t="ExcludeRecursive" />
+          <e p="doc" t="Include">
+            <e p="BinaryDescription.txt" t="Include" />
+          </e>
+          <e p="obj" t="ExcludeRecursive">
+            <e p="Debug" t="Include">
+              <e p="netstandard2.0" t="Include">
+                <e p="Curiosity.SPSS.AssemblyInfo.cs" t="Include" />
+              </e>
+            </e>
+          </e>
+        </e>
+      </e>
+      <e p="tests" t="Include">
+        <e p="Curiosity.SPSS.UnitTests" t="IncludeRecursive">
+          <e p="Curiosity.SPSS.UnitTests.csproj" t="IncludeRecursive" />
+          <e p="TestFiles" t="Include">
+            <e p="MissingValues.sav" t="Include" />
+            <e p="cakespss1000similarvars.sav" t="Include" />
+            <e p="test.sav" t="Include" />
+          </e>
+          <e p="TestSpssCopy.cs" t="Include" />
+          <e p="TestSpssReader.cs" t="Include" />
+          <e p="TestSpssWriter.cs" t="Include" />
+          <e p="bin" t="ExcludeRecursive" />
+          <e p="obj" t="ExcludeRecursive">
+            <e p="Debug" t="Include">
+              <e p="netcoreapp2.2" t="Include">
+                <e p="Curiosity.SPSS.UnitTests.AssemblyInfo.cs" t="Include" />
+              </e>
+            </e>
+          </e>
+          <e p="test.runsettings" t="Include" />
+        </e>
+      </e>
+    </e>
+  </component>
+</project>
