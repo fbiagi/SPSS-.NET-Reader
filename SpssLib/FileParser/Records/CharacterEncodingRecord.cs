@@ -92,6 +92,11 @@ namespace SpssLib.FileParser.Records
                 // 932 - Japanese (Shift-JIS)
                 return Encoding.GetEncoding(932); 
             }
+            
+            if (strEncoding.Equals("CP1252", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return Encoding.GetEncoding(1252); 
+            }
 
             throw new SpssFileFormatException("Encoding not recognized: " + strEncoding);
         }
