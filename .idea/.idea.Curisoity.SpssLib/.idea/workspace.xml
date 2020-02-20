@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="2b14537c-58b6-4eed-883c-55e9a523697b" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/SpssLib.sln" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/Compression/DecompressedDataStream.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/Constants.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/DataReader/SpssOptions.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/DataReader/SpssReader.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/DataReader/SpssWriter.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Common.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/CompressedRecordWriter.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/IRecordWriter.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/MetaData.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/BaseInfoRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/CharacterEncodingRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/DictionaryTerminationRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/DocumentRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/EbcdicHeaderRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/EncodeEnabledRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/EncodingExtensions.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/HeaderRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/IRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/IRecordParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/InfoRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/InfoRecordParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/InfoRecordType.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/LongVariableNamesRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/MachineFloatingPointInfoRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/MachineIntegerInfoRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/ParserProvider.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/ReaderWriterExtensions.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/RecordType.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/ValueLabelRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/VariableDataInfoRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/VariableDataType.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/VariableDisplayInfo.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/VariableDisplayInfoCollection.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/VariableDisplayParameterRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/VariableRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/Records/VeryLongStringRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/SavFileParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/SavFileWriter.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/SpssFileFormatException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/FileParser/StringWriter.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/SpssDataset/Alignment.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/SpssDataset/DataType.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/SpssDataset/FormatType.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/SpssDataset/MeasurementType.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/SpssDataset/MissingValueType.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/SpssDataset/OutputFormat.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/SpssDataset/Record.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/SpssDataset/Variable.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/SpssLib.csproj" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SpssLib/doc/BinaryDescription.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test.SpssLib/Test.SpssLib.csproj" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test.SpssLib/TestFiles/MissingValues.sav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test.SpssLib/TestFiles/cakespss1000similarvars.sav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test.SpssLib/TestFiles/test.sav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test.SpssLib/TestSpssCopy.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test.SpssLib/TestSpssReader.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test.SpssLib/TestSpssWriter.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test.SpssLib/test.runsettings" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1Y4R9oy4SVpdUWhOgbnm2gU21td" />
+  <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
+    <option name="autoscrollToSource" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="TWShift.4" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/Curiosity.SpssLib/SpssLib.csproj" />
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2b14537c-58b6-4eed-883c-55e9a523697b" name="Default Changelist" comment="" />
+      <created>1582199730885</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1582199730885</updated>
+      <workItem from="1582199732084" duration="75000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="3623" y="477" width="424" height="484" key="FileChooserDialogImpl" timestamp="1582199762849">
+      <screen x="2560" y="0" width="2560" height="1440" />
+    </state>
+    <state x="3623" y="477" width="424" height="484" key="FileChooserDialogImpl/67.27.2493.1413/2560.0.2560.1440@2560.0.2560.1440" timestamp="1582199762848" />
+  </component>
+</project>
