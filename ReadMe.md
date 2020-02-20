@@ -1,10 +1,19 @@
 # C# SPSS SAV file reader and writer library
 
+
+|Branch|Build status|
+|---|---|
+|master|[![Build Status](https://travis-ci.com/SIIS-Ltd/Curiosity.SPSS.svg?branch=master)](https://travis-ci.com/SIIS-Ltd/Curiosity.SPSS)|
+|develop|[![Build Status](https://travis-ci.com/SIIS-Ltd/Curiosity.SPSS.svg?branch=dev)](https://travis-ci.com/SIIS-Ltd/Curiosity.SPSS)|
+
+
+![Nuget](https://img.shields.io/nuget/v/Curiosity.SPSS)
+
 This library enables to read and write SPSS data files (.sav) on .net from and to a Stream. The library is UTF-8 safe.
 
-It is available as a nuget package at https://www.nuget.org/packages/SpssLib, and can be installed using the package manager or by issueing:
+It is available as a nuget package at https://www.nuget.org/packages/Curiosity.SPSS, and can be installed using the package manager or by issueing:
 ```
-Install-Package SpssLib
+Install-Package Curiosity.SPSS
 ``` 
 It's a fork of [SPSS-.NET-Reader](https://github.com/fbiagi/SPSS-.NET-Reader) by fbiagi (based on [spsslib-80132](http://spsslib.codeplex.com/) by elmarj). 
 Since forking we have added writing ability, solved many bugs, provided closer SPSS binary integration by following the [PSPP provided SPSS format](https://www.gnu.org/software/pspp/pspp-dev/html_node/System-File-Format.html#System-File-Format). 
