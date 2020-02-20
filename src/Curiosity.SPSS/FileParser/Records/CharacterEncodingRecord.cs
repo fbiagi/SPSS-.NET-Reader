@@ -12,8 +12,6 @@ namespace Curiosity.SPSS.FileParser.Records
 
         public string Name { get; private set; }
         
-        public Encoding Encoding { get; private set; }
-
         internal CharacterEncodingRecord()
         {}
 

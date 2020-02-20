@@ -87,8 +87,8 @@
         </e>
       </e>
       <e p="tests" t="Include">
-        <e p="Curiosity.SPSS.UnitTests" t="IncludeRecursive">
-          <e p="Curiosity.SPSS.UnitTests.csproj" t="IncludeRecursive" />
+        <e p="Curiosity.SPSS.Tests" t="IncludeRecursive">
+          <e p="Curiosity.SPSS.Tests.csproj" t="IncludeRecursive" />
           <e p="TestFiles" t="Include">
             <e p="MissingValues.sav" t="Include" />
             <e p="cakespss1000similarvars.sav" t="Include" />
@@ -101,7 +101,7 @@
           <e p="obj" t="ExcludeRecursive">
             <e p="Debug" t="Include">
               <e p="netcoreapp2.2" t="Include">
-                <e p="Curiosity.SPSS.UnitTests.AssemblyInfo.cs" t="Include" />
+                <e p="Curiosity.SPSS.Tests.AssemblyInfo.cs" t="Include" />
               </e>
             </e>
           </e>

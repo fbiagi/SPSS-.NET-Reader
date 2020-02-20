@@ -2,16 +2,20 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    
+    <PackageId>Curiosity.SPSS</PackageId>
+    <Version>1.0</Version>
+    <Authors>TNS / SIISLtd (Maxim Markelow, Andrei Vinogradov)</Authors>
+    <Company>SIIS Ltd</Company>
+    <Licence>https://github.com/SIIS-Ltd/Curiosity.SPSS/blob/master/LICENSE/</Licence>
+    <PackageProjectUrl>https://github.com/SIIS-Ltd/Curiosity.SPSS</PackageProjectUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Title>SPSS / PSPP data file .net library</Title>
-    <Authors>TNS / SIISLtd</Authors>
     <Description>A library for reading and writing .sav files</Description>
-    <RepositoryUrl>https://github.com/SIIS-Ltd/SPSS-.NET-Reader</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>siisltd; infrastructure; utils; sav; spss; spsslib</PackageTags>
-    <PackageReleaseNotes>https://github.com/SIIS-Ltd/SPSS-.NET-Reader/releases</PackageReleaseNotes>
-    <AssemblyVersion>1.1.5</AssemblyVersion>
-    <FileVersion>1.0.0</FileVersion>
-    <PackageVersion>1.1.5</PackageVersion>
+    <PackageReleaseNotes>https://github.com/SIIS-Ltd/Curiosity.SPSS/tree/master/CHANGELOG.md</PackageReleaseNotes>
+    <PackageTags>siisltd; infrastructure; utils; sav; spss; spsslib; statistics; curiosity</PackageTags>
+    <LangVersion>7.3</LangVersion>
+    
   </PropertyGroup>
 
 </Project>
