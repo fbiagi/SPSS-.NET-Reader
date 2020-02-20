@@ -1,51 +1,50 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpssLib.DataReader;
 using SpssLib.SpssDataset;
+using Xunit;
 
 namespace Test.SpssLib
 {
-    [TestClass]
     public class TestSpssWriter
     {
-        [TestMethod]
+        [Fact]
         public void TestWriteNumbers()
         {
-            var filename = @"testWriteNumbers.sav";
+            var filename = @"TestFiles/testWriteNumbers.sav";
 
             var variables = new List<Variable>
-                            {
-                                new Variable("avariablename_01")
-                                {
-                                    Label = "The variable Label",
-                                    ValueLabels = new Dictionary<double, string>
-                                                  {
-                                                      {1, "Label for 1"},
-                                                      {2, "Label for 2"},
-                                                  },
-                                    PrintFormat = new OutputFormat(FormatType.F, 8, 2),
-                                    WriteFormat = new OutputFormat(FormatType.F, 8, 2),
-                                    Type = DataType.Numeric,
-                                    Width = 10,
-                                    MissingValueType = MissingValueType.OneDiscreteMissingValue
-                                },
-                                new Variable("avariablename_02")
-                                {
-                                    Label = "Another variable",
-                                    ValueLabels = new Dictionary<double, string>
-                                                  {
-                                                      {1, "this is 1"},
-                                                      {2, "this is 2"},
-                                                  },
-                                    PrintFormat = new OutputFormat(FormatType.F, 8, 2),
-                                    WriteFormat = new OutputFormat(FormatType.F, 8, 2),
-                                    Type = DataType.Numeric,
-                                    Width = 10,
-                                    MissingValueType = MissingValueType.OneDiscreteMissingValue
-                                }
-                            };
+            {
+                new Variable("avariablename_01")
+                {
+                    Label = "The variable Label",
+                    ValueLabels = new Dictionary<double, string>
+                    {
+                        {1, "Label for 1"},
+                        {2, "Label for 2"},
+                    },
+                    PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+                    WriteFormat = new OutputFormat(FormatType.F, 8, 2),
+                    Type = DataType.Numeric,
+                    Width = 10,
+                    MissingValueType = MissingValueType.OneDiscreteMissingValue
+                },
+                new Variable("avariablename_02")
+                {
+                    Label = "Another variable",
+                    ValueLabels = new Dictionary<double, string>
+                    {
+                        {1, "this is 1"},
+                        {2, "this is 2"},
+                    },
+                    PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+                    WriteFormat = new OutputFormat(FormatType.F, 8, 2),
+                    Type = DataType.Numeric,
+                    Width = 10,
+                    MissingValueType = MissingValueType.OneDiscreteMissingValue
+                }
+            };
             variables[0].MissingValues[0] = 999;
             variables[1].MissingValues[0] = 999;
 
@@ -71,102 +70,102 @@ namespace Test.SpssLib
             int rowCount;
             ReadFile(filename, out varCount, out rowCount);
 
-            Assert.AreEqual(varCount, 2, "Variable count does not match");
-            Assert.AreEqual(rowCount, 2, "Rows count does not match");
+            Assert.Equal(2, varCount); //Variable count does not match
+            Assert.Equal(2, rowCount); //Rows count does not match
         }
 
-        [TestMethod]
+        [Fact]
         public void TestWriteString()
         {
-            var filename = @"testWriteString.sav";
+            var filename = @"TestFiles/testWriteString.sav";
 
             var varString1 = new Variable("stringvar_01")
-                             {
-                                 Label = "This is a string variable",
-                                 Type = DataType.Text,
-                                 TextWidth = 500,
-                             };
+            {
+                Label = "This is a string variable",
+                Type = DataType.Text,
+                TextWidth = 500,
+            };
 
             var variable1 = new Variable("avariablename_01")
-                            {
-                                Label = "The variable Label",
-                                ValueLabels = new Dictionary<double, string>
-                                              {
-                                                  {1, "Label for 1"},
-                                                  {2, "Label for 2"},
-                                              },
-                                PrintFormat = new OutputFormat(FormatType.F, 8, 2),
-                                WriteFormat = new OutputFormat(FormatType.F, 8, 2),
-                                Type = DataType.Numeric,
-                                Width = 10,
-                                MissingValueType = MissingValueType.OneDiscreteMissingValue,
-                                MissingValues = {[0] = 999}
-                            };
+            {
+                Label = "The variable Label",
+                ValueLabels = new Dictionary<double, string>
+                {
+                    {1, "Label for 1"},
+                    {2, "Label for 2"},
+                },
+                PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+                WriteFormat = new OutputFormat(FormatType.F, 8, 2),
+                Type = DataType.Numeric,
+                Width = 10,
+                MissingValueType = MissingValueType.OneDiscreteMissingValue,
+                MissingValues = {[0] = 999}
+            };
 
             var varString = new Variable("stringvar_02")
-                            {
-                                Label = "This is a string variable",
-                                PrintFormat = new OutputFormat(FormatType.A, 60),
-                                WriteFormat = new OutputFormat(FormatType.A, 60),
-                                Type = DataType.Text,
-                                Width = 60,
-                                TextWidth = 60,
-                            };
+            {
+                Label = "This is a string variable",
+                PrintFormat = new OutputFormat(FormatType.A, 60),
+                WriteFormat = new OutputFormat(FormatType.A, 60),
+                Type = DataType.Text,
+                Width = 60,
+                TextWidth = 60,
+            };
 
             var variable2 = new Variable("avariablename_02")
-                            {
-                                Label = "Another variable",
-                                ValueLabels = new Dictionary<double, string>
-                                              {
-                                                  {1, "this is 1"},
-                                                  {2, "this is 2"},
-                                              },
-                                PrintFormat = new OutputFormat(FormatType.F, 8, 2),
-                                WriteFormat = new OutputFormat(FormatType.F, 8, 2),
-                                Type = DataType.Numeric,
-                                Width = 10,
-                                MissingValueType = MissingValueType.OneDiscreteMissingValue,
-                                MissingValues = {[0] = 999}
-                            };
+            {
+                Label = "Another variable",
+                ValueLabels = new Dictionary<double, string>
+                {
+                    {1, "this is 1"},
+                    {2, "this is 2"},
+                },
+                PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+                WriteFormat = new OutputFormat(FormatType.F, 8, 2),
+                Type = DataType.Numeric,
+                Width = 10,
+                MissingValueType = MissingValueType.OneDiscreteMissingValue,
+                MissingValues = {[0] = 999}
+            };
 
             var variables = new List<Variable>
-                            {
-                                varString1,
-                                variable1,
-                                varString,
-                                variable2
-                            };
+            {
+                varString1,
+                variable1,
+                varString,
+                variable2
+            };
 
             var options = new SpssOptions();
 
             var data = new[]
-                       {
-                           new object[]
-                           {
-                               // Exactly 500
-                               "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In iaculis neque eget neque semper, vitae lacinia libero rhoncus. Mauris tellus lorem, imperdiet vitae bibendum ac, rhoncus nec dui. Donec in consequat leo. Nunc at ante nec metus aliquam hendrerit quis a augue. Suspendisse faucibus nunc mauris, sed faucibus mauris bibendum et. Sed auctor, dolor non luctus interdum, tellus neque auctor dui, sit amet luctus neque risus vel nibh. Nullam ornare ultricies quam. Vestibulum eget erat sit nullam.",
-                               15d,
-                               "adsf ñlkj",
-                               15.5d
-                           },
-                           new object[]
-                           {
-                               // 600, should be cut to 500
-                               "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In elementum sed justo eu pulvinar. Maecenas non laoreet justo, eget ultrices dolor. Praesent sit amet sodales erat. Proin condimentum, metus et pulvinar ultrices, massa erat hendrerit lorem, vel mattis dolor ante id sem. Fusce laoreet mi tortor, ut interdum ipsum laoreet vel. Nullam lorem mauris, vulputate luctus velit placerat, scelerisque vehicula elit. Phasellus gravida ante quis augue convallis venenatis. Integer bibendum purus non felis interdum, quis fermentum tellus sodales. Fusce commodo ultrices leo ut vulputate. Quisque metus.",
-                               150d,
-                               null,
-                               150d
-                           },
-                           new object[]
-                           {
-                               // 255 chars
-                               "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In iaculis neque eget neque semper, vitae lacinia libero rhoncus. Mauris tellus lorem, imperdiet vitae bibendum ac, rhoncus nec dui. Donec in consequat leo. Nunc at ante nec metus aliquam hendrerit_",
-                               null,
-                               // 300 chars, should be cut to 60
-                               "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec.",
-                               200d
-                           }
-                       };
+            {
+                new object[]
+                {
+                    // Exactly 500
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In iaculis neque eget neque semper, vitae lacinia libero rhoncus. Mauris tellus lorem, imperdiet vitae bibendum ac, rhoncus nec dui. Donec in consequat leo. Nunc at ante nec metus aliquam hendrerit quis a augue. Suspendisse faucibus nunc mauris, sed faucibus mauris bibendum et. Sed auctor, dolor non luctus interdum, tellus neque auctor dui, sit amet luctus neque risus vel nibh. Nullam ornare ultricies quam. Vestibulum eget erat sit nullam.",
+                    15d,
+                    "adsf ñlkj",
+                    15.5d
+                },
+                new object[]
+                {
+                    // 600, should be cut to 500
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In elementum sed justo eu pulvinar. Maecenas non laoreet justo, eget ultrices dolor. Praesent sit amet sodales erat. Proin condimentum, metus et pulvinar ultrices, massa erat hendrerit lorem, vel mattis dolor ante id sem. Fusce laoreet mi tortor, ut interdum ipsum laoreet vel. Nullam lorem mauris, vulputate luctus velit placerat, scelerisque vehicula elit. Phasellus gravida ante quis augue convallis venenatis. Integer bibendum purus non felis interdum, quis fermentum tellus sodales. Fusce commodo ultrices leo ut vulputate. Quisque metus.",
+                    150d,
+                    null,
+                    150d
+                },
+                new object[]
+                {
+                    // 255 chars
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In iaculis neque eget neque semper, vitae lacinia libero rhoncus. Mauris tellus lorem, imperdiet vitae bibendum ac, rhoncus nec dui. Donec in consequat leo. Nunc at ante nec metus aliquam hendrerit_",
+                    null,
+                    // 300 chars, should be cut to 60
+                    "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec.",
+                    200d
+                }
+            };
 
             using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
             {
@@ -177,79 +176,78 @@ namespace Test.SpssLib
                     {
                         writer.WriteRecord(row);
                     }
+
                     writer.EndFile();
                 }
             }
 
-            int varCount;
-            int rowCount;
-            ReadFile(filename, out varCount, out rowCount);
+            ReadFile(filename, out var varCount, out var rowCount);
 
-            Assert.AreEqual(varCount, 4, "Variable count does not match");
-            Assert.AreEqual(rowCount, 3, "Rows count does not match");
+            Assert.Equal(4, varCount); //Variable count does not match
+            Assert.Equal(3, rowCount); //Rows count does not match
         }
 
 
-        [TestMethod]
+        [Fact]
         public void TestWriteLongWeirdString()
         {
-            var filename = @"testTestWriteLongWeirdString.sav";
+            var filename = @"TestFiles/testTestWriteLongWeirdString.sav";
 
             var varString1 = new Variable("stringvar_01")
-                             {
-                                 Label = "This is a string variable",
-                                 Type = DataType.Text,
-                                 TextWidth = 5000,
-                             };
+            {
+                Label = "This is a string variable",
+                Type = DataType.Text,
+                TextWidth = 5000,
+            };
 
             var variable1 = new Variable("avariablename_01")
-                            {
-                                Label = "The variable Label",
-                                ValueLabels = new Dictionary<double, string>
-                                              {
-                                                  {1, "Label for 1"},
-                                                  {2, "Label for 2"},
-                                              },
-                                PrintFormat = new OutputFormat(FormatType.F, 8, 2),
-                                WriteFormat = new OutputFormat(FormatType.F, 8, 2),
-                                Type = DataType.Numeric,
-                                Width = 10,
-                                MissingValueType = MissingValueType.OneDiscreteMissingValue,
-                                MissingValues = {[0] = 999}
-                            };
+            {
+                Label = "The variable Label",
+                ValueLabels = new Dictionary<double, string>
+                {
+                    {1, "Label for 1"},
+                    {2, "Label for 2"},
+                },
+                PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+                WriteFormat = new OutputFormat(FormatType.F, 8, 2),
+                Type = DataType.Numeric,
+                Width = 10,
+                MissingValueType = MissingValueType.OneDiscreteMissingValue,
+                MissingValues = {[0] = 999}
+            };
 
             var varString = new Variable("stringvar_02")
-                            {
-                                Label = "This is a string variable",
-                                Type = DataType.Text,
-                                TextWidth = 60,
-                                Alignment = Alignment.Centre,
-                                MeasurementType = MeasurementType.Ordinal
-                            };
+            {
+                Label = "This is a string variable",
+                Type = DataType.Text,
+                TextWidth = 60,
+                Alignment = Alignment.Centre,
+                MeasurementType = MeasurementType.Ordinal
+            };
 
             var variable2 = new Variable("avariablename_02")
-                            {
-                                Label = "Another variable",
-                                ValueLabels = new Dictionary<double, string>
-                                              {
-                                                  {1, "this is 1"},
-                                                  {2, "this is 2"},
-                                              },
-                                PrintFormat = new OutputFormat(FormatType.F, 8, 2),
-                                WriteFormat = new OutputFormat(FormatType.F, 8, 2),
-                                Type = DataType.Numeric,
-                                Width = 10,
-                                MissingValueType = MissingValueType.OneDiscreteMissingValue,
-                                MissingValues = {[0] = 999}
-                            };
+            {
+                Label = "Another variable",
+                ValueLabels = new Dictionary<double, string>
+                {
+                    {1, "this is 1"},
+                    {2, "this is 2"},
+                },
+                PrintFormat = new OutputFormat(FormatType.F, 8, 2),
+                WriteFormat = new OutputFormat(FormatType.F, 8, 2),
+                Type = DataType.Numeric,
+                Width = 10,
+                MissingValueType = MissingValueType.OneDiscreteMissingValue,
+                MissingValues = {[0] = 999}
+            };
 
             var variables = new List<Variable>
-                            {
-                                varString1,
-                                variable1,
-                                varString,
-                                variable2
-                            };
+            {
+                varString1,
+                variable1,
+                varString,
+                variable2
+            };
 
             var options = new SpssOptions();
 
@@ -291,51 +289,54 @@ namespace Test.SpssLib
             int rowCount;
             ReadFile(filename, out varCount, out rowCount);
 
-            Assert.AreEqual(varCount, 4, "Variable count does not match");
-            Assert.AreEqual(rowCount, 3, "Rows count does not match");
+            Assert.Equal(4, varCount); //Variable count does not match
+            Assert.Equal(3, rowCount); //Rows count does not match
         }
 
-        [ExpectedException(typeof (ArgumentNullException))]
-        [TestMethod]
+        [Fact]
         public void TestNullVarnameException()
         {
-            var filename = @"thisFileShouldNotExist.sav";
-
-            var variables = new List<Variable>
-                            {
-                                new Variable(null)
-                            };
-
-            using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
+            Assert.Throws<ArgumentNullException>(() =>
             {
-                using (new SpssWriter(fileStream, variables))
+                var filename = @"TestFiles/thisFileShouldNotExist.sav";
+
+                var variables = new List<Variable>
                 {
+                    new Variable(null)
+                };
+                using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
+                {
+                    using (new SpssWriter(fileStream, variables))
+                    {
+                    }
                 }
-            }
+            });
         }
 
-        [ExpectedException(typeof (ArgumentException))]
-        [TestMethod]
+        [Fact]
         public void TestNoVarnameException()
         {
-            var filename = @"emptyErrorFile.sav";
-
-            var variables = new List<Variable>
-                            {
-#pragma warning disable 618
-                                new Variable()
-#pragma warning restore 618
-                            };
-
-            using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
+            Assert.Throws<ArgumentException>(() =>
             {
-                using (new SpssWriter(fileStream, variables))
+                var filename = @"TestFiles/emptyErrorFile.sav";
+
+                var variables = new List<Variable>
                 {
+#pragma warning disable 618
+                    new Variable()
+#pragma warning restore 618
+                };
+
+                using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
+                {
+                    using (new SpssWriter(fileStream, variables))
+                    {
+                    }
                 }
-            }
+            });
         }
 
-        [TestMethod]
+        [Fact]
         public void TestWriteDoubleLongStringVar()
         {
             var filename = @"c:\temp\testWriteDoubleLongString.sav";
@@ -343,32 +344,32 @@ namespace Test.SpssLib
             using (FileStream fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
             {
                 var var1 = new Variable("stringvar_01")
-                                 {
-                                     Label = "This is a string variable",
-                                     Type = DataType.Text,
-                                     Width = 50,
-                                     TextWidth = 5000
-                                 };
+                {
+                    Label = "This is a string variable",
+                    Type = DataType.Text,
+                    Width = 50,
+                    TextWidth = 5000
+                };
 
                 var var2 = new Variable("stringvar_02")
-                                {
-                                    Label = "This is a string variable",
-                                    PrintFormat = new OutputFormat(FormatType.A, 60),
-                                    WriteFormat = new OutputFormat(FormatType.A, 70),
-                                    Type = DataType.Text,
-                                    Width = 50,
-                                    TextWidth = 5000
-                                };
+                {
+                    Label = "This is a string variable",
+                    PrintFormat = new OutputFormat(FormatType.A, 60),
+                    WriteFormat = new OutputFormat(FormatType.A, 70),
+                    Type = DataType.Text,
+                    Width = 50,
+                    TextWidth = 5000
+                };
 
                 var var3 = new Variable("stringvar_03")
-                                 {
-                                     Label = "This is a string variable",
-                                     PrintFormat = new OutputFormat(FormatType.A, 60),
-                                     WriteFormat = new OutputFormat(FormatType.A, 70),
-                                     Type = DataType.Text,
-                                     Width = 50,
-                                     TextWidth = 5000
-                                 };                
+                {
+                    Label = "This is a string variable",
+                    PrintFormat = new OutputFormat(FormatType.A, 60),
+                    WriteFormat = new OutputFormat(FormatType.A, 70),
+                    Type = DataType.Text,
+                    Width = 50,
+                    TextWidth = 5000
+                };
 
                 var var4 = new Variable("stringvar_04")
                 {
@@ -398,14 +399,14 @@ namespace Test.SpssLib
 
 
                 var variables = new List<Variable>
-                                {
-                                    var1,
-                                    var2,
-                                    var3,
-                                    var4,
-                                    var5,
-                                    var6
-                                };
+                {
+                    var1,
+                    var2,
+                    var3,
+                    var4,
+                    var5,
+                    var6
+                };
 
                 var options = new SpssOptions();
 
@@ -425,7 +426,7 @@ namespace Test.SpssLib
         private static void ReadFile(string filename, out int varCount, out int rowCount)
         {
             FileStream readFileStream = new FileStream(filename, FileMode.Open, FileAccess.Read,
-                FileShare.Read, 2048*10, FileOptions.SequentialScan);
+                FileShare.Read, 2048 * 10, FileOptions.SequentialScan);
 
             try
             {

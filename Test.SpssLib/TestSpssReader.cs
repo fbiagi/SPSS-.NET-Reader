@@ -2,21 +2,19 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpssLib.DataReader;
 using SpssLib.FileParser;
 using SpssLib.SpssDataset;
+using Xunit;
 
 namespace Test.SpssLib
 {
-    [TestClass]
     public class TestSpssReader
     {
-        [TestMethod]
-        [DeploymentItem(@"TestFiles\test.sav")]
+        [Fact]
         public void TestReadFile()
         {
-            FileStream fileStream = new FileStream("test.sav", FileMode.Open, FileAccess.Read, 
+            FileStream fileStream = new FileStream("TestFiles/test.sav", FileMode.Open, FileAccess.Read, 
                 FileShare.Read, 2048*10, FileOptions.SequentialScan);
 
             int[] varenieValues = {1, 2 ,1};
@@ -31,28 +29,28 @@ namespace Test.SpssLib
                     {
                         {0, (i, variable) =>
                         {
-                            Assert.AreEqual("varaible ñ", variable.Label, "Label mismatch");
-                            Assert.AreEqual(DataType.Numeric, variable.Type, "First file variable should be  a Number");
+                            Assert.Equal("varaible ñ", variable.Label); //Label mismatch
+                            Assert.Equal(DataType.Numeric, variable.Type); //First file variable should be  a Number
                         }},
                         {1, (i, variable) =>
                         {
-                            Assert.AreEqual("straße", variable.Label, "Label mismatch");
-                            Assert.AreEqual(DataType.Text, variable.Type, "Second file variable should be  a text");
+                            Assert.Equal("straße", variable.Label); //Label mismatch
+                            Assert.Equal(DataType.Text, variable.Type); //Second file variable should be  a text
                         }}
                     },
                     new Dictionary<int, Action<int, int, Variable, object>>
                     {
                         {0, (r, c, variable, value) =>
                         {   // All numeric values are doubles
-                            Assert.IsInstanceOfType(value, typeof(double), "First row variable should be a Number");
-                            double v = (double) value;
-                            Assert.AreEqual(varenieValues[r], v, "Int value is different");
+                            Assert.IsType<double>(value); // First row variable should be a Number
+                            var v = (double) value;
+                            Assert.Equal(varenieValues[r], v); //Int value is different
                         }},
                         {1, (r, c, variable, value) =>
                         {
-                            Assert.IsInstanceOfType(value, typeof(string), "Second row variable should be  a text");
-                            string v = (string) value;
-                            Assert.AreEqual(streetValues[r], v, "String value is different");
+                            Assert.IsType<string>(value); //Second row variable should be  a text
+                            var v = (string) value;
+                            Assert.Equal(streetValues[r], v); //String value is different
                         }}
                     });
             }
@@ -61,24 +59,25 @@ namespace Test.SpssLib
                 fileStream.Close();
             }
 
-            Assert.AreEqual(varCount, 3, "Variable count does not match");
-            Assert.AreEqual(rowCount, 3, "Rows count does not match");
+            Assert.Equal(3, varCount); // Variable count does not match
+            Assert.Equal(3, rowCount); // Rows count does not match
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(SpssFileFormatException))]
+        [Fact]
         public void TestEmptyStream()
         {
-            int varCount;
-            int rowCount;
-            ReadData(new MemoryStream(new byte[0]), out varCount, out rowCount);
+            Assert.Throws<SpssFileFormatException>(() =>
+            {
+                int varCount;
+                int rowCount;
+                ReadData(new MemoryStream(new byte[0]), out varCount, out rowCount);
+            });
         }
 
-        [TestMethod]
-        [DeploymentItem(@"TestFiles\MissingValues.sav")]
+        [Fact]
         public void TestReadMissingValuesAsNull()
         {
-            FileStream fileStream = new FileStream("MissingValues.sav", FileMode.Open, FileAccess.Read,
+            FileStream fileStream = new FileStream("TestFiles/MissingValues.sav", FileMode.Open, FileAccess.Read,
                 FileShare.Read, 2048 * 10, FileOptions.SequentialScan);
 
             double?[][] varValues =
@@ -93,21 +92,20 @@ namespace Test.SpssLib
 
             Action<int, int, Variable, object> rowCheck = (r, c, variable, value) =>
             {
-                Assert.AreEqual(varValues[c][r], value, $"Wrong value: row {r}, variable {c}");
+                Assert.Equal(varValues[c][r], value); //Wrong value: row {r}, variable {c}
             };
-
-
+            
             try
             {
                 int varCount, rowCount;
                 ReadData(fileStream, out varCount, out rowCount, new Dictionary<int, Action<int, Variable>>
                     {
-                        {0, (i, variable) => Assert.AreEqual(MissingValueType.NoMissingValues, variable.MissingValueType)},
-                        {1, (i, variable) => Assert.AreEqual(MissingValueType.OneDiscreteMissingValue, variable.MissingValueType)},
-                        {2, (i, variable) => Assert.AreEqual(MissingValueType.TwoDiscreteMissingValue, variable.MissingValueType)},
-                        {3, (i, variable) => Assert.AreEqual(MissingValueType.ThreeDiscreteMissingValue, variable.MissingValueType)},
-                        {4, (i, variable) => Assert.AreEqual(MissingValueType.Range, variable.MissingValueType)},
-                        {5, (i, variable) => Assert.AreEqual(MissingValueType.RangeAndDiscrete, variable.MissingValueType)},
+                        {0, (i, variable) => Assert.Equal(MissingValueType.NoMissingValues, variable.MissingValueType)},
+                        {1, (i, variable) => Assert.Equal(MissingValueType.OneDiscreteMissingValue, variable.MissingValueType)},
+                        {2, (i, variable) => Assert.Equal(MissingValueType.TwoDiscreteMissingValue, variable.MissingValueType)},
+                        {3, (i, variable) => Assert.Equal(MissingValueType.ThreeDiscreteMissingValue, variable.MissingValueType)},
+                        {4, (i, variable) => Assert.Equal(MissingValueType.Range, variable.MissingValueType)},
+                        {5, (i, variable) => Assert.Equal(MissingValueType.RangeAndDiscrete, variable.MissingValueType)},
                     },
                     new Dictionary<int, Action<int, int, Variable, object>>
                     {
@@ -143,8 +141,7 @@ namespace Test.SpssLib
                     Debug.WriteLine(" {0} - {1}", label.Key, label.Value);
                 }
 
-                Action<int, Variable> checkVariable;
-                if (variableValidators != null && variableValidators.TryGetValue(varCount, out checkVariable))
+                if (variableValidators != null && variableValidators.TryGetValue(varCount, out var checkVariable))
                 {
                     checkVariable(varCount, variable);
                 }
@@ -163,8 +160,7 @@ namespace Test.SpssLib
                     Debug.Write(value);
                     Debug.Write('\t');
 
-                    Action<int, int, Variable, object> checkValue;
-                    if (valueValidators != null && valueValidators.TryGetValue(varIndex, out checkValue))
+                    if (valueValidators != null && valueValidators.TryGetValue(varIndex, out var checkValue))
                     {
                         checkValue(rowCount, varIndex, variable, value);
                     }

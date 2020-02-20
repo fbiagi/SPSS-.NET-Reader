@@ -1,22 +1,20 @@
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpssLib.DataReader;
+using Xunit;
 
 namespace Test.SpssLib
 {
-    [TestClass]
     public class TestSpssCopy
     {
-        [TestMethod]
-        [DeploymentItem(@"TestFiles\cakespss1000similarvars.sav")]
+       [Fact]
         public void TestCopyFile()
         {
             using (FileStream fileStream =
-                new FileStream("cakespss1000similarvars.sav", FileMode.Open,
+                new FileStream("TestFiles/cakespss1000similarvars.sav", FileMode.Open,
                     FileAccess.Read,
                     FileShare.Read, 2048 * 10, FileOptions.SequentialScan))
             {
-                using (FileStream writeStream = new FileStream("ourcake1000similarvars.sav", FileMode.Create, FileAccess.Write))
+                using (FileStream writeStream = new FileStream("TestFiles/ourcake1000similarvars.sav", FileMode.Create, FileAccess.Write))
                 {
                     SpssReader spssDataset = new SpssReader(fileStream);
 
@@ -31,7 +29,7 @@ namespace Test.SpssLib
                     spssWriter.EndFile();
                 }
             }
-            Assert.IsTrue(true); // To check errors, set <DeleteDeploymentDirectoryAfterTestRunIsComplete> to False and open the file
+            Assert.True(true); // To check errors, set <DeleteDeploymentDirectoryAfterTestRunIsComplete> to False and open the file
         }
     }
 }
