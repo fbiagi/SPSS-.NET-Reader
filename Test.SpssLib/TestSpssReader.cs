@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using SpssLib.DataReader;
 using SpssLib.FileParser;
 using SpssLib.SpssDataset;
@@ -16,6 +17,8 @@ namespace Test.SpssLib
         {
             FileStream fileStream = new FileStream("TestFiles/test.sav", FileMode.Open, FileAccess.Read, 
                 FileShare.Read, 2048*10, FileOptions.SequentialScan);
+            
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); //To enable support of 1252 encoding
 
             int[] varenieValues = {1, 2 ,1};
             string[] streetValues = { "Landsberger Straße", "Fröbelplatz", "Bayerstraße" };
