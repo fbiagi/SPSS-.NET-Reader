@@ -108,7 +108,7 @@ Task("Default")
 Task("Master")
     .IsDependentOn("Build")
     .IsDependentOn("Tests")
-    .IsDependentOn("Pack");
+    .IsDependentOn("Pack")
     .IsDependentOn("Publish");
 
 RunTarget(target);
