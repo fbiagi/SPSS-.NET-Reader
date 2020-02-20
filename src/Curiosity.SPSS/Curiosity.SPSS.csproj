@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     
     <PackageId>Curiosity.SPSS</PackageId>
-    <Version>1.0-alfa5</Version>
+    <Version>1.0</Version>
     <Authors>TNS / SIISLtd (Maxim Markelow, Andrei Vinogradov)</Authors>
     <Company>SIIS Ltd</Company>
     <PackageLicenseUrl>https://github.com/SIIS-Ltd/Curiosity.SPSS/tree/master/LICENSE</PackageLicenseUrl>
