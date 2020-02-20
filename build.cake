@@ -44,12 +44,12 @@ Task("Build")
             settings);
     });
 
-Task("UnitTests")
+Task("Tests")
     .IsDependentOn("Build")
     .Does(() =>
     {        
         Information("UnitTests task...");
-        var projects = GetFiles("./tests/UnitTests/**/*csproj");
+        var projects = GetFiles("./tests/**/*csproj");
         foreach(var project in projects)
         {
             Information(project);
@@ -63,40 +63,9 @@ Task("UnitTests")
                 });
         }
     });
-     
-Task("IntegrationTests")
-    .IsDependentOn("Build")
-    .IsDependentOn("UnitTests")
-    .Does(() =>
-    {        
-        Information("IntegrationTests task...");
-		
-        Information("Running docker...");
-        StartProcess("docker-compose", "-f ./tests/IntegrationTests/env-compose.yml up -d");
-		Information("Running docker completed");
-		
-        var projects = GetFiles("./tests/IntegrationTests/**/*csproj");
-        foreach(var project in projects)
-        {
-            Information(project);
-            
-            DotNetCoreTest(
-                project.FullPath,
-                new DotNetCoreTestSettings()
-                {
-                    Configuration = configuration,
-                    NoBuild = false
-                });
-        }
-    })
-    .Finally(() =>
-    {  
-        Information("Stopping docker...");
-        StartProcess("docker-compose", "-f ./tests/IntegrationTests/env-compose.yml down");
-        Information("Stopping docker completed");
-    });  
     
 Task("Pack")
+    .WithCriteria(isMasterBranch)
     .Does(() =>
     {        
          Information("Packing to nupkg...");
@@ -134,8 +103,13 @@ Task("Publish")
  
 Task("Default")
     .IsDependentOn("Build")
-    .IsDependentOn("UnitTests")
-    .IsDependentOn("IntegrationTests");
+    .IsDependentOn("Tests");
+ 
+Task("Master")
+    .IsDependentOn("Build")
+    .IsDependentOn("Tests")
+    .IsDependentOn("Pack");
+    .IsDependentOn("Publish");
 
 RunTarget(target);
 
