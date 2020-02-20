@@ -13,7 +13,6 @@ var framework = "netstandard2.0";
 var isMasterBranch = StringComparer.OrdinalIgnoreCase.Equals("master",
     BuildSystem.TravisCI.Environment.Build.Branch);
 
-var nugetApiKey = Argument<string>("nugetApiKey", null);
 var nugetSource = "https://api.nuget.org/v3/index.json";
 
 
@@ -115,6 +114,9 @@ Task("Publish")
     .WithCriteria(isMasterBranch)
     .Does(() => {
     
+        var nugetApiKey = EnvironmentVariable("nugetApiKey");
+        if (string.IsNullOrEmpty(nugetApiKey))
+            throw new Exception("No NUGET API key specified");
         var pushSettings = new DotNetCoreNuGetPushSettings 
         {
             Source = nugetSource,
