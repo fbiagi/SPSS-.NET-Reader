@@ -1,0 +1,8 @@
+language: csharp
+os:
+- linux
+mono: none
+dotnet: 2.1
+sudo: required
+script:
+- ./build.sh

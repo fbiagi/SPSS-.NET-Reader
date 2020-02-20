@@ -4,18 +4,23 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     
     <PackageId>Curiosity.SPSS</PackageId>
-    <Version>1.0</Version>
+    <Version>1.0-alfa5</Version>
     <Authors>TNS / SIISLtd (Maxim Markelow, Andrei Vinogradov)</Authors>
     <Company>SIIS Ltd</Company>
-    <Licence>https://github.com/SIIS-Ltd/Curiosity.SPSS/blob/master/LICENSE/</Licence>
+    <PackageLicenseUrl>https://github.com/SIIS-Ltd/Curiosity.SPSS/tree/master/LICENSE</PackageLicenseUrl>
+    <PackageIconUrl>https://github.com/SIIS-Ltd/Curiosity.SPSS/raw/dev/siisltd.png</PackageIconUrl>
+    <Language>English</Language>
     <PackageProjectUrl>https://github.com/SIIS-Ltd/Curiosity.SPSS</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/SIIS-Ltd/Curiosity.SPSS/blob/dev/siisltd.png?raw=true</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Title>SPSS / PSPP data file .net library</Title>
     <Description>A library for reading and writing .sav files</Description>
+    <Summary>A library for reading and writing .sav files</Summary>
     <PackageReleaseNotes>https://github.com/SIIS-Ltd/Curiosity.SPSS/tree/master/CHANGELOG.md</PackageReleaseNotes>
     <PackageTags>siisltd; infrastructure; utils; sav; spss; spsslib; statistics; curiosity</PackageTags>
     <LangVersion>7.3</LangVersion>
-    
+    <Copyright>SIIS Ltd 2020</Copyright>
   </PropertyGroup>
 
 </Project>
