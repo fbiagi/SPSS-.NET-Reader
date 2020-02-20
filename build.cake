@@ -13,6 +13,10 @@ var framework = "netstandard2.0";
 var isMasterBranch = StringComparer.OrdinalIgnoreCase.Equals("master",
     BuildSystem.TravisCI.Environment.Build.Branch);
 
+var nugetApiKey = Argument<string>("nugetApiKey", null);
+var nugetSource = "https://api.nuget.org/v3/index.json";
+
+
 Task("Clean")
     .Does(() => 
     {            
@@ -106,10 +110,30 @@ Task("Pack")
           DotNetCorePack(solutionPath, settings);
     });
     
+Task("Publish")
+    .IsDependentOn("Pack")
+    .WithCriteria(isMasterBranch)
+    .Does(() => {
+    
+        var pushSettings = new DotNetCoreNuGetPushSettings 
+        {
+            Source = nugetSource,
+            ApiKey = nugetApiKey
+        };
+        Information(packages);
+        var pkgs = GetFiles($"{packages}/*.nupkg");
+        foreach(var pkg in pkgs) 
+        {
+            Information($"Publishing \"{pkg}\".");
+            DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
+        }
+    });
+
+ 
 Task("Default")
     .IsDependentOn("Build")
     .IsDependentOn("UnitTests")
     .IsDependentOn("IntegrationTests");
-    
+
 RunTarget(target);
 
