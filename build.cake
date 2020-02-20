@@ -65,7 +65,6 @@ Task("Tests")
     });
     
 Task("Pack")
-    .WithCriteria(isMasterBranch)
     .Does(() =>
     {        
          Information("Packing to nupkg...");
