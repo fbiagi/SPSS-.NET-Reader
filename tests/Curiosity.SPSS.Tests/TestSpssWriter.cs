@@ -185,7 +185,7 @@ namespace Curiosity.SPSS.Tests
             ReadFile(filename, out var varCount, out var rowCount);
 
             varCount.Should().Be(4, "Variable count does not match");
-            rowCount.Should().Be(4, "Rows count does not match");
+            rowCount.Should().Be(3, "Rows count does not match");
         }
 
 
