@@ -1,17 +1,35 @@
-# C# SPSS SAV file reader and writer library
+# Spssly
 
-This library enables to read and write SPSS data files (.sav) on .net from and to a Stream. The library is UTF-8 safe.
+C# SPSS SAV file reader and writer library.
 
-It is available as a nuget package at https://www.nuget.org/packages/SpssLib, and can be installed using the package manager or by issueing:
+A library that enables reading and writing of SPSS data files (.sav) from and to a Stream. The library is UTF-8 safe.
+
+This project is a fork of [SPSS-.NET-Reader](https://github.com/fbiagi/SPSS-.NET-Reader) by fbiagi (based on [spsslib-80132](https://archive.codeplex.com/?p=spsslib) by elmarj). 
+
+Since forking:
+- a lot of bugs have been fixed
+- code has been cleaned up
+- project ported to .NET Standard 
+- .NET Core compatible
+- other utlities added to decrease file size
+
+_This library has been battle tested in production on a few large deployments at MMR Research WorldWide._
+
+## Installation
+
+Via Package Manager:
 ```
-Install-Package SpssLib
-``` 
+Install-Package Spssly
+```
 
-It's a fork of [spsslib-80132](http://spsslib.codeplex.com/) by elmarj. Since forking we have added writing ability, solved many bugs, provided closer SPSS binary integration by following the [PSPP provided SPSS format](https://www.gnu.org/software/pspp/pspp-dev/html_node/System-File-Format.html#System-File-Format). 
+Via .NET CLI
+```
+dotnet add package Spssly
+```
 
-This library has been tested in production on a few large deployments at @tns_global.
+This library has been battle tested in production on a few large deployments at MMR Research WorldWide.
 
-### To read a data file:
+### Reading a data file:
 
 ```C#
 // Open file, can be read only and sequetial (for performance), or anything else
@@ -52,7 +70,7 @@ using (FileStream fileStream = new FileStream("data.sav", FileMode.Open, FileAcc
 }
 ```
 
-### To write a data file:
+### Writing a data file:
 ```C#
 // Create Variable list
 var variables = new List<Variable>
@@ -114,3 +132,6 @@ using (FileStream fileStream = new FileStream("data.sav", FileMode.Create, FileA
 ```
 
 If you find any bugs or have issues, please open an issue on GitHub. 
+
+## License
+Spssly is provided as-is under the MIT license. For more information see [LICENSE](LICENSE).
