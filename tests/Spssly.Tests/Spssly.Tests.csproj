@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Spssly\Spssly.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="TestFiles\cakespss1000similarvars.sav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

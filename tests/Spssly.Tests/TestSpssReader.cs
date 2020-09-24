@@ -1,4 +1,7 @@
 ﻿using NUnit.Framework;
+using Spssly.DataReader;
+using Spssly.FileParser;
+using Spssly.SpssDataset;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,10 +13,9 @@ namespace Spssly.Tests
     public class TestSpssReader
     {
         [Test]
-        [DeploymentItem(@"TestFiles\test.sav")]
         public void TestReadFile()
         {
-            FileStream fileStream = new FileStream("test.sav", FileMode.Open, FileAccess.Read, 
+            FileStream fileStream = new FileStream(@"TestFiles\test.sav", FileMode.Open, FileAccess.Read, 
                 FileShare.Read, 2048*10, FileOptions.SequentialScan);
 
             int[] varenieValues = {1, 2 ,1};
@@ -41,13 +43,13 @@ namespace Spssly.Tests
                     {
                         {0, (r, c, variable, value) =>
                         {   // All numeric values are doubles
-                            Assert.IsInstanceOfType(value, typeof(double), "First row variable should be a Number");
+                            Assert.IsInstanceOf(typeof(double), value, "First row variable should be a Number");
                             double v = (double) value;
                             Assert.AreEqual(varenieValues[r], v, "Int value is different");
                         }},
                         {1, (r, c, variable, value) =>
                         {
-                            Assert.IsInstanceOfType(value, typeof(string), "Second row variable should be  a text");
+                            Assert.IsInstanceOf(typeof(string), value, "Second row variable should be  a text");
                             string v = (string) value;
                             Assert.AreEqual(streetValues[r], v, "String value is different");
                         }}
@@ -62,20 +64,16 @@ namespace Spssly.Tests
             Assert.AreEqual(rowCount, 3, "Rows count does not match");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(SpssFileFormatException))]
+        [Test]
         public void TestEmptyStream()
         {
-            int varCount;
-            int rowCount;
-            ReadData(new MemoryStream(new byte[0]), out varCount, out rowCount);
+            Assert.Throws<SpssFileFormatException>(() =>ReadData(new MemoryStream(new byte[0]), out int varCount, out int rowCount));
         }
 
-        [TestMethod]
-        [DeploymentItem(@"TestFiles\MissingValues.sav")]
+        [Test]
         public void TestReadMissingValuesAsNull()
         {
-            FileStream fileStream = new FileStream("MissingValues.sav", FileMode.Open, FileAccess.Read,
+            FileStream fileStream = new FileStream(@"TestFiles\MissingValues.sav", FileMode.Open, FileAccess.Read,
                 FileShare.Read, 2048 * 10, FileOptions.SequentialScan);
 
             double?[][] varValues =
@@ -88,16 +86,14 @@ namespace Spssly.Tests
                 new double?[]{ 0, null, null, null, null, null, 6, null }, // Range & one value
             };
 
-            Action<int, int, Variable, object> rowCheck = (r, c, variable, value) =>
+            void rowCheck(int r, int c, Variable variable, object value)
             {
                 Assert.AreEqual(varValues[c][r], value, $"Wrong value: row {r}, variable {c}");
-            };
-
-
+            }
+            
             try
             {
-                int varCount, rowCount;
-                ReadData(fileStream, out varCount, out rowCount, new Dictionary<int, Action<int, Variable>>
+                ReadData(fileStream, out int varCount, out int rowCount, new Dictionary<int, Action<int, Variable>>
                     {
                         {0, (i, variable) => Assert.AreEqual(MissingValueType.NoMissingValues, variable.MissingValueType)},
                         {1, (i, variable) => Assert.AreEqual(MissingValueType.OneDiscreteMissingValue, variable.MissingValueType)},

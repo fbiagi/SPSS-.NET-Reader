@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using Spssly.DataReader;
 using System.IO;
 
 namespace Spssly.Tests
@@ -7,11 +8,10 @@ namespace Spssly.Tests
     public class TestSpssCopy
     {
         [Test]
-        [DeploymentItem(@"TestFiles\cakespss1000similarvars.sav")]
         public void TestCopyFile()
         {
             using (FileStream fileStream =
-                new FileStream("cakespss1000similarvars.sav", FileMode.Open,
+                new FileStream(@"TestFiles\cakespss1000similarvars.sav", FileMode.Open,
                     FileAccess.Read,
                     FileShare.Read, 2048 * 10, FileOptions.SequentialScan))
             {
