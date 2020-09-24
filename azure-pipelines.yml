@@ -1,0 +1,48 @@
+
+trigger:
+  branches:
+      include:
+      - '*'
+
+pr:
+  branches:
+      include:
+      - '*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  configuration: 'Release'
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Install .NET Core SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '3.x'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build'
+  inputs:
+    command: 'build'
+    configuration: $(configuration)
+    projects: 'src/Spssly/Spssly.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Test'
+  inputs:
+    command: 'test'
+
+- task: DotNetCoreCLI@2
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  displayName: Pack
+  inputs:
+    command: 'pack'
+    configuration: $(configuration)
+    packagesToPack: 'src/Spssly/Spssly.csproj'
+    nobuild: true
+    versioningScheme: 'off'
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Nuget Artifact
