@@ -4,6 +4,8 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,5 +25,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(SolutionDir)tests\Spssly.Tests\TestFiles\*.*&quot; &quot;$(SolutionDir)tests\Spssly.Tests\bin\Debug\netcoreapp2.2\TestFiles\&quot; /Y/D" />
+  </Target>
 
 </Project>
