@@ -20,18 +20,14 @@
 
   <ItemGroup>
     <None Update="TestFiles\cakespss1000similarvars.sav">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestFiles\MissingValues.sav">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestFiles\test.sav">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(SolutionDir)tests\Spssly.Tests\TestFiles\*.*&quot; &quot;$(SolutionDir)tests\Spssly.Tests\bin\Debug\netcoreapp2.2\TestFiles\&quot; /Y/D" />
-  </Target>
 
 </Project>

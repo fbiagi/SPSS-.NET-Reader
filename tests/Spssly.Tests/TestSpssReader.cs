@@ -15,7 +15,7 @@ namespace Spssly.Tests
         [Test]
         public void TestReadFile()
         {
-            FileStream fileStream = new FileStream(@"TestFiles\test.sav", FileMode.Open, FileAccess.Read, 
+            FileStream fileStream = new FileStream(@"TestFiles/test.sav", FileMode.Open, FileAccess.Read, 
                 FileShare.Read, 2048*10, FileOptions.SequentialScan);
 
             int[] varenieValues = {1, 2 ,1};
@@ -73,7 +73,7 @@ namespace Spssly.Tests
         [Test]
         public void TestReadMissingValuesAsNull()
         {
-            FileStream fileStream = new FileStream(@"TestFiles\MissingValues.sav", FileMode.Open, FileAccess.Read,
+            FileStream fileStream = new FileStream(@"TestFiles/MissingValues.sav", FileMode.Open, FileAccess.Read,
                 FileShare.Read, 2048 * 10, FileOptions.SequentialScan);
 
             double?[][] varValues =

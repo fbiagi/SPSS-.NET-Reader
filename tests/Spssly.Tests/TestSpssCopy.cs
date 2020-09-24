@@ -10,12 +10,11 @@ namespace Spssly.Tests
         [Test]
         public void TestCopyFile()
         {
-            using (FileStream fileStream =
-                new FileStream(@"TestFiles\cakespss1000similarvars.sav", FileMode.Open,
+            using (FileStream fileStream = new FileStream(@"TestFiles/cakespss1000similarvars.sav", FileMode.Open,
                     FileAccess.Read,
                     FileShare.Read, 2048 * 10, FileOptions.SequentialScan))
             {
-                using (FileStream writeStream = new FileStream("ourcake1000similarvars.sav", FileMode.Create, FileAccess.Write))
+                using (FileStream writeStream = new FileStream("newcake1000similarvars.sav", FileMode.Create, FileAccess.Write))
                 {
                     SpssReader spssDataset = new SpssReader(fileStream);
 
