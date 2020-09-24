@@ -65,6 +65,10 @@ namespace Spssly.FileParser.Records
                         {
                             return Encoding.GetEncoding(CharacterCode);
                         }
+                        catch (NotSupportedException)
+                        {
+                            return CodePagesEncodingProvider.Instance.GetEncoding(CharacterCode);
+                        }
                         catch (ArgumentException ex)
                         {
                             throw new NotSupportedException("SPSS machine info record character code not suported: " + CharacterCode, ex);
