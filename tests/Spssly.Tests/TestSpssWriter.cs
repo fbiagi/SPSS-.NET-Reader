@@ -414,6 +414,15 @@ namespace Spssly.Tests
                     writer.EndFile();
                 }
             }
+
+
+            FileStream readFileStream = new FileStream(filename, FileMode.Open, FileAccess.Read,
+                FileShare.Read, 2048 * 10, FileOptions.SequentialScan);
+
+            TestSpssReader.ReadData(readFileStream, out int varCount, out int rowCount);
+
+            Assert.AreEqual(varCount, 6, "Variable count does not match");
+            Assert.AreEqual(rowCount, 1, "Rows count does not match");
         }
 
         private static void ReadFile(string filename, out int varCount, out int rowCount)
