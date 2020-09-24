@@ -27,8 +27,6 @@ Via .NET CLI
 dotnet add package Spssly
 ```
 
-This library has been battle tested in production on a few large deployments at MMR Research WorldWide.
-
 ### Reading a data file:
 
 ```C#
