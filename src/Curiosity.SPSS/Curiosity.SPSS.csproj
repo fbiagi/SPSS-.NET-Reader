@@ -6,7 +6,7 @@
     <PackageId>Curiosity.SPSS</PackageId>
     <Title>SPSS / PSPP data file .NET library</Title>
     <Description>A library for reading and writing .sav files for .NET applications.</Description>
-    <Summary>A library for reading and writing .sav files for .NET applications.</Summary>
+    <Summary>A library for reading and writing .sav files for .NET applications. Does not require SPSS io DLLs to access. Based on the PSPP specifications.</Summary>
     <PackageTags>siisltd; infrastructure; utils; sav; spss; spsslib; statistics; curiosity</PackageTags>
     <Language>English</Language>
 
