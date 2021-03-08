@@ -13,6 +13,9 @@ var framework = "netstandard2.0";
 var nugetSource = "https://api.nuget.org/v3/index.json";
 var nugetApiKey = Argument<string>("nugetApiKey", null);
 
+var isMasterBranch = StringComparer.OrdinalIgnoreCase.Equals("master",
+    BuildSystem.TravisCI.Environment.Build.Branch);
+    
 Task("Clean")
     .Does(() => 
     {            
@@ -107,6 +110,32 @@ Task("Publish")
     .IsDependentOn("Pack")
     .Does(() =>
     {
+        if (isMasterBranch)
+        {
+             var pushSettings = new DotNetCoreNuGetPushSettings 
+             {
+                 Source = nugetSource,
+                 ApiKey = nugetApiKey,
+                 SkipDuplicate = true
+             };
+             
+             var pkgs = GetFiles($"{packages}/*.nupkg");
+             foreach(var pkg in pkgs) 
+             {     
+                 Information($"Publishing \"{pkg}\".");
+                 DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
+             }
+        }
+        else
+        {
+            Error("Can't publish because publishing configured only for TravisCI");
+        }
+ }); 
+ 
+Task("ForcePublish")
+    .IsDependentOn("Pack")
+    .Does(() =>
+    {
          var pushSettings = new DotNetCoreNuGetPushSettings 
          {
              Source = nugetSource,
@@ -120,8 +149,7 @@ Task("Publish")
              Information($"Publishing \"{pkg}\".");
              DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
          }
- });
- 
+ }); 
     
 Task("Default")
     .IsDependentOn("Build")
