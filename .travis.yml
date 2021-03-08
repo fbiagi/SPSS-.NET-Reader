@@ -1,8 +1,11 @@
 language: csharp
 os:
-- linux
+  - linux
 mono: none
-dotnet: 2.1
+dotnet: 3.1
 sudo: required
 script:
-- ./build.sh
+  # build and run unit + integration tests + pack + publish to NuGet
+  - ./build.sh -t TravisCI --nugetApiKey=$nugetApiKey
+services:
+  - docker

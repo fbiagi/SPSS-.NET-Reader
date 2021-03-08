@@ -1,10 +1,8 @@
-# C# SPSS SAV file reader and writer library
-
-
+# C# SPSS SAV file reader and writer library [![Build Status](https://travis-ci.org/siisltd/Curiosity.SPSS.svg?branch=master)](https://travis-ci.org/siisltd/Curiosity.SPSS) [![(License)](https://img.shields.io/github/license/siisltd/curiosity.SPSS.svg)](https://github.com/siisltd/Curiosity.SPSS/blob/master/LICENSE) [![NuGet Downloads](https://img.shields.io/nuget/dt/Curiosity.SPSS)](https://www.nuget.org/packages/Curiosity.SPSS)
 |Branch|Build status|
 |---|---|
-|master|[![Build Status](https://travis-ci.com/SIIS-Ltd/Curiosity.SPSS.svg?branch=master)](https://travis-ci.com/SIIS-Ltd/Curiosity.SPSS)|
-|develop|[![Build Status](https://travis-ci.com/SIIS-Ltd/Curiosity.SPSS.svg?branch=dev)](https://travis-ci.com/SIIS-Ltd/Curiosity.SPSS)|
+|master|[![Build Status](https://travis-ci.com/siisltd/Curiosity.SPSS.svg?branch=master)](https://travis-ci.com/siisltd/Curiosity.SPSS)|
+|develop|[![Build Status](https://travis-ci.com/siisltd/Curiosity.SPSS.svg?branch=dev)](https://travis-ci.com/siisltd/Curiosity.SPSS)|
 
 
 ![Nuget](https://img.shields.io/nuget/v/Curiosity.SPSS)

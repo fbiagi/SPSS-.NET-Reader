@@ -4,23 +4,43 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     
     <PackageId>Curiosity.SPSS</PackageId>
-    <Version>1.0</Version>
-    <Authors>TNS / SIISLtd (Maxim Markelow, Andrei Vinogradov)</Authors>
-    <Company>SIIS Ltd</Company>
-    <PackageLicenseUrl>https://github.com/SIIS-Ltd/Curiosity.SPSS/tree/master/LICENSE</PackageLicenseUrl>
-    <PackageIconUrl>https://github.com/SIIS-Ltd/Curiosity.SPSS/raw/dev/siisltd.png</PackageIconUrl>
-    <Language>English</Language>
-    <PackageProjectUrl>https://github.com/SIIS-Ltd/Curiosity.SPSS</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/SIIS-Ltd/Curiosity.SPSS/blob/dev/siisltd.png?raw=true</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Title>SPSS / PSPP data file .net library</Title>
-    <Description>A library for reading and writing .sav files</Description>
-    <Summary>A library for reading and writing .sav files</Summary>
-    <PackageReleaseNotes>https://github.com/SIIS-Ltd/Curiosity.SPSS/tree/master/CHANGELOG.md</PackageReleaseNotes>
+    <Title>SPSS / PSPP data file .NET library</Title>
+    <Description>A library for reading and writing .sav files for .NET applications.</Description>
+    <Summary>A library for reading and writing .sav files for .NET applications.</Summary>
     <PackageTags>siisltd; infrastructure; utils; sav; spss; spsslib; statistics; curiosity</PackageTags>
-    <LangVersion>7.3</LangVersion>
-    <Copyright>SIIS Ltd 2020</Copyright>
+    <Language>English</Language>
+
+    <PackageVersion>1.0.1</PackageVersion>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    
+    <Authors>TNS / SIIS Ltd (Maxim Markelow (@markeli), Andrei Vinogradov)</Authors>
+    <Company>SIIS Ltd</Company>
+    <Copyright>SIIS Ltd, 2021</Copyright>
+
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    
+    <PackageProjectUrl>https://github.com/siisltd/Curiosity.SPSS</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/siisltd/Curiosity.SPSS</RepositoryUrl>
+    <PackageReleaseNotes>https://github.com/siisltd/Curiosity.SPSS/tree/master/CHANGELOG.md</PackageReleaseNotes>
+    
+    <LangVersion>8</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <PackageIcon>siisltd.png</PackageIcon>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="..\..\siisltd.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DocumentationFile>bin\Release\Curiosity.SPSS.xml</DocumentationFile>
+  </PropertyGroup>
+  
 </Project>

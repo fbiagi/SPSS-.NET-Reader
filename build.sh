@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 
+build_date=`date +"%Y%m%d_%H%M"`
+export BUILD_DATE=$build_date
 ##########################################################################
-# Custom bootstrapper for Cake on Linux with .NET Core 2.0
-##########################################################################
+# Custom bootstrapper for Cake on Linux with .NET Core 3.1
+#########################################################################
+
 
 # Define directories.
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-echo "Script dir is $SCRIPT_DIR"
 TOOLS_DIR=$SCRIPT_DIR/tools
 TOOLS_PROJ=$TOOLS_DIR/tools.csproj
-DEFAULT_CAKE_VERSION=0.30.0
-NETCOREFRAMEWORKSDK1=netcoreapp1.1
-NETCOREFRAMEWORKSDK2=netcoreapp2
+DEFAULT_CAKE_VERSION=1.0.0
+NETCOREFRAMEWORKSDK3=netcoreapp3.1
 
 if [[ "$CAKE_VERSION" = "" ]]; then
     CAKE_VERSION=${DEFAULT_CAKE_VERSION}
@@ -38,31 +39,13 @@ SHOW_VERSION=false
 SCRIPT_ARGUMENTS=()
 
 # Parse arguments.
-echo "$@"
-#for i in "$@"; do
-#    case $1 in
-#        -s|--script) SCRIPT="$2"; shift ;;
-#        -t|--target) TARGET="$2"; shift ;;
-#        -c|--configuration) CONFIGURATION="$2"; shift ;;
-#        -v|--verbosity) VERBOSITY="$2"; shift ;;
-#        -d|--dryrun) DRYRUN="-dryrun" ;;
-#        -e|--exclusive) EXCLUSIVE="--exclusive" ; shift ;;
-#        --version) SHOW_VERSION=true ;;
-#        --) shift; SCRIPT_ARGUMENTS+=("$@"); shift ;;
-#        *) SCRIPT_ARGUMENTS+=("$1") ;;
-#    esac
-#    shift
-#done
-
-# Parse arguments.
 for i in "$@"; do
     case $1 in
         -t|--target) TARGET="$2"; shift ;;
         -c|--configuration) CONFIGURATION="$2"; shift ;;
         -v|--verbosity) VERBOSITY="$2"; shift ;;
         -d|--dryrun) DRYRUN="-dryrun" ;;
-        -k) SCRIPT_ARGUMENTS+=("$2") shift;;
-        --) SCRIPT_ARGUMENTS+=("$@"); break ;;
+        --) shift; SCRIPT_ARGUMENTS+=("$@"); break ;;
         *) SCRIPT_ARGUMENTS+=("$1") ;;
     esac
     shift
@@ -84,11 +67,7 @@ export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 dotnet --info
 
-if [[ $(dotnet --version) = 1.1.0 ]]; then
-    NETCOREFRAMEWORK=$NETCOREFRAMEWORKSDK1
-else
-    NETCOREFRAMEWORK=$NETCOREFRAMEWORKSDK2
-fi
+NETCOREFRAMEWORK=$NETCOREFRAMEWORKSDK3
 
 # Restore Cake.CoreCLR
 if [[ ! -f "$CAKE_DLL" ]]; then
@@ -107,14 +86,12 @@ fi
 
 # Start Cake
 if ${SHOW_VERSION}; then
-    exec dotnet "$CAKE_DLL" -version
+    exec dotnet "$CAKE_DLL" --version
 else
     echo "Running:" 
-    echo "${SCRIPT_ARGUMENTS}" 
     echo "Configuration: $CONFIGURATION"  
     echo "Target: $TARGET"  
     echo "EXCLUSIVE: ${EXCLUSIVE}"  
-    echo "Args: ${SCRIPT_ARGUMENTS}"  
-    dotnet "$CAKE_DLL" $SCRIPT -verbosity=$VERBOSITY -configuration=$CONFIGURATION -target=$TARGET ${EXCLUSIVE} $DRYRUN ${SCRIPT_ARGUMENTS}
+#    echo "Args: ${SCRIPT_ARGUMENTS[@]}"  
+    dotnet "$CAKE_DLL" $SCRIPT --verbosity=$VERBOSITY --configuration=$CONFIGURATION --target=$TARGET ${EXCLUSIVE} $DRYRUN ${SCRIPT_ARGUMENTS[@]}
 fi
-

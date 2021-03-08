@@ -10,11 +10,8 @@ var packages = "./artifacts/packages";
 var solutionPath = "./Curiosity.SPSS.sln";
 var framework = "netstandard2.0";
 
-var isMasterBranch = StringComparer.OrdinalIgnoreCase.Equals("master",
-    BuildSystem.TravisCI.Environment.Build.Branch);
-
 var nugetSource = "https://api.nuget.org/v3/index.json";
-
+var nugetApiKey = Argument<string>("nugetApiKey", null);
 
 Task("Clean")
     .Does(() => 
@@ -44,12 +41,11 @@ Task("Build")
             settings);
     });
 
-Task("Tests")
-    .IsDependentOn("Build")
+Task("UnitTests")
     .Does(() =>
     {        
         Information("UnitTests task...");
-        var projects = GetFiles("./tests/**/*csproj");
+        var projects = GetFiles("./tests/UnitTests/**/*csproj");
         foreach(var project in projects)
         {
             Information(project);
@@ -63,6 +59,36 @@ Task("Tests")
                 });
         }
     });
+     
+Task("IntegrationTests")
+    .Does(() =>
+    {        
+        Information("IntegrationTests task...");
+		
+        Information("Running docker...");
+        StartProcess("docker-compose", "-f ./tests/IntegrationTests/env-compose.yml up -d");
+		Information("Running docker completed");
+		
+        var projects = GetFiles("./tests/IntegrationTests/**/*csproj");
+        foreach(var project in projects)
+        {
+            Information(project);
+            
+            DotNetCoreTest(
+                project.FullPath,
+                new DotNetCoreTestSettings()
+                {
+                    Configuration = configuration,
+                    NoBuild = false
+                });
+        }
+    })
+    .Finally(() =>
+    {  
+        Information("Stopping docker...");
+        StartProcess("docker-compose", "-f ./tests/IntegrationTests/env-compose.yml down");
+        Information("Stopping docker completed");
+    });  
     
 Task("Pack")
     .Does(() =>
@@ -76,39 +102,37 @@ Task("Pack")
          
           DotNetCorePack(solutionPath, settings);
     });
-    
+ 
 Task("Publish")
     .IsDependentOn("Pack")
-    .WithCriteria(isMasterBranch)
-    .Does(() => {
-    
-        var nugetApiKey = EnvironmentVariable("nugetApiKey");
-        if (string.IsNullOrEmpty(nugetApiKey))
-            throw new Exception("No NUGET API key specified");
-        var pushSettings = new DotNetCoreNuGetPushSettings 
-        {
-            Source = nugetSource,
-            ApiKey = nugetApiKey
-        };
-        Information(packages);
-        var pkgs = GetFiles($"{packages}/*.nupkg");
-        foreach(var pkg in pkgs) 
-        {
-            Information($"Publishing \"{pkg}\".");
-            DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
-        }
-    });
-
+    .Does(() =>
+    {
+         var pushSettings = new DotNetCoreNuGetPushSettings 
+         {
+             Source = nugetSource,
+             ApiKey = nugetApiKey,
+             SkipDuplicate = true
+         };
+         
+         var pkgs = GetFiles($"{packages}/*.nupkg");
+         foreach(var pkg in pkgs) 
+         {     
+             Information($"Publishing \"{pkg}\".");
+             DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
+         }
+ });
  
+    
 Task("Default")
     .IsDependentOn("Build")
-    .IsDependentOn("Tests");
- 
-Task("Master")
+    .IsDependentOn("UnitTests")
+    .IsDependentOn("IntegrationTests");
+    
+Task("TravisCI")
     .IsDependentOn("Build")
-    .IsDependentOn("Tests")
+    .IsDependentOn("UnitTests")
+    .IsDependentOn("IntegrationTests")
     .IsDependentOn("Pack")
     .IsDependentOn("Publish");
-
+  
 RunTarget(target);
-
