@@ -28,6 +28,4 @@ jobs:
         run: ./build.sh -t Clean --exclusive
       - name: Unit tests
         run: ./build.sh -t UnitTests --exclusive
-      - name: Integration tests
-        run: ./build.sh -t IntegrationTests --exclusive
 
