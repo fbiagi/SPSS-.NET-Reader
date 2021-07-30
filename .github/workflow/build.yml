@@ -1,0 +1,33 @@
+name: Build and Test Utils
+
+on:
+  push:
+    branches: [ $default-branch, master ]
+  pull_request:
+    branches: [ $default-branch, master ]
+
+jobs:
+  build:
+
+    runs-on: [self-hosted, linux]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Clean
+      run: ./build.sh -t Clean --exclusive
+    - name: Build
+      run: ./build.sh -t Build --exclusive
+
+  tests:
+
+    runs-on: [self-hosted, linux]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Clean
+        run: ./build.sh -t Clean --exclusive
+      - name: Unit tests
+        run: ./build.sh -t UnitTests --exclusive
+      - name: Integration tests
+        run: ./build.sh -t IntegrationTests --exclusive
+

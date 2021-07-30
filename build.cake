@@ -13,18 +13,6 @@ var framework = "netstandard2.0";
 var nugetSource = "https://api.nuget.org/v3/index.json";
 var nugetApiKey = Argument<string>("nugetApiKey", null);
 
-var isMasterBranch = BuildSystem.TravisCI.IsRunningOnTravisCI 
-    ? StringComparer.OrdinalIgnoreCase.Equals("master", BuildSystem.TravisCI.Environment.Build.Branch)
-    : false;
-var isPullRequest = BuildSystem.TravisCI.IsRunningOnTravisCI
-    ? BuildSystem.TravisCI.Environment.PullRequest.IsPullRequest
-    : false;
-    
-Information("Is building on TravisCI: " + BuildSystem.TravisCI.IsRunningOnTravisCI.ToString());    
-Information("Current branch: " + BuildSystem.TravisCI.Environment.Build.Branch);    
-Information("Is current branch master: " + isMasterBranch.ToString());    
-Information("Is PullRequest: " + isPullRequest.ToString());  
-    
 Task("Clean")
     .Does(() => 
     {            
@@ -71,36 +59,6 @@ Task("UnitTests")
                 });
         }
     });
-     
-Task("IntegrationTests")
-    .Does(() =>
-    {        
-        Information("IntegrationTests task...");
-		
-        Information("Running docker...");
-        StartProcess("docker-compose", "-f ./tests/IntegrationTests/env-compose.yml up -d");
-		Information("Running docker completed");
-		
-        var projects = GetFiles("./tests/IntegrationTests/**/*csproj");
-        foreach(var project in projects)
-        {
-            Information(project);
-            
-            DotNetCoreTest(
-                project.FullPath,
-                new DotNetCoreTestSettings()
-                {
-                    Configuration = configuration,
-                    NoBuild = false
-                });
-        }
-    })
-    .Finally(() =>
-    {  
-        Information("Stopping docker...");
-        StartProcess("docker-compose", "-f ./tests/IntegrationTests/env-compose.yml down");
-        Information("Stopping docker completed");
-    });  
     
 Task("Pack")
     .Does(() =>
@@ -119,27 +77,20 @@ Task("Publish")
     .IsDependentOn("Pack")
     .Does(() =>
     {
-        if (isMasterBranch && !isPullRequest)
-        {
-             var pushSettings = new DotNetCoreNuGetPushSettings 
-             {
-                 Source = nugetSource,
-                 ApiKey = nugetApiKey,
-                 SkipDuplicate = true
-             };
-             
-             var pkgs = GetFiles($"{packages}/*.nupkg");
-             foreach(var pkg in pkgs) 
-             {     
-                 Information($"Publishing \"{pkg}\".");
-                 DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
-             }
-        }
-        else
-        {
-            Error("Can't publish because publishing configured only for TravisCI and master branch and not pull requests.");
-        }
- }); 
+         var pushSettings = new DotNetCoreNuGetPushSettings
+         {
+             Source = nugetSource,
+             ApiKey = nugetApiKey,
+             SkipDuplicate = true
+         };
+
+         var pkgs = GetFiles($"{packages}/*.nupkg");
+         foreach(var pkg in pkgs)
+         {
+             Information($"Publishing \"{pkg}\".");
+             DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
+         }
+ });
  
 Task("ForcePublish")
     .IsDependentOn("Pack")
@@ -162,13 +113,11 @@ Task("ForcePublish")
     
 Task("Default")
     .IsDependentOn("Build")
-    .IsDependentOn("UnitTests")
-    .IsDependentOn("IntegrationTests");
+    .IsDependentOn("UnitTests");
     
-Task("TravisCI")
+Task("GitHub")
     .IsDependentOn("Build")
     .IsDependentOn("UnitTests")
-    .IsDependentOn("IntegrationTests")
     .IsDependentOn("Pack")
     .IsDependentOn("Publish");
   
