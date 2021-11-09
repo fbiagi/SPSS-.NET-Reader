@@ -171,6 +171,8 @@ namespace Curiosity.SPSS.FileParser
 			_writer.Flush();
 			_writer.Close();
 
+			_output.Flush();
+
             if (_disposeStream)
             {
                 _output.Dispose();
