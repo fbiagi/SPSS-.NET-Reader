@@ -25,11 +25,12 @@ namespace Curiosity.SPSS.DataReader
         /// <param name="output">The binary stream to write to</param>
         /// <param name="variables">The variable collection to use</param>
         /// <param name="options"></param>
-		public SpssWriter(Stream output, ICollection<Variable> variables, SpssOptions options = null)
-			: this(new SavFileWriter(output), variables, options) { }
-
+        /// <param name="disposeStream">Flag whether to leave stream open or dispose</param>
+        public SpssWriter(Stream output, ICollection<Variable> variables, SpssOptions options = null, bool disposeStream = true)
+			: this(new SavFileWriter(output, disposeStream), variables, options) { }
+         
 		private SpssWriter(SavFileWriter output, ICollection<Variable> variables, SpssOptions options = null)
-		{
+        {
 			_output = output;
 			_variables = variables.ToList();
             _options = options ?? _options;
