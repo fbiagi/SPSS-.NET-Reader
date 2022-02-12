@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    
+    <PackageId>Curiosity.SPSS</PackageId>
+    <Title>SPSS / PSPP data file .NET library</Title>
+    <Description>A library for reading and writing .sav files for .NET applications.</Description>
+    <Summary>A library for reading and writing .sav files for .NET applications. Does not require SPSS io DLLs to access. Based on the PSPP specifications.</Summary>
+    <PackageTags>siisltd; infrastructure; utils; sav; spss; spsslib; statistics; curiosity</PackageTags>
+    <Language>English</Language>
+
+    <PackageVersion>1.0.1</PackageVersion>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    
+    <Authors>TNS / SIIS Ltd (Maxim Markelow (@markeli), Andrei Vinogradov)</Authors>
+    <Company>SIIS Ltd</Company>
+    <Copyright>SIIS Ltd, 2021</Copyright>
+
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    
+    <PackageProjectUrl>https://github.com/siisltd/Curiosity.SPSS</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/siisltd/Curiosity.SPSS</RepositoryUrl>
+    <PackageReleaseNotes>https://github.com/siisltd/Curiosity.SPSS/tree/master/CHANGELOG.md</PackageReleaseNotes>
+    
+    <LangVersion>8</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <PackageIcon>siisltd.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\siisltd.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DocumentationFile>bin\Release\Curiosity.SPSS.xml</DocumentationFile>
+  </PropertyGroup>
+  
+</Project>

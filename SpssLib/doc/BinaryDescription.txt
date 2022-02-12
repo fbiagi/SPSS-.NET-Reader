@@ -1,1 +1,0 @@
-﻿http://www.gnu.org/software/pspp/pspp-dev/html_node/System-File-Format.html

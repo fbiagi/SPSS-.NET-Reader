@@ -1,15 +1,15 @@
-# C# SPSS SAV file reader and writer library
+# C# SPSS SAV file reader and writer library [![Build and Test](https://github.com/siisltd/Curiosity.SPSS/actions/workflows/build.yml/badge.svg)](https://github.com/siisltd/Curiosity.SPSS/actions/workflows/build.yml) [![(License)](https://img.shields.io/github/license/siisltd/curiosity.SPSS.svg)](https://github.com/siisltd/Curiosity.SPSS/blob/master/LICENSE) [![NuGet Downloads](https://img.shields.io/nuget/dt/Curiosity.SPSS)](https://www.nuget.org/packages/Curiosity.SPSS) ![Nuget](https://img.shields.io/nuget/v/Curiosity.SPSS)
 
 This library enables to read and write SPSS data files (.sav) on .net from and to a Stream. The library is UTF-8 safe.
 
-It is available as a nuget package at https://www.nuget.org/packages/SpssLib, and can be installed using the package manager or by issueing:
+It is available as a nuget package at https://www.nuget.org/packages/Curiosity.SPSS, and can be installed using the package manager or by issueing:
 ```
-Install-Package SpssLib
+Install-Package Curiosity.SPSS
 ``` 
+It's a fork of [SPSS-.NET-Reader](https://github.com/fbiagi/SPSS-.NET-Reader) by fbiagi (based on [spsslib-80132](http://spsslib.codeplex.com/) by elmarj). 
+Since forking we have added writing ability, solved many bugs, provided closer SPSS binary integration by following the [PSPP provided SPSS format](https://www.gnu.org/software/pspp/pspp-dev/html_node/System-File-Format.html#System-File-Format). 
 
-It's a fork of [spsslib-80132](http://spsslib.codeplex.com/) by elmarj. Since forking we have added writing ability, solved many bugs, provided closer SPSS binary integration by following the [PSPP provided SPSS format](https://www.gnu.org/software/pspp/pspp-dev/html_node/System-File-Format.html#System-File-Format). 
-
-This library has been tested in production on a few large deployments at @tns_global.
+This library has been tested in production on a few large deployments at @SIIS-Ltd.
 
 ### To read a data file:
 
@@ -114,3 +114,7 @@ using (FileStream fileStream = new FileStream("data.sav", FileMode.Create, FileA
 ```
 
 If you find any bugs or have issues, please open an issue on GitHub. 
+
+## SAV file format
+
+Binary description of `*.sav` file format is available here: http://www.gnu.org/software/pspp/pspp-dev/html_node/System-File-Format.html.
